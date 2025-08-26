@@ -1,0 +1,5 @@
+name: phraser
+
+packages:
+  - packages/**
+  - apps/**

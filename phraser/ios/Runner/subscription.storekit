@@ -1,0 +1,54 @@
+{
+  "identifier" : "D73880EB",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6447237178",
+    "_developerTeamID" : "XJ4Z3BM42J",
+    "_lastSynchronizedDate" : 702699801.32146895
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21306892",
+      "localizations" : [
+
+      ],
+      "name" : "Monthly Subscription",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "1.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6447476358",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Get full access to all the features.",
+              "displayName" : "Monthly Subscription",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "basic_monthly_subscription",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "MONTLY",
+          "subscriptionGroupID" : "21306892",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}
