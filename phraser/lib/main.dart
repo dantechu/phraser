@@ -20,20 +20,30 @@ import 'package:phraser/util/helper/get_di.dart' as di;
 import 'payments/view_model/in_app_purchase_view_model.dart';
 
 void main() async{
-
+  WidgetsFlutterBinding.ensureInitialized();
+  await _initApp();
+  
   runZonedGuarded( () async {
-    WidgetsFlutterBinding.ensureInitialized();
-    await _initApp();
     runApp(const MyApp());
   } ,
-    (error, stack) =>
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true));
+    (error, stack) {
+      try {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      } catch (e) {
+        debugPrint('Failed to record error to Crashlytics: $error');
+      }
+    });
 }
 
 
 Future<void> _initApp() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('Firebase initialization failed: $e');
+    // Continue without Firebase if configuration is missing
+  }
   Hive.init(appDocumentDir.path);
   await di.init();
   Get.put(InAppPurchaseViewModel());
@@ -49,7 +59,11 @@ Future<void> _initApp() async {
   await NotificationHelper.instance.initializeLocalNotifications();
   await NotificationConfigService.instance.initialize();
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  try {
+    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  } catch (e) {
+    debugPrint('Failed to set up Crashlytics error handler: $e');
+  }
   AppConfigService.instance.init();
  // initializeApplovinMAX();
 }
