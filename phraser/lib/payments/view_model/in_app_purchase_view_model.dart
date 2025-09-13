@@ -172,7 +172,7 @@ class InAppPurchaseViewModel extends GetxController {
           productDetails: productDetails,
           changeSubscriptionParam: oldSubscription != null
               ? ChangeSubscriptionParam(
-              oldPurchaseDetails: oldSubscription, prorationMode: ProrationMode.immediateWithTimeProration)
+              oldPurchaseDetails: oldSubscription,)
               : null);
       inAppPurchaseInstance.buyNonConsumable(purchaseParam: purchaseParam);
     }

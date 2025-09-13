@@ -29,7 +29,7 @@ class AIInteractionsController extends GetxController {
     }
   }
 
-  Future<Result<MessageDataModel, Object>> fetchAIResponse(MessageDataModel message, String characterId, String? language) async {
+  Future<Result<MessageDataModel, Exception>> fetchAIResponse(MessageDataModel message, String characterId, String? language) async {
     _messages.add(message);
     final configs = AIRemoteConfigDataModel.fromJson({
       "base_url": "https://api.openai.com/v1/chat/completions",

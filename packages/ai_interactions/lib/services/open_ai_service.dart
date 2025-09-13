@@ -8,7 +8,7 @@ import 'package:core/core.dart';
 import 'package:http/http.dart';
 
 class OpenAIService {
-  Future<Result<AIResponseDataModel, Object>> fetchAIResponse(
+  Future<Result<AIResponseDataModel, Exception>> fetchAIResponse(
       {required AIRemoteConfigDataModel configs, required List<MessageDataModel> messages}) async {
     Map<String, String> headers = {'Content-Type': configs.contentType, 'Authorization': 'Bearer ${configs.apiKey.replaceAll('22222', '-')}'};
     try {
@@ -16,10 +16,10 @@ class OpenAIService {
       if (response.statusCode == 200) {
         return Success(AIResponseDataModel.fromJson(jsonDecode(utf8convert(response.body))));
       } else {
-        return Failure(response.statusCode.toString());
+        return Failure(Exception(response.statusCode.toString()));
       }
     } catch (e, s) {
-      return Failure('$s');
+      return Failure(Exception('$s'));
     }
   }
 

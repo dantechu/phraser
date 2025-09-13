@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/material.dart' hide CarouselController;
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/ads/consts/ads_helper.dart';
 import 'package:phraser/consts/text_themes.dart';

@@ -75,7 +75,7 @@ class _AIInteractionExampleState extends State<AIInteractionExample> {
     );
   }
 
-  FutureBuilder<Result<MessageDataModel, Object>> _fetchAiResponse() {
+  FutureBuilder<Result<MessageDataModel, Exception>> _fetchAiResponse() {
     return FutureBuilder(
       future: Get.find<AIInteractionsController>().fetchAIResponse(
           //send a dummy message to the AI

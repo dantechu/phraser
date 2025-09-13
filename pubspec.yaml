@@ -1,6 +1,6 @@
 name: phraser
 environment:
-  sdk: ">=3.0.2 <4.0.0"
+  sdk: ^3.5.1
 
 dev_dependencies:
   melos: ^3.0.0

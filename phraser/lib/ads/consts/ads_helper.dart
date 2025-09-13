@@ -1,4 +1,3 @@
-import 'package:applovin_max/applovin_max.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:phraser/ads/consts/ads_constants.dart';

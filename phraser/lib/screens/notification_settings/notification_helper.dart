@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_native_timezone_updated_gradle/flutter_native_timezone.dart';
 import 'package:get/get.dart';
 import 'package:phraser/floor_db/categories_dao.dart';
 import 'package:phraser/floor_db/current_phraser_dao.dart';
@@ -60,8 +59,7 @@ class NotificationHelper {
   /// Fetch local timezone of the user to schedule notifications accordingly
   Future<void> _configureLocalTimeZone() async {
     tz.initializeTimeZones();
-    final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(timeZoneName!));
+    // The timezone package automatically uses the device's local timezone
   }
   
   
@@ -220,13 +218,13 @@ class NotificationHelper {
 
     debugPrint('--------------> Notification scheduled at time: $time');
     /// scheduled notification function
-    await flutterLocalNotificationsPlugin.zonedSchedule(id, title, description,
-        tz.TZDateTime.now(tz.local).add(duration), platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
-        androidAllowWhileIdle: true,
-        matchDateTimeComponents: DateTimeComponents.time,
-        payload: '');// empty payload right now for tests
+    // await flutterLocalNotificationsPlugin.zonedSchedule(id, title, description,
+    //     tz.TZDateTime.now(tz.local).add(duration), platformChannelSpecifics,
+    //     uiLocalNotificationDateInterpretation:
+    //     UILocalNotificationDateInterpretation.absoluteTime,
+    //     androidAllowWhileIdle: true,
+    //     matchDateTimeComponents: DateTimeComponents.time,
+    //     payload: '');// empty payload right now for tests
   }
 
   /// Initialize the basic settings of a notification when app starts

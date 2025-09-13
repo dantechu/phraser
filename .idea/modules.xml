@@ -5,7 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/packages/ai_interactions/melos_ai_interactions.iml" filepath="$PROJECT_DIR$/packages/ai_interactions/melos_ai_interactions.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/coins/melos_coins.iml" filepath="$PROJECT_DIR$/packages/coins/melos_coins.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/core/melos_core.iml" filepath="$PROJECT_DIR$/packages/core/melos_core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/melos_revive_bot.iml" filepath="$PROJECT_DIR$/melos_revive_bot.iml" />
+      <module fileurl="file://$PROJECT_DIR$/melos_phraser.iml" filepath="$PROJECT_DIR$/melos_phraser.iml" />
     </modules>
   </component>
 </project>

@@ -1,5 +1,6 @@
 library core;
 
+import 'controllers/connectivity_controller.dart';
 import 'core.dart';
 
 //Local Packages

@@ -13,7 +13,7 @@
     },
     {
       "name": "melos",
-      "version": "3.1.1",
+      "version": "3.4.0",
       "dependencies": [
         "ansi_styles",
         "args",
@@ -41,7 +41,7 @@
     },
     {
       "name": "yaml_edit",
-      "version": "2.1.1",
+      "version": "2.2.2",
       "dependencies": [
         "collection",
         "meta",
@@ -51,7 +51,7 @@
     },
     {
       "name": "yaml",
-      "version": "3.1.2",
+      "version": "3.1.3",
       "dependencies": [
         "collection",
         "source_span",
@@ -60,7 +60,7 @@
     },
     {
       "name": "string_scanner",
-      "version": "1.2.0",
+      "version": "1.4.1",
       "dependencies": [
         "source_span"
       ]
@@ -87,10 +87,9 @@
     },
     {
       "name": "pub_semver",
-      "version": "2.1.4",
+      "version": "2.2.0",
       "dependencies": [
-        "collection",
-        "meta"
+        "collection"
       ]
     },
     {
@@ -111,12 +110,12 @@
     },
     {
       "name": "platform",
-      "version": "3.1.2",
+      "version": "3.1.6",
       "dependencies": []
     },
     {
       "name": "path",
-      "version": "1.8.3",
+      "version": "1.9.1",
       "dependencies": []
     },
     {
@@ -126,28 +125,29 @@
     },
     {
       "name": "meta",
-      "version": "1.10.0",
+      "version": "1.17.0",
       "dependencies": []
     },
     {
       "name": "http",
-      "version": "1.1.0",
+      "version": "1.5.0",
       "dependencies": [
         "async",
         "http_parser",
-        "meta"
+        "meta",
+        "web"
       ]
     },
     {
       "name": "graphs",
-      "version": "2.3.1",
+      "version": "2.3.2",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "glob",
-      "version": "2.1.2",
+      "version": "2.1.3",
       "dependencies": [
         "async",
         "collection",
@@ -166,17 +166,17 @@
     },
     {
       "name": "conventional_commit",
-      "version": "0.6.0+1",
+      "version": "0.6.1+1",
       "dependencies": []
     },
     {
       "name": "collection",
-      "version": "1.18.0",
+      "version": "1.19.1",
       "dependencies": []
     },
     {
       "name": "cli_util",
-      "version": "0.4.0",
+      "version": "0.4.2",
       "dependencies": [
         "meta",
         "path"
@@ -184,7 +184,7 @@
     },
     {
       "name": "cli_launcher",
-      "version": "0.3.1",
+      "version": "0.3.2+1",
       "dependencies": [
         "path",
         "yaml"
@@ -192,7 +192,7 @@
     },
     {
       "name": "args",
-      "version": "2.4.2",
+      "version": "2.7.0",
       "dependencies": []
     },
     {
@@ -202,7 +202,7 @@
     },
     {
       "name": "source_span",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "dependencies": [
         "collection",
         "path",
@@ -228,14 +228,14 @@
     },
     {
       "name": "json_annotation",
-      "version": "4.8.1",
+      "version": "4.9.0",
       "dependencies": [
         "meta"
       ]
     },
     {
       "name": "io",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "dependencies": [
         "meta",
         "path",
@@ -244,27 +244,32 @@
     },
     {
       "name": "charcode",
-      "version": "1.3.1",
+      "version": "1.4.0",
       "dependencies": []
     },
     {
       "name": "stack_trace",
-      "version": "1.11.1",
+      "version": "1.12.1",
       "dependencies": [
         "path"
       ]
     },
     {
       "name": "async",
-      "version": "2.11.0",
+      "version": "2.13.0",
       "dependencies": [
         "collection",
         "meta"
       ]
     },
     {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
       "name": "http_parser",
-      "version": "4.0.2",
+      "version": "4.1.2",
       "dependencies": [
         "collection",
         "source_span",
@@ -274,19 +279,19 @@
     },
     {
       "name": "term_glyph",
-      "version": "1.2.1",
+      "version": "1.2.2",
       "dependencies": []
     },
     {
       "name": "quiver",
-      "version": "3.2.1",
+      "version": "3.2.2",
       "dependencies": [
         "matcher"
       ]
     },
     {
       "name": "matcher",
-      "version": "0.12.16",
+      "version": "0.12.17",
       "dependencies": [
         "async",
         "meta",
@@ -297,14 +302,14 @@
     },
     {
       "name": "typed_data",
-      "version": "1.3.2",
+      "version": "1.4.0",
       "dependencies": [
         "collection"
       ]
     },
     {
       "name": "test_api",
-      "version": "0.6.1",
+      "version": "0.7.7",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -319,14 +324,14 @@
     },
     {
       "name": "stream_channel",
-      "version": "2.1.2",
+      "version": "2.1.4",
       "dependencies": [
         "async"
       ]
     },
     {
       "name": "boolean_selector",
-      "version": "2.1.1",
+      "version": "2.1.2",
       "dependencies": [
         "source_span",
         "string_scanner"

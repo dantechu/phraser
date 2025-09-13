@@ -1,7 +1,5 @@
 import 'dart:async';
-
 import 'package:ai_interactions/ai_interactions.dart';
-import 'package:applovin_max/applovin_max.dart';
 import 'package:coins/coins.dart';
 import 'package:core/core.dart';
 import 'package:flutter/material.dart';
@@ -53,20 +51,20 @@ Future<void> _initApp() async {
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   AppConfigService.instance.init();
-  initializeApplovinMAX();
+ // initializeApplovinMAX();
 }
 
 
-Future<void> initializeApplovinMAX() async {
-  try {
-    Map? configuration = await AppLovinMAX.initialize('MEtWbKQhnD0RV--92OVfkch9qIpf8efqhgm0MQe018hI8NX-5U4H4bBNhWUmM4aTO2DqJ2La-v2_zG3IDIZQo8');
-    if (configuration != null) {
-      debugPrint("AppLovinMAX Initialized:");
-    }
-  } catch (e) {
-    debugPrint('Error in initializing AppLovinMAX SDK : $e');
-  }
-}
+// Future<void> initializeApplovinMAX() async {
+//   try {
+//     Map? configuration = await AppLovinMAX.initialize('MEtWbKQhnD0RV--92OVfkch9qIpf8efqhgm0MQe018hI8NX-5U4H4bBNhWUmM4aTO2DqJ2La-v2_zG3IDIZQo8');
+//     if (configuration != null) {
+//       debugPrint("AppLovinMAX Initialized:");
+//     }
+//   } catch (e) {
+//     debugPrint('Error in initializing AppLovinMAX SDK : $e');
+//   }
+// }
 
 
 class MyApp extends StatelessWidget {

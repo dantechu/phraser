@@ -8,14 +8,14 @@ class AIInteractionsUseCases {
   final OpenAIService service;
   AIInteractionsUseCases(this.service);
 
-  Future<Result<AIResponseDataModel, Object>> fetchAIResponse(
+  Future<Result<AIResponseDataModel, Exception>> fetchAIResponse(
       {required AIRemoteConfigDataModel configs, required List<MessageDataModel> messages}) async {
     final response = await service.fetchAIResponse(configs: configs, messages: _sendOldLastTenMessages(messages));
 
     if (response.isSuccess) {
       return Success(response.success);
     } else {
-      return Failure(response.failure);
+      return Failure(Exception(response.failure.toString()));
     }
   }
 

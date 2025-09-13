@@ -6,7 +6,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.2.3+7
 
 environment:
-  sdk: ">=2.16.1 <3.0.0"
+  sdk: ^3.5.1
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -17,43 +17,43 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  applovin_max: ^3.3.0
+  #applovin_max: ^3.3.0
   cupertino_icons: ^1.0.2
-  colorful_safe_area: ^0.3.0
+  colorful_safe_area: ^1.0.0
   get: ^4.6.1
   get_storage: ^2.0.3
-  screenshot: ^2.1.0
+  screenshot: ^3.0.0
   esys_flutter_share_plus: ^2.1.0
-  validators2: ^3.0.0
-  share_plus: ^4.0.3
+  validators2: ^5.0.0
+  share_plus: ^12.0.0
   fluttertoast: ^8.0.9
   font_awesome_flutter: ^10.1.0
-  flutter_email_sender: ^5.1.0
-  package_info_plus: ^4.1.0
+  flutter_email_sender: ^8.0.0
+  package_info_plus: ^9.0.0
   floor: ^1.2.0
-  intl: ^0.17.0
-  google_mobile_ads: ^3.1.0
-  google_fonts: ^4.0.4
-  firebase_core: ^2.7.0
-  firebase_database: ^10.0.14
-  nb_utils: ^4.5.2
+  intl: ^0.20.2
+  google_mobile_ads: ^6.0.0
+  google_fonts: ^6.3.1
+  firebase_core: ^4.1.0
+  firebase_database: ^12.0.1
+  nb_utils: ^7.1.8
   cached_network_image:
-  http: ^0.13.4
-  dio: ^4.0.6
+  http: ^1.5.0
+  dio: ^5.9.0
   shared_preferences: ^2.0.15
-  carousel_slider: ^4.1.1
+  carousel_slider: ^5.1.1
   modal_progress_hud_alt: ^1.0.0
   url_launcher: ^6.1.10
-  rate_my_app: ^1.1.4
+  rate_my_app: ^2.3.2
   in_app_purchase: ^3.1.5
-  in_app_purchase_android: ^0.2.4+3
-  flutter_local_notifications: ^13.0.0
+  in_app_purchase_android: ^0.4.0+4
+  flutter_local_notifications: ^19.4.2
   hive: ^2.2.3
-  flutter_secure_storage: ^8.0.0
+  flutter_secure_storage: ^9.2.4
   path_provider: ^2.0.14
-  flutter_native_timezone_updated_gradle: ^2.0.3
-  permission_handler: ^10.2.0
-  device_info_plus: ^8.2.2
+  timezone: ^0.10.1
+  permission_handler: ^12.0.1
+  device_info_plus: ^12.1.0
   image_picker:
   core:
     path: ../packages/core/
@@ -74,7 +74,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^1.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
