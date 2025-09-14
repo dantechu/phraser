@@ -149,16 +149,43 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
     _updateNotificationInPreferences(_notificationsModel!);
   }
 
-  _updateNotificationInPreferences(SingleCustomNotificationModel notificationModel) {
-    final notificationsList = CustomNotificationsModel.fromRawJson(
-        Preferences.instance.customNotifications);
-
-    notificationsList.notificationsList.removeWhere((element) =>
-    element.notificationType == widget.notificationKey.toString());
-
-    notificationsList.notificationsList.add(notificationModel);
-
-    Preferences.instance.customNotifications = notificationsList.toRawJson();
+  _updateNotificationInPreferences(SingleCustomNotificationModel notificationModel) async {
+    try {
+      // Save to the new notification service
+      await NotificationConfigService.instance.saveTimePeriodNotification(notificationModel);
+      
+      // Also update the legacy preferences system for compatibility
+      try {
+        CustomNotificationsModel? notificationsList;
+        try {
+          notificationsList = CustomNotificationsModel.fromRawJson(Preferences.instance.customNotifications);
+        } catch (e) {
+          // Create new model if parsing fails
+          notificationsList = CustomNotificationsModel(notificationsList: []);
+        }
+        
+        // Remove existing notification for this time period
+        notificationsList.notificationsList.removeWhere((element) =>
+        element.notificationType == widget.notificationKey.toString());
+        
+        // Add the updated notification
+        notificationsList.notificationsList.add(notificationModel);
+        
+        // Save to legacy preferences
+        Preferences.instance.customNotifications = notificationsList.toRawJson();
+        
+      } catch (e) {
+        debugPrint('Error updating legacy preferences: $e');
+        // Create new preferences entry
+        final newNotificationsList = CustomNotificationsModel(notificationsList: [notificationModel]);
+        Preferences.instance.customNotifications = newNotificationsList.toRawJson();
+      }
+      
+      debugPrint('Updated ${widget.notificationKey} notification settings successfully');
+      
+    } catch (e) {
+      debugPrint('Error updating notification preferences: $e');
+    }
   }
 
 

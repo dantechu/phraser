@@ -109,33 +109,50 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
 
   Future<void> _savePremiumSettings() async {
-    await NotificationHelper.instance.cancelAllNotifications();
-    Fluttertoast.showToast(msg: 'Notification settings saved!');
-    final currentDay = DateTime.now().weekday;
-    CustomNotificationsModel notificationsData = CustomNotificationsModel.fromRawJson(Preferences.instance.customNotifications);
+    try {
+      debugPrint('Starting custom notification settings save...');
+      
+      // Get saved custom notification settings
+      CustomNotificationsModel? customNotifications;
+      
+      try {
+        customNotifications = CustomNotificationsModel.fromRawJson(Preferences.instance.customNotifications);
+      } catch (e) {
+        debugPrint('No custom notifications found or error parsing: $e');
+        // Try to get from the new notification service
+        customNotifications = NotificationConfigService.instance.customNotificationDetails;
+      }
+      
+      if (customNotifications == null || customNotifications.notificationsList.isEmpty) {
+        debugPrint('No custom notification settings to save');
+        Fluttertoast.showToast(msg: 'No notification settings configured yet!');
+        return;
+      }
 
+      // Use our new professional notification system
+      await NotificationHelper.instance.reScheduleProNotifications(
+        customNotifications: customNotifications
+      );
 
+      // Save to both storage systems for compatibility
+      NotificationConfigService.instance.customNotificationDetails = customNotifications;
+      Preferences.instance.customNotifications = customNotifications.toRawJson();
 
-    await Future.forEach(notificationsData.notificationsList, (final SingleCustomNotificationModel notificationTime) async {
+      // Show success message
+      Fluttertoast.showToast(msg: 'Custom notification settings saved successfully!');
+      debugPrint('Custom notification settings saved and scheduled successfully');
 
-                 debugPrint('---> Scheduling notifications for: ${notificationTime.notificationType}');
-                TimeOfDay _startTime = _convertStringToTimeOfDay(notificationTime.startAt.toString());
-                TimeOfDay _endTime = _convertStringToTimeOfDay(notificationTime.endAt.toString());
-
-
-                String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
-                String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
-                String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
-                String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
-                NotificationsModel model =
-                NotificationsModel(
-                    startAt: '$startHour:$startMinute',
-                    endAt: '$endtHour:$endMinute',
-                    frequency: notificationTime.frequency!.toInt(), notificationData: ['notification 1','notification 2', 'notification 2']);
-                NotificationConfigService.instance.notificationDetails = model;
-                await  NotificationHelper.instance.reScheduleNotifications(categoriesList: notificationTime.notificationCategories);
-    });
-
+      // Navigate back if needed
+      if (widget.willPop) {
+        Navigator.pop(context);
+      } else {
+        Get.offAllNamed(RouteHelper.phraserScreen);
+      }
+      
+    } catch (e) {
+      debugPrint('Error saving custom notification settings: $e');
+      Fluttertoast.showToast(msg: 'Error saving settings: $e');
+    }
   }
 
 
