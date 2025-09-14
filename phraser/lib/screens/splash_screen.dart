@@ -9,6 +9,7 @@ import 'package:phraser/util/Floor_db.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/utils.dart';
+import 'package:phraser/main.dart' as app_main;
 
 import '../services/view_model/categories_list_view_model.dart';
 
@@ -57,7 +58,9 @@ class _SplashScreenState extends State<SplashScreen> {
           await getCurrentPhrasersList();
           testPrint('current phrasersList size is: ${DataRepository().currentPhrasersList.length}');
           await Future.delayed(Duration(seconds: 3));
-          Get.offAllNamed(RouteHelper.phraserScreen);
+          
+          // Check if app was launched from a notification (cold start)
+          await _handleColdStartNotification();
          }
       });
 
@@ -85,6 +88,37 @@ class _SplashScreenState extends State<SplashScreen> {
       DataRepository().currentPhrasersList = await phrasersDAO.getAllCurrentPhrasers();
     } catch (e) {
       debugPrint('---> unable to fetch current phrasers');
+    }
+  }
+
+  /// Handle cold start notification navigation
+  Future<void> _handleColdStartNotification() async {
+    try {
+      final launchDetails = app_main.getLaunchNotificationDetails();
+      
+      if (launchDetails?.didNotificationLaunchApp == true) {
+        final payload = launchDetails?.notificationResponse?.payload;
+        debugPrint('Cold start detected with payload: $payload');
+        
+        // Clear the launch notification so it doesn't trigger again
+        app_main.clearLaunchNotificationDetails();
+        
+        // Handle the notification payload
+        if (payload != null && payload.isNotEmpty) {
+          // Let notification helper handle the navigation
+          NotificationHelper.handleColdStartNotification(payload);
+        } else {
+          // No valid payload, navigate to main screen
+          Get.offAllNamed(RouteHelper.phraserScreen);
+        }
+      } else {
+        // Normal app launch, navigate to main screen
+        Get.offAllNamed(RouteHelper.phraserScreen);
+      }
+    } catch (e) {
+      debugPrint('Error handling cold start notification: $e');
+      // Fallback: navigate to main screen
+      Get.offAllNamed(RouteHelper.phraserScreen);
     }
   }
 

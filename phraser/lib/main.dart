@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:ai_interactions/ai_interactions.dart';
 import 'package:coins/coins.dart';
 import 'package:core/core.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -18,6 +20,15 @@ import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/helper/get_di.dart' as di;
 
 import 'payments/view_model/in_app_purchase_view_model.dart';
+
+// Global variable to store notification that launched the app
+NotificationAppLaunchDetails? _launchNotificationDetails;
+
+// Getter to access launch notification from anywhere in the app
+NotificationAppLaunchDetails? getLaunchNotificationDetails() => _launchNotificationDetails;
+
+// Clear the launch notification after handling it
+void clearLaunchNotificationDetails() => _launchNotificationDetails = null;
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +69,12 @@ Future<void> _initApp() async {
       ?.createNotificationChannel(channel);
   await NotificationHelper.instance.initializeLocalNotifications();
   await NotificationConfigService.instance.initialize();
+  
+  // Check if app was launched from a notification (cold start)
+  _launchNotificationDetails = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  if (_launchNotificationDetails?.didNotificationLaunchApp == true) {
+    debugPrint('App launched from notification: ${_launchNotificationDetails?.notificationResponse?.payload}');
+  }
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   try {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

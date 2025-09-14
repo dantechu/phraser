@@ -7,7 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phraser/consts/assets.dart';
-import 'package:phraser/helper/notification_helper.dart';
 import 'package:phraser/screens/notification_settings/model/custom_notifications_model.dart';
 import 'package:phraser/screens/notification_settings/widgets/days_of_week.dart';
 import 'package:phraser/screens/notification_settings/model/notification_model.dart';

@@ -496,131 +496,147 @@ class NotificationHelper {
       
       await flutterLocalNotificationsPlugin.show(
         NotificationIdRanges.testNotificationId,
-        'Test Notification',
-        'Tap me to test navigation to specific phraser!',
+        'Test Notification - Close App!',
+        'Tap me to test cold start navigation! (Close the app completely first)',
         platformChannelSpecifics,
         payload: jsonEncode(testPayload),
       );
       
-      debugPrint('Test notification sent successfully');
+      debugPrint('Test notification sent successfully - Close the app completely and tap the notification to test cold start');
     } catch (e) {
       debugPrint('Error sending test notification: $e');
     }
   }
 
+  /// Handle cold start notification (when app was launched from notification)
+  /// Static method so it can be called from anywhere
+  static void handleColdStartNotification(String? payload) {
+    debugPrint('Handling cold start notification with payload: $payload');
+    _handleNotificationPayload(payload);
+  }
+
+  /// Common method to handle notification payload from both warm and cold starts
+  static void _handleNotificationPayload(String? payload) {
+    try {
+      if (payload != null && payload.isNotEmpty) {
+        final payloadData = jsonDecode(payload);
+        
+        if (payloadData['action'] == 'open_phraser') {
+          final phraserId = payloadData['phraserId'] as String;
+          final quote = payloadData['quote'] as String;
+          final categoryName = payloadData['categoryName'] as String;
+          
+          debugPrint('Opening phraser: $phraserId from category: $categoryName');
+          
+          // Navigate to the phraser screen with specific phraser data
+          _navigateToSpecificPhraser(phraserId, quote, categoryName);
+          return;
+        }
+      }
+      
+      // If no valid payload, navigate to main screen
+      debugPrint('No valid payload found, navigating to main screen');
+      _navigateToMainScreen();
+      
+    } catch (e) {
+      debugPrint('Error handling notification payload: $e');
+      // Fallback: navigate to main screen
+      _navigateToMainScreen();
+    }
+  }
+
+  /// Navigate to the main phraser screen
+  static void _navigateToMainScreen() {
+    try {
+      // Use Get.toNamed to navigate to the main phraser screen
+      // This will work from any state of the app
+      Get.offAllNamed(RouteHelper.phraserScreen);
+    } catch (e) {
+      debugPrint('Error navigating to main screen: $e');
+    }
+  }
+
+  /// Navigate to specific phraser by finding its position in the current list
+  static void _navigateToSpecificPhraser(String phraserId, String quote, String categoryName) async {
+    try {
+      debugPrint('Navigating to phraser: $phraserId from category: $categoryName');
+      
+      // Get the current data repository
+      final dataRepository = DataRepository();
+      final currentList = dataRepository.currentPhrasersList;
+      
+      // Try to find the phraser in the current list first
+      int phraserPosition = _findPhraserPosition(currentList, phraserId);
+      
+      if (phraserPosition != -1) {
+        debugPrint('Found phraser at position: $phraserPosition in current category');
+        Preferences.instance.currentPhraserPosition = phraserPosition;
+        Get.offAllNamed(RouteHelper.phraserScreen);
+        return;
+      }
+      
+      // If not found in current category, try to load it from database
+      debugPrint('Phraser not found in current category, searching in database...');
+      await _searchAndNavigateToPhraserFromDatabase(phraserId, categoryName);
+      
+    } catch (e) {
+      debugPrint('Error navigating to specific phraser: $e');
+      _navigateToMainScreen();
+    }
+  }
+
+  /// Find phraser position in the given list
+  static int _findPhraserPosition(List<Phraser> phrasersList, String phraserId) {
+    for (int i = 0; i < phrasersList.length; i++) {
+      if (phrasersList[i].phraserId == phraserId) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /// Search for phraser in database and navigate
+  static Future<void> _searchAndNavigateToPhraserFromDatabase(String phraserId, String categoryName) async {
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final phrasersDAO = database.phraserDAO;
+      
+      // Get phrasers from the specific category
+      final categoryPhrasers = await phrasersDAO.getAllPhrasers(categoryName);
+      
+      if (categoryPhrasers.isNotEmpty) {
+        // Find the specific phraser in this category
+        int phraserPosition = _findPhraserPosition(categoryPhrasers, phraserId);
+        
+        if (phraserPosition != -1) {
+          debugPrint('Found phraser in database at position: $phraserPosition');
+          
+          // Update the current category and phraser list
+          DataRepository().currentPhrasersList = categoryPhrasers;
+          Preferences.instance.savedCategoryName = categoryName;
+          Preferences.instance.currentPhraserPosition = phraserPosition;
+          
+          debugPrint('Updated category to: $categoryName and position to: $phraserPosition');
+          
+          // Navigate to the phraser screen
+          Get.offAllNamed(RouteHelper.phraserScreen);
+          return;
+        }
+      }
+      
+      // If still not found, navigate to main screen
+      debugPrint('Phraser not found in database, navigating to main screen');
+      _navigateToMainScreen();
+      
+    } catch (e) {
+      debugPrint('Error searching phraser in database: $e');
+      _navigateToMainScreen();
+    }
+  }
 }
 
 void onLocalNotificationSelect(NotificationResponse notificationResponse) {
   /// Handle notification tap - navigate to specific phraser
   debugPrint('Notification tapped with payload: ${notificationResponse.payload}');
-  
-  try {
-    if (notificationResponse.payload != null && notificationResponse.payload!.isNotEmpty) {
-      final payloadData = jsonDecode(notificationResponse.payload!);
-      
-      if (payloadData['action'] == 'open_phraser') {
-        final phraserId = payloadData['phraserId'] as String;
-        final quote = payloadData['quote'] as String;
-        final categoryName = payloadData['categoryName'] as String;
-        
-        debugPrint('Opening phraser: $phraserId from category: $categoryName');
-        
-        // Navigate to the phraser screen with specific phraser data
-        _navigateToSpecificPhraser(phraserId, quote, categoryName);
-      }
-    }
-  } catch (e) {
-    debugPrint('Error handling notification payload: $e');
-    // Fallback: navigate to main screen
-    _navigateToMainScreen();
-  }
-}
-
-/// Navigate to the main phraser screen
-void _navigateToMainScreen() {
-  try {
-    // Use Get.toNamed to navigate to the main phraser screen
-    // This will work from any state of the app
-    Get.offAllNamed(RouteHelper.phraserScreen);
-  } catch (e) {
-    debugPrint('Error navigating to main screen: $e');
-  }
-}
-
-/// Navigate to specific phraser by finding its position in the current list
-void _navigateToSpecificPhraser(String phraserId, String quote, String categoryName) async {
-  try {
-    debugPrint('Navigating to phraser: $phraserId from category: $categoryName');
-    
-    // Get the current data repository
-    final dataRepository = DataRepository();
-    final currentList = dataRepository.currentPhrasersList;
-    
-    // Try to find the phraser in the current list first
-    int phraserPosition = _findPhraserPosition(currentList, phraserId);
-    
-    if (phraserPosition != -1) {
-      debugPrint('Found phraser at position: $phraserPosition in current category');
-      Preferences.instance.currentPhraserPosition = phraserPosition;
-      Get.offAllNamed(RouteHelper.phraserScreen);
-      return;
-    }
-    
-    // If not found in current category, try to load it from database
-    debugPrint('Phraser not found in current category, searching in database...');
-    await _searchAndNavigateToPhraserFromDatabase(phraserId, categoryName);
-    
-  } catch (e) {
-    debugPrint('Error navigating to specific phraser: $e');
-    _navigateToMainScreen();
-  }
-}
-
-/// Find phraser position in the given list
-int _findPhraserPosition(List<Phraser> phrasersList, String phraserId) {
-  for (int i = 0; i < phrasersList.length; i++) {
-    if (phrasersList[i].phraserId == phraserId) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-/// Search for phraser in database and navigate
-Future<void> _searchAndNavigateToPhraserFromDatabase(String phraserId, String categoryName) async {
-  try {
-    final database = FloorDB.instance.floorDatabase;
-    final phrasersDAO = database.phraserDAO;
-    
-    // Get phrasers from the specific category
-    final categoryPhrasers = await phrasersDAO.getAllPhrasers(categoryName);
-    
-    if (categoryPhrasers.isNotEmpty) {
-      // Find the specific phraser in this category
-      int phraserPosition = _findPhraserPosition(categoryPhrasers, phraserId);
-      
-      if (phraserPosition != -1) {
-        debugPrint('Found phraser in database at position: $phraserPosition');
-        
-        // Update the current category and phraser list
-        DataRepository().currentPhrasersList = categoryPhrasers;
-        Preferences.instance.savedCategoryName = categoryName;
-        Preferences.instance.currentPhraserPosition = phraserPosition;
-        
-        debugPrint('Updated category to: $categoryName and position to: $phraserPosition');
-        
-        // Navigate to the phraser screen
-        Get.offAllNamed(RouteHelper.phraserScreen);
-        return;
-      }
-    }
-    
-    // If still not found, navigate to main screen
-    debugPrint('Phraser not found in database, navigating to main screen');
-    _navigateToMainScreen();
-    
-  } catch (e) {
-    debugPrint('Error searching phraser in database: $e');
-    _navigateToMainScreen();
-  }
+  NotificationHelper._handleNotificationPayload(notificationResponse.payload);
 }
