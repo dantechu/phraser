@@ -26,7 +26,7 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
@@ -62,8 +62,8 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        width: 36,
-        height: 36,
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isSelected 
@@ -72,8 +72,8 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
           border: Border.all(
             color: isSelected 
                 ? Theme.of(context).primaryColor 
-                : Theme.of(context).primaryColor.withOpacity(0.3),
-            width: 2,
+                : Theme.of(context).primaryColor.withOpacity(0.25),
+            width: 1.5,
           ),
           boxShadow: isSelected 
               ? [
@@ -93,7 +93,7 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
                   ? Colors.white 
                   : Theme.of(context).primaryColor,
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: 12,
             ),
           ),
         ),

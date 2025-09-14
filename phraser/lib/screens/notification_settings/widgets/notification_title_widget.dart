@@ -10,24 +10,24 @@ class NotificationTitleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(top: 20.0, bottom: 8.0, left: 16.0, right: 16.0),
+      margin: const EdgeInsets.only(top: 16.0, bottom: 6.0, left: 16.0, right: 16.0),
       child: Row(
         children: [
           Container(
-            width: 4,
-            height: 24,
+            width: 3,
+            height: 20,
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               title,
               style: TextStyle(
                 color: Theme.of(context).textTheme.headlineSmall?.color,
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.5,
               ),
@@ -36,13 +36,12 @@ class NotificationTitleWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: Theme.of(context).primaryColor.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              _getTimeIcon(),
-              color: Theme.of(context).primaryColor,
-              size: 16,
+            child: Text(
+              _getTimeEmoji(),
+              style: const TextStyle(fontSize: 16),
             ),
           ),
         ],
@@ -50,18 +49,18 @@ class NotificationTitleWidget extends StatelessWidget {
     );
   }
 
-  IconData _getTimeIcon() {
+  String _getTimeEmoji() {
     switch (title.toLowerCase()) {
       case 'morning':
-        return Icons.wb_sunny_outlined;
+        return '🌅';
       case 'afternoon':
-        return Icons.wb_sunny;
+        return '☀️';
       case 'evening':
-        return Icons.wb_twilight;
+        return '🌆';
       case 'midnight':
-        return Icons.bedtime_outlined;
+        return '🌙';
       default:
-        return Icons.schedule;
+        return '⏰';
     }
   }
 }

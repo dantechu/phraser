@@ -192,24 +192,24 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16.0),
+        borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
           ),
         ],
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          color: Theme.of(context).primaryColor.withOpacity(0.08),
           width: 1,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(18.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -221,7 +221,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                     context,
                     title: 'Start Time',
                     time: _startTime.format(context),
-                    icon: Icons.schedule,
+                    emoji: '⏰',
                     onTap: () => _selectStartTime(context),
                   ),
                 ),
@@ -231,7 +231,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                     context,
                     title: 'End Time', 
                     time: _endTime.format(context),
-                    icon: Icons.schedule_outlined,
+                    emoji: '⏰',
                     onTap: () => _selectEndTime(context),
                   ),
                 ),
@@ -243,7 +243,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
             Text(
               'Active Days',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).textTheme.titleMedium?.color,
               ),
@@ -258,16 +258,16 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
             const SizedBox(height: 20),
             // Frequency Section
             Text(
-              'Notifications per Period',
+              'Frequency',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).textTheme.titleMedium?.color,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
@@ -276,80 +276,65 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                   width: 1,
                 ),
               ),
-              child: Column(
+              child: Row(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.notifications_active_outlined,
-                            color: Theme.of(context).primaryColor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Frequency',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                  Text(
+                    '🔔',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Frequency',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                              ),
                             ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).primaryColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${_frequency.toInt()}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Theme.of(context).primaryColor,
+                            inactiveTrackColor: Theme.of(context).primaryColor.withOpacity(0.3),
+                            thumbColor: Theme.of(context).primaryColor,
+                            overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                            trackHeight: 3,
+                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
                           ),
-                        ],
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '${_frequency.toInt()}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          child: Slider(
+                            value: _frequency,
+                            min: 0.0,
+                            max: 10.0,
+                            divisions: 10,
+                            onChanged: _onFrequencyChanged,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SliderTheme(
-                    data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: Theme.of(context).primaryColor,
-                      inactiveTrackColor: Theme.of(context).primaryColor.withOpacity(0.3),
-                      thumbColor: Theme.of(context).primaryColor,
-                      overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                      trackHeight: 4,
+                      ],
                     ),
-                    child: Slider(
-                      value: _frequency,
-                      min: 0.0,
-                      max: 10.0,
-                      divisions: 10,
-                      onChanged: _onFrequencyChanged,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '0',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        '10',
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -357,9 +342,9 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
             const SizedBox(height: 20),
             // Categories Section
             Text(
-              'Notification Categories',
+              'Categories',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Theme.of(context).textTheme.titleMedium?.color,
               ),
@@ -376,44 +361,50 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
   Widget _buildTimeCard(BuildContext context, {
     required String title,
     required String time,
-    required IconData icon,
+    required String emoji,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).primaryColor.withOpacity(0.2),
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
             width: 1,
           ),
         ),
-        child: Column(
+        child: Row(
           children: [
-            Icon(
-              icon,
-              color: Theme.of(context).primaryColor,
-              size: 24,
-            ),
-            const SizedBox(height: 8),
             Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
+              emoji,
+              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 4),
-            Text(
-              time,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).textTheme.titleMedium?.color,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -460,23 +451,22 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
       },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: Theme.of(context).primaryColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).primaryColor.withOpacity(0.2),
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
             width: 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.category_outlined,
-              color: Theme.of(context).primaryColor,
-              size: 20,
+            Text(
+              '🎯',
+              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -484,7 +474,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                   Text(
                     'Categories',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
@@ -501,10 +491,9 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Theme.of(context).primaryColor,
-              size: 16,
+            Text(
+              '➡️',
+              style: const TextStyle(fontSize: 14),
             ),
           ],
         ),

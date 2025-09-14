@@ -95,10 +95,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 // Header description
                 Container(
                   margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: Theme.of(context).primaryColor.withOpacity(0.1),
                       width: 1,
@@ -109,15 +109,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                       Icon(
                         Icons.info_outline,
                         color: Theme.of(context).primaryColor,
-                        size: 20,
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Set up personalized reminder schedules for different times of day. Choose frequency, days, and categories for each period.',
                           style: TextStyle(
                             color: Theme.of(context).textTheme.bodyMedium?.color,
-                            fontSize: 14,
+                            fontSize: 13,
                             height: 1.4,
                           ),
                         ),
