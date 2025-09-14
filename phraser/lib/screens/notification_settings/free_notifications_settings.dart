@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phraser/consts/assets.dart';
@@ -53,6 +54,37 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
     setState(() {
       _frequency = value;
     });
+  }
+
+  void _showPermissionSettingsDialog() {
+    debugPrint('Showing permission settings dialog');
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Notification Permission Required'),
+          content: Text(
+            'To receive daily motivation reminders, please enable notification permission from app settings.\n\nGo to Settings > Apps > Phraser > Notifications and turn on notifications.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
 
@@ -153,6 +185,94 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     if(Preferences.instance.isFirstOpen) {
                       Preferences.instance.isFirstOpen = false;
                     }
+                    
+                    // Store context before async operations
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    final navigator = Navigator.of(context);
+                    
+                    // Validate settings first
+                    if (_frequency <= 0) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Please select a frequency greater than 0'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    // Check if start time is before end time
+                    final startMinutes = _startTime.hour * 60 + _startTime.minute;
+                    final endMinutes = _endTime.hour * 60 + _endTime.minute;
+                    
+                    if (startMinutes >= endMinutes) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('End time must be after start time'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    // Check notification permission first
+                    bool permissionGranted = false;
+                    
+                    if (defaultTargetPlatform == TargetPlatform.iOS) {
+                      // iOS-specific permission handling
+                      final permissionStatus = await Permission.notification.status;
+                      debugPrint('iOS permission status: $permissionStatus');
+                      
+                      if (permissionStatus == PermissionStatus.denied) {
+                        final requestResult = await Permission.notification.request();
+                        debugPrint('iOS permission request result: $requestResult');
+                        permissionGranted = requestResult == PermissionStatus.granted || requestResult == PermissionStatus.provisional;
+                      } else {
+                        permissionGranted = permissionStatus == PermissionStatus.granted || 
+                                          permissionStatus == PermissionStatus.provisional ||
+                                          permissionStatus == PermissionStatus.limited;
+                      }
+                      
+                      if (!permissionGranted && permissionStatus == PermissionStatus.permanentlyDenied) {
+                        _showPermissionSettingsDialog();
+                        return;
+                      }
+                    } else {
+                      // Android-specific permission handling
+                      final permissionStatus = await Permission.notification.status;
+                      debugPrint('Android permission status: $permissionStatus');
+                      
+                      if (permissionStatus == PermissionStatus.permanentlyDenied) {
+                        _showPermissionSettingsDialog();
+                        return;
+                      }
+                      
+                      if (permissionStatus != PermissionStatus.granted) {
+                        final requestResult = await Permission.notification.request();
+                        debugPrint('Android permission request result: $requestResult');
+                        
+                        if (requestResult == PermissionStatus.permanentlyDenied) {
+                          _showPermissionSettingsDialog();
+                          return;
+                        }
+                        
+                        permissionGranted = requestResult == PermissionStatus.granted;
+                      } else {
+                        permissionGranted = true;
+                      }
+                    }
+                    
+                    if (!permissionGranted) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Notification permission is required to set reminders'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Save notification settings
                     String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
                     String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
                     String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
@@ -163,15 +283,19 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                         endAt: '$endtHour:$endMinute',
                         frequency: _frequency.toInt(), notificationData: ['notification 1','notification 2', 'notification 2']);
                     NotificationConfigService.instance.notificationDetails = model;
-                    final permissionStatus = await  Permission.notification.status;
-                    if ( permissionStatus != PermissionStatus.granted) {
-                      await  Permission.notification.request();
-                    }
 
-                    await  NotificationHelper.instance.reScheduleNotifications();
+                    await NotificationHelper.instance.reScheduleNotifications();
+
+                    // Show success message
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text('Notification settings saved successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
 
                     if(widget.willPop) {
-                      Navigator.pop(context);
+                      navigator.pop();
                     } else {
                       Get.offAllNamed(RouteHelper.phraserScreen);
                     }

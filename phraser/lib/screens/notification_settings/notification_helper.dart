@@ -1,16 +1,11 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
 import 'package:phraser/floor_db/categories_dao.dart';
-import 'package:phraser/floor_db/current_phraser_dao.dart';
 import 'package:phraser/floor_db/phrasers_dao.dart';
 import 'package:phraser/screens/notification_settings/model/custom_notifications_model.dart';
 import 'package:phraser/screens/notification_settings/service/notifications_service.dart';
-import 'package:phraser/services/model/categories.dart';
-import 'package:phraser/services/model/data_repository.dart';
 import 'package:phraser/services/model/phreasers_list_model.dart';
 import 'package:phraser/util/Floor_db.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -41,7 +36,6 @@ class NotificationHelper {
         channelDescription: 'your channel description',
         importance: Importance.max,
         priority: Priority.high,
-        sound:  RawResourceAndroidNotificationSound('message_received'),
         ticker: 'ticker');
     const NotificationDetails notificationDetails =
     NotificationDetails(android: androidNotificationDetails,  iOS: DarwinNotificationDetails(
@@ -64,9 +58,11 @@ class NotificationHelper {
   
   
   Future<void> reScheduleNotifications({List<NotificationCategory>? categoriesList}) async {
+    // Cancel all existing notifications first
+    await cancelAllNotifications();
 
     List<Phraser> nCategoryList = [];
-    if(categoriesList != null) {
+    if(categoriesList != null && categoriesList.isNotEmpty) {
       await Future.forEach (categoriesList, (final NotificationCategory notificationCategory) async {
         try {
           final database = FloorDB.instance.floorDatabase;
@@ -78,11 +74,32 @@ class NotificationHelper {
         }
       });
     } else {
-      return;
+      // If no categories provided, get all available categories and fetch their phrasers
+      try {
+        final database = FloorDB.instance.floorDatabase;
+        PhrasersDAO phrasersDAO = database.phraserDAO;
+        CategoriesDAO categoriesDAO = database.categoriesDAO;
+        
+        // Get all categories first
+        final allCategories = await categoriesDAO.getAllCategories();
+        
+        // Fetch phrasers for each category
+        for (final category in allCategories) {
+          try {
+            final categoryPhrasers = await phrasersDAO.getAllPhrasers(category.categoryName);
+            nCategoryList = nCategoryList + categoryPhrasers;
+          } catch (e) {
+            debugPrint('---> Error in fetching category ${category.categoryName}: $e');
+          }
+        }
+      } catch (e) {
+        debugPrint('---> Error in fetching all phrasers: $e');
+        return;
+      }
     }
 
-
     if(nCategoryList.isEmpty) {
+      debugPrint('---> No phrasers found for notifications');
       return;
     }
 
@@ -154,7 +171,7 @@ class NotificationHelper {
       Random random = Random();
       debugPrint('************************* nCategoryLIst length: ${nCategoryList.length}');
       int index = random.nextInt(nCategoryList.length);
-       scheduleLocalNotification(id: i, title: 'Reminder', description: '${nCategoryList[index].quote}', duration: duration);
+       scheduleLocalNotification(id: i, title: 'Reminder', description: nCategoryList[index].quote, duration: duration);
 
       debugPrint('************************* [$i] ${nCategoryList[index].quote}');
     }
@@ -202,7 +219,6 @@ class NotificationHelper {
 
       importance: Importance.max,
       ticker: 'Blessed',
-      sound: const RawResourceAndroidNotificationSound('message_received'),
       visibility: NotificationVisibility.public,
       styleInformation: BigTextStyleInformation(description),
       category: AndroidNotificationCategory.message,
@@ -211,20 +227,43 @@ class NotificationHelper {
     /// Customize android and iOS notification details if required
     NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: const DarwinNotificationDetails(sound: 'message_received.mp3'),
+      iOS: const DarwinNotificationDetails(),
     );
 
-    final time = tz.TZDateTime.now(tz.local).add(duration);
-
-    debugPrint('--------------> Notification scheduled at time: $time');
+    // Configure timezone first
+    await _configureLocalTimeZone();
+    
+    final scheduledTime = tz.TZDateTime.now(tz.local).add(duration);
+    debugPrint('--------------> Notification scheduled at time: $scheduledTime');
+    
     /// scheduled notification function
-    // await flutterLocalNotificationsPlugin.zonedSchedule(id, title, description,
-    //     tz.TZDateTime.now(tz.local).add(duration), platformChannelSpecifics,
-    //     uiLocalNotificationDateInterpretation:
-    //     UILocalNotificationDateInterpretation.absoluteTime,
-    //     androidAllowWhileIdle: true,
-    //     matchDateTimeComponents: DateTimeComponents.time,
-    //     payload: '');// empty payload right now for tests
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        description,
+        scheduledTime,
+        platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.inexact,
+        payload: '',
+      );
+      debugPrint('Notification scheduled successfully (id: $id): $title');
+    } catch (e) {
+      debugPrint('Error scheduling notification: $e');
+      // Fallback to immediate notification if scheduling fails
+      try {
+        await flutterLocalNotificationsPlugin.show(
+          id,
+          title,
+          description,
+          platformChannelSpecifics,
+          payload: ''
+        );
+        debugPrint('Fallback: Notification shown immediately (id: $id): $title');
+      } catch (showError) {
+        debugPrint('Error showing fallback notification: $showError');
+      }
+    }
   }
 
   /// Initialize the basic settings of a notification when app starts
@@ -249,7 +288,7 @@ class NotificationHelper {
   /// Get all the notification the are in pending state and not delivered
   Future<void> checkPendingNotifications() async {
     final available = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    print('****************************** ${available.length} ');
+    debugPrint('****************************** ${available.length} ');
   }
 
 }
