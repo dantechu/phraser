@@ -17,6 +17,7 @@ import 'package:phraser/util/utils.dart';
 import '../services/view_model/phraser_view_model.dart';
 import 'mood_quotes_screen.dart';
 import 'habit_builder_screen.dart';
+import 'settings/settings_screen.dart';
 
 class PhraserViewScreen extends StatefulWidget {
   const PhraserViewScreen({super.key});
@@ -157,6 +158,34 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   }).toList(),
                 ),
 
+                // Settings Icon in Top Right
+                Positioned(
+                  top: 50,
+                  right: 20,
+                  child: GestureDetector(
+                    onTap: _navigateToSettings,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.settings_outlined,
+                        size: 20,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Clean Bottom Navigation
                 Positioned(
                   bottom: 20,
@@ -291,5 +320,12 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     Get.toNamed(RouteHelper.phraserThemeListScreen)?.then((value) {
       _phraserViewModel.changeThemePosition(Preferences.instance.textThemePosition);
     });
+  }
+
+  void _navigateToSettings() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
   }
 }
