@@ -18,20 +18,26 @@ import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 
 class SpecificTimeNotificationWidget extends StatefulWidget {
-  const SpecificTimeNotificationWidget({Key? key, required this.notificationKey}) : super(key: key);
+  const SpecificTimeNotificationWidget(
+      {Key? key, required this.notificationKey})
+      : super(key: key);
 
   final String notificationKey;
 
   @override
-  State<SpecificTimeNotificationWidget> createState() => _SpecificTimeNotificationWidgetState();
+  State<SpecificTimeNotificationWidget> createState() =>
+      _SpecificTimeNotificationWidgetState();
 }
 
-class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificationWidget> {
-  TimeOfDay _startTime = TimeOfDay(hour: 5, minute: 0,);
+class _SpecificTimeNotificationWidgetState
+    extends State<SpecificTimeNotificationWidget> {
+  TimeOfDay _startTime = TimeOfDay(
+    hour: 5,
+    minute: 0,
+  );
   TimeOfDay _endTime = TimeOfDay(hour: 21, minute: 0);
   double _frequency = 0.0;
   SingleCustomNotificationModel? _notificationsModel;
-
 
   void _selectStartTime(BuildContext context) async {
     final TimeOfDay? newTime = await showTimePicker(
@@ -69,18 +75,20 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
         notificationCategories: [],
       );
     } else {
-      CustomNotificationsModel model = CustomNotificationsModel.fromRawJson(data);
-      return model.notificationsList.singleWhere((element) =>
-      element.notificationType == widget.notificationKey.toString(),
+      CustomNotificationsModel model =
+          CustomNotificationsModel.fromRawJson(data);
+      return model.notificationsList.singleWhere(
+          (element) =>
+              element.notificationType == widget.notificationKey.toString(),
           orElse: () {
-            return SingleCustomNotificationModel(startAt: '09:00',
-                endAt: '15:00',
-                notificationData: [],
-                frequency: 0,
-                notificationCategories: [],
-                notificationType: widget.notificationKey.toString());
-          }
-      );
+        return SingleCustomNotificationModel(
+            startAt: '09:00',
+            endAt: '15:00',
+            notificationData: [],
+            frequency: 0,
+            notificationCategories: [],
+            notificationType: widget.notificationKey.toString());
+      });
     }
   }
 
@@ -104,16 +112,15 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
     });
   }
 
-
   @override
   void initState() {
     super.initState();
     _notificationsModel = getNotificationData();
     if (_notificationsModel != null) {
-      _startTime = TimeOfDay.fromDateTime(
-          DateTime.parse('2022-01-01 ${formatToDoubleDigit(_notificationsModel!.startAt!)}:00'));
-      _endTime = TimeOfDay.fromDateTime(
-          DateTime.parse('2022-01-01 ${formatToDoubleDigit(_notificationsModel!.endAt!)}:00'));
+      _startTime = TimeOfDay.fromDateTime(DateTime.parse(
+          '2022-01-01 ${formatToDoubleDigit(_notificationsModel!.startAt!)}:00'));
+      _endTime = TimeOfDay.fromDateTime(DateTime.parse(
+          '2022-01-01 ${formatToDoubleDigit(_notificationsModel!.endAt!)}:00'));
       _frequency = _notificationsModel?.frequency!.toDouble() ?? 0.0;
     }
   }
@@ -141,53 +148,56 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
       _notificationsModel!.notificationDays = daysList;
     }
 
-    if(categoriesList != null) {
+    if (categoriesList != null) {
       _notificationsModel!.notificationCategories = categoriesList;
     }
-
 
     _updateNotificationInPreferences(_notificationsModel!);
   }
 
-  _updateNotificationInPreferences(SingleCustomNotificationModel notificationModel) async {
+  _updateNotificationInPreferences(
+      SingleCustomNotificationModel notificationModel) async {
     try {
       // Save to the new notification service
-      await NotificationConfigService.instance.saveTimePeriodNotification(notificationModel);
-      
+      await NotificationConfigService.instance
+          .saveTimePeriodNotification(notificationModel);
+
       // Also update the legacy preferences system for compatibility
       try {
         CustomNotificationsModel? notificationsList;
         try {
-          notificationsList = CustomNotificationsModel.fromRawJson(Preferences.instance.customNotifications);
+          notificationsList = CustomNotificationsModel.fromRawJson(
+              Preferences.instance.customNotifications);
         } catch (e) {
           // Create new model if parsing fails
           notificationsList = CustomNotificationsModel(notificationsList: []);
         }
-        
+
         // Remove existing notification for this time period
         notificationsList.notificationsList.removeWhere((element) =>
-        element.notificationType == widget.notificationKey.toString());
-        
+            element.notificationType == widget.notificationKey.toString());
+
         // Add the updated notification
         notificationsList.notificationsList.add(notificationModel);
-        
+
         // Save to legacy preferences
-        Preferences.instance.customNotifications = notificationsList.toRawJson();
-        
+        Preferences.instance.customNotifications =
+            notificationsList.toRawJson();
       } catch (e) {
         debugPrint('Error updating legacy preferences: $e');
         // Create new preferences entry
-        final newNotificationsList = CustomNotificationsModel(notificationsList: [notificationModel]);
-        Preferences.instance.customNotifications = newNotificationsList.toRawJson();
+        final newNotificationsList =
+            CustomNotificationsModel(notificationsList: [notificationModel]);
+        Preferences.instance.customNotifications =
+            newNotificationsList.toRawJson();
       }
-      
-      debugPrint('Updated ${widget.notificationKey} notification settings successfully');
-      
+
+      debugPrint(
+          'Updated ${widget.notificationKey} notification settings successfully');
     } catch (e) {
       debugPrint('Error updating notification preferences: $e');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +239,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                 Expanded(
                   child: _buildTimeCard(
                     context,
-                    title: 'End Time', 
+                    title: 'End Time',
                     time: _endTime.format(context),
                     emoji: '⏰',
                     onTap: () => _selectEndTime(context),
@@ -238,7 +248,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
               ],
             ),
             const SizedBox(height: 20),
-            
+
             // Days of Week Section
             Text(
               'Active Days',
@@ -295,11 +305,15 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                               style: TextStyle(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 14,
-                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.color,
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Theme.of(context).primaryColor,
                                 borderRadius: BorderRadius.circular(12),
@@ -319,11 +333,14 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
                             activeTrackColor: Theme.of(context).primaryColor,
-                            inactiveTrackColor: Theme.of(context).primaryColor.withOpacity(0.3),
+                            inactiveTrackColor:
+                                Theme.of(context).primaryColor.withOpacity(0.3),
                             thumbColor: Theme.of(context).primaryColor,
-                            overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                            overlayColor:
+                                Theme.of(context).primaryColor.withOpacity(0.1),
                             trackHeight: 3,
-                            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 8),
                           ),
                           child: Slider(
                             value: _frequency,
@@ -357,8 +374,8 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
     );
   }
 
-
-  Widget _buildTimeCard(BuildContext context, {
+  Widget _buildTimeCard(
+    BuildContext context, {
     required String title,
     required String time,
     required String emoji,
@@ -417,10 +434,11 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
     return GestureDetector(
       onTap: () {
         Navigator.push(
-          context, 
+          context,
           MaterialPageRoute(
             builder: (context) => NotificationsCategoriesScreen(
-              selectedCategoryList: _notificationsModel?.notificationCategories ?? [],
+              selectedCategoryList:
+                  _notificationsModel?.notificationCategories ?? [],
             ),
           ),
         ).then((value) {
@@ -433,7 +451,7 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
             for (final item in selectedCategoriesList) {
               notificationCategoryList.add(
                 NotificationCategory(
-                  name: item.categoryName, 
+                  name: item.categoryName,
                   id: item.categoryId,
                 ),
               );
@@ -491,10 +509,6 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
                 ],
               ),
             ),
-            Text(
-              '➡️',
-              style: const TextStyle(fontSize: 14),
-            ),
           ],
         ),
       ),
@@ -502,20 +516,19 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
   }
 
   String getCategoriesName() {
-    String name = 'Select Categories';
-    if (_notificationsModel!.notificationCategories != null &&
-        _notificationsModel!.notificationCategories!.isNotEmpty) {
-      if (_notificationsModel!.notificationCategories!.length >= 2) {
-        return '${_notificationsModel!.notificationCategories!.first.name}, ${_notificationsModel!
-            .notificationCategories![1].name} ...';
-      } else {
-        return '${_notificationsModel!.notificationCategories!.first.name}';
+    try {
+      if (_notificationsModel?.notificationCategories != null &&
+          _notificationsModel!.notificationCategories!.isNotEmpty) {
+        final categories = _notificationsModel!.notificationCategories!;
+        if (categories.length >= 2) {
+          return '${categories.first.name}, ${categories[1].name} & ${categories.length - 2} more';
+        } else {
+          return categories.first.name ?? 'Category';
+        }
       }
+    } catch (e) {
+      debugPrint('Error getting category names: $e');
     }
-    else {
-      name = 'Select Categories';
-    }
-    return name;
+    return 'Select Categories';
   }
-
 }

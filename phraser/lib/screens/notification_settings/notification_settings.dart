@@ -129,11 +129,56 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                 const NotificationTitleWidget(title: 'Morning'),
                 SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.morning.name),
                 
+                // Visual separator
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Theme.of(context).primaryColor.withOpacity(0.2),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                
                 const NotificationTitleWidget(title: 'Afternoon'),
                 SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.afternoon.name),
                 
+                // Visual separator
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Theme.of(context).primaryColor.withOpacity(0.2),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                
                 const NotificationTitleWidget(title: 'Evening'),
                 SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.evening.name),
+                
+                // Visual separator
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        Theme.of(context).primaryColor.withOpacity(0.2),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
                 
                 const NotificationTitleWidget(title: 'Midnight'),
                 SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.midnight.name),
