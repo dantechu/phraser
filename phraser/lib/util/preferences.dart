@@ -20,6 +20,7 @@ class Preferences {
   final String _textThemePositionKey = 'text_theme_position';
   final String _premiumAppKey = 'premium_app';
   final String _customNotificationsKey = 'custom_notifications';
+  final String _selectedRegionKey = 'selected_region';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -55,6 +56,12 @@ class Preferences {
     _preferences!.setInt(_currentPhraserKey, position);
   }
 
+  set selectedRegion(String? region) {
+    if(region != null ) {
+      _preferences!.setString(_selectedRegionKey, region!);
+    }
+  }
+
   bool get isCategoriesPresent {
     return _preferences!.getBool(_categoriesKey) ?? false;
   }
@@ -81,6 +88,10 @@ class Preferences {
 
   int get textThemePosition {
     return _preferences!.getInt(_textThemePositionKey) ?? 1;
+  }
+
+  String? get selectedRegion {
+    return _preferences!.getString(_selectedRegionKey);
   }
 
   Map<String, dynamic> defaultCustomNotificationsData = {

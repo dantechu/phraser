@@ -47,6 +47,7 @@
         "shared_preferences",
         "timezone",
         "url_launcher",
+        "uuid",
         "validators2"
       ],
       "devDependencies": [
@@ -177,6 +178,16 @@
         "hive",
         "hive_flutter",
         "result_type"
+      ]
+    },
+    {
+      "name": "uuid",
+      "version": "4.5.1",
+      "dependencies": [
+        "crypto",
+        "fixnum",
+        "meta",
+        "sprintf"
       ]
     },
     {
@@ -1083,6 +1094,16 @@
         "flutter",
         "meta"
       ]
+    },
+    {
+      "name": "fixnum",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "sprintf",
+      "version": "7.0.0",
+      "dependencies": []
     },
     {
       "name": "image_picker_windows",
@@ -2102,16 +2123,6 @@
       ]
     },
     {
-      "name": "uuid",
-      "version": "4.5.1",
-      "dependencies": [
-        "crypto",
-        "fixnum",
-        "meta",
-        "sprintf"
-      ]
-    },
-    {
       "name": "rxdart",
       "version": "0.28.0",
       "dependencies": []
@@ -2250,11 +2261,6 @@
       "dependencies": []
     },
     {
-      "name": "fixnum",
-      "version": "1.1.1",
-      "dependencies": []
-    },
-    {
       "name": "simple_sparse_list",
       "version": "0.1.4",
       "dependencies": []
@@ -2283,11 +2289,6 @@
         "collection",
         "meta"
       ]
-    },
-    {
-      "name": "sprintf",
-      "version": "7.0.0",
-      "dependencies": []
     },
     {
       "name": "posix",

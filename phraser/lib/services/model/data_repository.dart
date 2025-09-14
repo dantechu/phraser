@@ -17,6 +17,28 @@ class DataRepository {
   List<CategorySections> sectionList = [];
   List<Phraser> currentPhrasersList = [];
 
+  // Store original phrasers list for filtering purposes
+  List<Phraser> _originalPhrasersList = [];
+
+  void updateCurrentPhrasersList(List<Phraser> newList) {
+    // Save original list if not already saved
+    if (_originalPhrasersList.isEmpty && currentPhrasersList.isNotEmpty) {
+      _originalPhrasersList = List.from(currentPhrasersList);
+    }
+    
+    currentPhrasersList = newList;
+  }
+
+  void resetToOriginalPhrasersList() {
+    if (_originalPhrasersList.isNotEmpty) {
+      currentPhrasersList = List.from(_originalPhrasersList);
+    }
+  }
+
+  void saveOriginalPhrasersList() {
+    _originalPhrasersList = List.from(currentPhrasersList);
+  }
+
 
 
 

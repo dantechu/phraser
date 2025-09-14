@@ -19,19 +19,22 @@ import 'mood_quotes_screen.dart';
 import 'habit_builder_screen.dart';
 
 class PhraserViewScreen extends StatefulWidget {
-  const PhraserViewScreen({super.key});
+  const PhraserViewScreen({Key? key}) : super(key: key);
 
   @override
   State<PhraserViewScreen> createState() => _PhraserViewScreenState();
 }
 
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
+  void loadPhrasers() {}
+
   final CarouselController _carouselController = CarouselController();
   final _phraserViewModel = Get.put(PhraserViewModel());
 
   @override
   void initState() {
     super.initState();
+
     _phraserViewModel.themePosition = Preferences.instance.textThemePosition;
     AdsHelper.loadAdmobBannerAd();
   }
@@ -52,7 +55,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   child: Image.asset(
-                    ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].themeImage,
+                    ThemeImagesList
+                        .themeImagesList[_phraserViewModel.themePosition]
+                        .themeImage,
                     fit: BoxFit.fill,
                     height: MediaQuery.of(context).size.height,
                   ),
@@ -63,50 +68,60 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   options: CarouselOptions(
                     onPageChanged: (int index, _) {
                       Preferences.instance.currentPhraserPosition = index;
-                      _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[index]);
+                      _phraserViewModel.isFavorites(
+                          DataRepository().currentPhrasersList[index]);
                       if (Preferences.instance.textThemePosition == 0) {
                         Random random = Random();
-                        int randomPosition = random.nextInt(ThemeImagesList.themeImagesList.length);
+                        int randomPosition = random
+                            .nextInt(ThemeImagesList.themeImagesList.length);
                         _phraserViewModel.changeThemePosition(randomPosition);
                       }
-                      testPrint('onPageChanged and new Position is ${_phraserViewModel.themePosition}');
+
+                      testPrint(
+                          'onPageChanged and new Position is ${_phraserViewModel.themePosition}');
                     },
                     initialPage: Preferences.instance.currentPhraserPosition,
                     height: MediaQuery.of(context).size.height,
                     viewportFraction: 1.0,
                     enlargeCenterPage: false,
                     scrollDirection: Axis.vertical,
+                    // autoPlay: false,
                   ),
                   items: DataRepository().currentPhrasersList.map((item) {
                     return Stack(
                       children: [
-                        // Quote Text
                         getTextTheme(
                           context,
                           item.quote,
                           _phraserViewModel.themePosition,
                           MediaQuery.of(context).size.height,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textFontFamily,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textSize,
+                          ThemeImagesList
+                              .themeImagesList[_phraserViewModel.themePosition]
+                              .textFontFamily,
+                          ThemeImagesList
+                              .themeImagesList[_phraserViewModel.themePosition]
+                              .textColor,
+                          ThemeImagesList
+                              .themeImagesList[_phraserViewModel.themePosition]
+                              .textSize,
                           false,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textWeight,
+                          ThemeImagesList
+                              .themeImagesList[_phraserViewModel.themePosition]
+                              .textWeight,
                         ),
-                        
-                        // Favorite and Share Buttons
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Container(
-                            padding: const EdgeInsets.only(bottom: 120.0),
+                            padding: const EdgeInsets.only(bottom: 100.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                // Favorite Button
                                 GestureDetector(
                                   onTap: () {
                                     try {
-                                      final database = FloorDB.instance.floorDatabase;
+                                      final database =
+                                          FloorDB.instance.floorDatabase;
                                       FavoritesDAO dao = database.favoritesDAO;
                                       if (!vm.isFavorite) {
                                         vm.isFavorite = true;
@@ -116,38 +131,49 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                         dao.removeFromFavorites(item);
                                       }
                                     } catch (e) {
-                                      // Handle error
+                                      ///Something went wrong
                                     }
                                   },
                                   child: Icon(
-                                    vm.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                    vm.isFavorite
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
                                     size: 30.0,
                                     color: vm.isFavorite
                                         ? Colors.red
-                                        : ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
+                                        : ThemeImagesList
+                                            .themeImagesList[
+                                                _phraserViewModel.themePosition]
+                                            .textColor,
                                   ),
                                 ),
-                                
-                                const SizedBox(width: 30.0),
-                                
-                                // Share Button
+                                const SizedBox(
+                                  width: 30.0,
+                                ),
                                 GestureDetector(
-                                  onTap: () async {
-                                    await Future.delayed(const Duration(microseconds: 200), () {
-                                      showShareDialog(
-                                        context: context,
-                                        themeModel: ThemeImagesList.themeImagesList[_phraserViewModel.themePosition],
-                                        textToShare: item.quote,
-                                        themePosition: _phraserViewModel.themePosition,
-                                      );
-                                    });
-                                  },
-                                  child: Icon(
-                                    Icons.share,
-                                    size: 30.0,
-                                    color: ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
-                                  ),
-                                ),
+                                    onTap: () async {
+                                      await Future.delayed(
+                                          const Duration(microseconds: 200),
+                                          () {
+                                        showShareDialog(
+                                            context: context,
+                                            themeModel:
+                                                ThemeImagesList.themeImagesList[
+                                                    _phraserViewModel
+                                                        .themePosition],
+                                            textToShare: item.quote,
+                                            themePosition: _phraserViewModel
+                                                .themePosition);
+                                      });
+                                    },
+                                    child: Icon(
+                                      Icons.share,
+                                      size: 30.0,
+                                      color: ThemeImagesList
+                                          .themeImagesList[
+                                              _phraserViewModel.themePosition]
+                                          .textColor,
+                                    ))
                               ],
                             ),
                           ),
@@ -156,14 +182,14 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                     );
                   }).toList(),
                 ),
-
                 // Clean Bottom Navigation
                 Positioned(
                   bottom: 20,
                   left: 16,
                   right: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(25),
@@ -184,28 +210,28 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                           label: 'Categories',
                           onTap: () => _navigateToCategories(),
                         ),
-                        
+
                         // Mood Quotes (NEW)
                         _buildNavButton(
                           icon: Icons.psychology_outlined,
                           label: 'Mood',
                           onTap: () => _navigateToMoodQuotes(),
                         ),
-                        
+
                         // Habit Builder (NEW)
                         _buildNavButton(
                           icon: Icons.track_changes_outlined,
                           label: 'Habits',
                           onTap: () => _navigateToHabits(),
                         ),
-                        
+
                         // AI Chat
                         _buildNavButton(
                           icon: Icons.chat_outlined,
                           label: 'AI Chat',
                           onTap: () => Get.toNamed(RouteHelper.chatScreen),
                         ),
-                        
+
                         // Themes
                         _buildNavButton(
                           icon: Icons.palette_outlined,
@@ -268,7 +294,8 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
       MaterialPageRoute(builder: (context) => CategoriesListScreen()),
     ).then((value) {
       setState(() {
-        testPrint('setState called with data length: ${DataRepository().currentPhrasersList.length}');
+        testPrint(
+            'setState called with data length: ${DataRepository().currentPhrasersList.length}');
       });
     });
   }
@@ -289,7 +316,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
 
   void _navigateToThemes() {
     Get.toNamed(RouteHelper.phraserThemeListScreen)?.then((value) {
-      _phraserViewModel.changeThemePosition(Preferences.instance.textThemePosition);
+      _phraserViewModel
+          .changeThemePosition(Preferences.instance.textThemePosition);
     });
   }
+
 }
