@@ -42,6 +42,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
+          scrolledUnderElevation: 0,
           backgroundColor: Theme.of(context).primaryColor,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
