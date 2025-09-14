@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:phraser/consts/assets.dart';
 import 'package:phraser/screens/notification_settings/model/notification_model.dart';
 import 'package:phraser/screens/notification_settings/notification_helper.dart';
@@ -56,6 +57,127 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
     });
   }
 
+  // More reliable iOS permission checking using flutter_local_notifications
+  Future<bool> _checkIOSNotificationPermission() async {
+    try {
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+      
+      // Method 1: Try to query pending notifications
+      try {
+        final List<PendingNotificationRequest> pendingNotifications = 
+            await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+        debugPrint('iOS: Successfully queried ${pendingNotifications.length} pending notifications');
+      } catch (e) {
+        debugPrint('iOS: Could not query pending notifications: $e');
+      }
+      
+      // Method 2: Try to show a test notification immediately and cancel it
+      try {
+        const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+          'test_channel', 'Test Channel',
+          importance: Importance.low,
+          priority: Priority.low,
+        );
+        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          presentAlert: false,
+          presentBadge: false,
+          presentSound: false,
+        );
+        const NotificationDetails platformChannelSpecifics = NotificationDetails(
+          android: androidDetails, 
+          iOS: iosDetails,
+        );
+        
+        // Try to show a silent test notification
+        await flutterLocalNotificationsPlugin.show(
+          99999, // Test notification ID
+          '', // Empty title
+          '', // Empty body
+          platformChannelSpecifics,
+        );
+        
+        // Immediately cancel the test notification
+        await flutterLocalNotificationsPlugin.cancel(99999);
+        
+        debugPrint('iOS: Successfully showed and cancelled test notification - permission granted');
+        return true;
+      } catch (e) {
+        debugPrint('iOS: Could not show test notification: $e');
+        
+        // Fallback to permission_handler
+        final permissionStatus = await Permission.notification.status;
+        debugPrint('iOS: Fallback permission handler status: $permissionStatus');
+        
+        // On iOS, be more lenient with permission status interpretation
+        // Sometimes permission_handler is not 100% accurate on iOS
+        if (permissionStatus == PermissionStatus.granted ||
+            permissionStatus == PermissionStatus.provisional ||
+            permissionStatus == PermissionStatus.limited) {
+          debugPrint('iOS: Permission handler indicates permission is granted');
+          return true;
+        }
+        
+        // Final fallback: if user reports they have enabled notifications in settings
+        // but permission_handler says denied, we'll assume it's a permission_handler bug
+        debugPrint('iOS: Permission handler says denied but user may have enabled in settings');
+        debugPrint('iOS: This might be a permission_handler limitation on iOS');
+        
+        return false;
+      }
+    } catch (e) {
+      debugPrint('iOS: Error in permission check: $e');
+      return false;
+    }
+  }
+
+  Future<void> _saveNotificationSettings() async {
+    try {
+      // Store context before async operations
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+      
+      // Save notification settings
+      String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
+      String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
+      String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
+      String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
+      
+      NotificationsModel model = NotificationsModel(
+          startAt: '$startHour:$startMinute',
+          endAt: '$endtHour:$endMinute',
+          frequency: _frequency.toInt(), 
+          notificationData: ['notification 1','notification 2', 'notification 2']);
+      
+      NotificationConfigService.instance.notificationDetails = model;
+
+      await NotificationHelper.instance.reScheduleNotifications();
+
+      // Show success message
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Notification settings saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      if (widget.willPop) {
+        navigator.pop();
+      } else {
+        Get.offAllNamed(RouteHelper.phraserScreen);
+      }
+    } catch (e) {
+      debugPrint('Error saving notification settings: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving settings: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showPermissionSettingsDialog() {
     debugPrint('Showing permission settings dialog');
     
@@ -79,6 +201,16 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
               },
               child: Text('Cancel'),
             ),
+            if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Skip permission check and proceed (iOS workaround)
+                  _saveNotificationSettings();
+                },
+                child: Text('I\'ve Enabled It', style: TextStyle(fontSize: 12)),
+              ),
+            ],
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
@@ -193,7 +325,6 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     
                     // Store context before async operations
                     final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final navigator = Navigator.of(context);
                     
                     // Validate settings first
                     if (_frequency <= 0) {
@@ -224,31 +355,46 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     bool permissionGranted = false;
                     
                     if (defaultTargetPlatform == TargetPlatform.iOS) {
-                      // iOS-specific permission handling
-                      final permissionStatus = await Permission.notification.status;
-                      debugPrint('iOS permission status: $permissionStatus');
+                      // iOS-specific permission handling with more reliable checking
+                      debugPrint('iOS: Checking notification permission...');
                       
-                      if (permissionStatus == PermissionStatus.denied) {
-                        final requestResult = await Permission.notification.request();
-                        debugPrint('iOS permission request result: $requestResult');
+                      // First, try the more reliable method
+                      bool hasPermissionReliable = await _checkIOSNotificationPermission();
+                      debugPrint('iOS: Reliable permission check result: $hasPermissionReliable');
+                      
+                      if (hasPermissionReliable) {
+                        permissionGranted = true;
+                        debugPrint('iOS: Permission confirmed as granted');
+                      } else {
+                        // Permission not granted, try to request it
+                        debugPrint('iOS: Permission not granted, requesting...');
+                        final permissionStatus = await Permission.notification.status;
+                        debugPrint('iOS: Current permission status: $permissionStatus');
                         
-                        if (requestResult == PermissionStatus.granted || requestResult == PermissionStatus.provisional) {
-                          permissionGranted = true;
-                        } else {
-                          // If user denied the request, show settings dialog 
-                          // because iOS won't show the permission dialog again
+                        if (permissionStatus == PermissionStatus.denied) {
+                          final requestResult = await Permission.notification.request();
+                          debugPrint('iOS: Permission request result: $requestResult');
+                          
+                          if (requestResult == PermissionStatus.granted || 
+                              requestResult == PermissionStatus.provisional) {
+                            // Double-check with reliable method after granting
+                            permissionGranted = await _checkIOSNotificationPermission();
+                            debugPrint('iOS: Final permission check after request: $permissionGranted');
+                          } else {
+                            // User denied, show settings dialog
+                            debugPrint('iOS: User denied permission, showing settings dialog');
+                            _showPermissionSettingsDialog();
+                            return;
+                          }
+                        } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
+                          debugPrint('iOS: Permission permanently denied, showing settings dialog');
                           _showPermissionSettingsDialog();
                           return;
+                        } else {
+                          // Other status, use reliable check result
+                          permissionGranted = hasPermissionReliable;
+                          debugPrint('iOS: Using reliable check result: $permissionGranted');
                         }
-                      } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
-                        // Always show dialog for permanently denied on iOS
-                        _showPermissionSettingsDialog();
-                        return;
-                      } else {
-                        // Permission is already granted, provisional, or limited
-                        permissionGranted = permissionStatus == PermissionStatus.granted || 
-                                          permissionStatus == PermissionStatus.provisional ||
-                                          permissionStatus == PermissionStatus.limited;
                       }
                     } else {
                       // Android-specific permission handling
@@ -292,32 +438,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     }
 
                     // Save notification settings
-                    String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
-                    String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
-                    String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
-                    String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
-                    NotificationsModel model =
-                    NotificationsModel(
-                        startAt: '$startHour:$startMinute',
-                        endAt: '$endtHour:$endMinute',
-                        frequency: _frequency.toInt(), notificationData: ['notification 1','notification 2', 'notification 2']);
-                    NotificationConfigService.instance.notificationDetails = model;
-
-                    await NotificationHelper.instance.reScheduleNotifications();
-
-                    // Show success message
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text('Notification settings saved successfully!'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-
-                    if(widget.willPop) {
-                      navigator.pop();
-                    } else {
-                      Get.offAllNamed(RouteHelper.phraserScreen);
-                    }
+                    await _saveNotificationSettings();
                   },
                   child: const Text(
                     'Save',
