@@ -88,16 +88,17 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
           iOS: iosDetails,
         );
         
-        // Try to show a silent test notification
+        // Try to show a silent test notification using the designated test ID
+        const testId = 99999; // NotificationIdRanges.testNotificationId
         await flutterLocalNotificationsPlugin.show(
-          99999, // Use test notification ID (outside free/pro ranges)
+          testId,
           '', // Empty title
           '', // Empty body
           platformChannelSpecifics,
         );
         
         // Immediately cancel the test notification
-        await flutterLocalNotificationsPlugin.cancel(99999);
+        await flutterLocalNotificationsPlugin.cancel(testId);
         
         debugPrint('iOS: Successfully showed and cancelled test notification - permission granted');
         return true;
