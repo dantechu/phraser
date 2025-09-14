@@ -191,147 +191,326 @@ class _SpecificTimeNotificationWidgetState extends State<SpecificTimeNotificatio
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          margin: EdgeInsets.all(10.0),
-          width: context.width,
-          padding: EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            color: Theme
-                .of(context)
-                .cardColor,
-            borderRadius: BorderRadius.circular(20.0),
-            border: Border.all(
-              color: kPrimaryColor.withOpacity(0.5), // Customize the shade color here
-              width: 0.5, // Customize the border width as needed
-            ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-          child: Column(
-            children: [
-              Container(
-                margin: EdgeInsets.symmetric(vertical: 10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        _selectStartTime(context);
-                      },
-                      child: Row(
-                        children: [
-                          Icon(Icons.timer_outlined, color: kPrimaryColor,),
-                          SizedBox(width: 5.0,),
-                          Row(
-                            children: [
-                              Text('Starts at:', style: TextStyle(fontWeight: FontWeight.w600),),
-                              SizedBox(width: 5.0,),
-                              Text(_startTime.format(context))
-                            ],
-                          )
-
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        _selectEndTime(context);
-                      },
-                      child: Row(
-                        children: [
-                          Icon(Icons.timer_outlined, color: kPrimaryColor,),
-                          SizedBox(width: 5.0,),
-                          Row(
-                            children: [
-                              Text('Ends at', style: TextStyle(fontWeight: FontWeight.w600),),
-                              SizedBox(width: 5.0,),
-                              Text(_endTime.format(context))
-                            ],
-                          )
-
-                        ],
-                      ),
-                    )
-                  ],),
+        ],
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Time Selection Section
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTimeCard(
+                    context,
+                    title: 'Start Time',
+                    time: _startTime.format(context),
+                    icon: Icons.schedule,
+                    onTap: () => _selectStartTime(context),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTimeCard(
+                    context,
+                    title: 'End Time', 
+                    time: _endTime.format(context),
+                    icon: Icons.schedule_outlined,
+                    onTap: () => _selectEndTime(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            
+            // Days of Week Section
+            Text(
+              'Active Days',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).textTheme.titleMedium?.color,
               ),
-              const SizedBox(height: 10.0),
-              DaysOfWeekWidget(
-                currentDaysList: _notificationsModel!.notificationDays ?? [],
-                onDaysChanged: (newDaysList) {
-                  updateNotificationSettings(daysList: newDaysList);
-                },
-
+            ),
+            const SizedBox(height: 12),
+            DaysOfWeekWidget(
+              currentDaysList: _notificationsModel!.notificationDays ?? [],
+              onDaysChanged: (newDaysList) {
+                updateNotificationSettings(daysList: newDaysList);
+              },
+            ),
+            const SizedBox(height: 20),
+            // Frequency Section
+            Text(
+              'Notifications per Period',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).textTheme.titleMedium?.color,
               ),
-              const SizedBox(height: 10.0),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
                 children: [
-                  Container(
-                      child: Icon(Icons.speed, color: kPrimaryColor,)),
-                  const SizedBox(width: 20.0,),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('${_frequency.toInt()}'),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.notifications_active_outlined,
+                            color: Theme.of(context).primaryColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Frequency',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).textTheme.bodyMedium?.color,
+                            ),
+                          ),
+                        ],
+                      ),
                       Container(
-                        width: MediaQuery
-                            .of(context)
-                            .size
-                            .width / 1.7,
-                        child: Slider(
-                          value: _frequency,
-                          min: 0.0,
-                          max: 10.0,
-                          divisions: 10,
-                          onChanged: _onFrequencyChanged,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_frequency.toInt()}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                      Text('10'),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: Theme.of(context).primaryColor,
+                      inactiveTrackColor: Theme.of(context).primaryColor.withOpacity(0.3),
+                      thumbColor: Theme.of(context).primaryColor,
+                      overlayColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                      trackHeight: 4,
+                    ),
+                    child: Slider(
+                      value: _frequency,
+                      min: 0.0,
+                      max: 10.0,
+                      divisions: 10,
+                      onChanged: _onFrequencyChanged,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '0',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '10',
+                        style: TextStyle(
+                          color: Theme.of(context).textTheme.bodySmall?.color,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              SizedBox(height: 10.0),
-              Row(
-                children: [
-                  Text('Notifications:', style: TextStyle(fontWeight: FontWeight.w600),),
-                  SizedBox(width: 20.0,),
-                  GestureDetector(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(
-                            builder: (context) => NotificationsCategoriesScreen(selectedCategoryList: _notificationsModel?.notificationCategories ?? [],))).then((value) {
-                              List<Categories> categoriesList = value;
-                              if(categoriesList != null && categoriesList.isNotEmpty) {
-                                List<Categories> selectedCategoriesList = categoriesList.where((element) => element.isSelected == true).toList();
-                                List<NotificationCategory> notificationCategoryList = [];
-                                for(final item in selectedCategoriesList) {
-                                  notificationCategoryList.add(NotificationCategory(name: item.categoryName, id: item.categoryId));
-                                  if(item == selectedCategoriesList.last) {
-                                    updateNotificationSettings(
-                                        categoriesList: notificationCategoryList);
-                                  }
-                                }
-
-                              }
-                          setState(() {
-                            debugPrint('----> $value');
-                          });
-                        }
-    );
-                        
-                      },
-                      child: Text(getCategoriesName()))
-                ],
-              )
-            ],
-          ),
-        )
-      ],
+            ),
+            const SizedBox(height: 20),
+            // Categories Section
+            Text(
+              'Notification Categories',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).textTheme.titleMedium?.color,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildCategoriesCard(context),
+          ],
+        ),
+      ),
     );
   }
 
+
+  Widget _buildTimeCard(BuildContext context, {
+    required String title,
+    required String time,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).primaryColor.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: Theme.of(context).primaryColor,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              time,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.titleMedium?.color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context, 
+          MaterialPageRoute(
+            builder: (context) => NotificationsCategoriesScreen(
+              selectedCategoryList: _notificationsModel?.notificationCategories ?? [],
+            ),
+          ),
+        ).then((value) {
+          List<Categories> categoriesList = value;
+          if (categoriesList != null && categoriesList.isNotEmpty) {
+            List<Categories> selectedCategoriesList = categoriesList
+                .where((element) => element.isSelected == true)
+                .toList();
+            List<NotificationCategory> notificationCategoryList = [];
+            for (final item in selectedCategoriesList) {
+              notificationCategoryList.add(
+                NotificationCategory(
+                  name: item.categoryName, 
+                  id: item.categoryId,
+                ),
+              );
+              if (item == selectedCategoriesList.last) {
+                updateNotificationSettings(
+                  categoriesList: notificationCategoryList,
+                );
+              }
+            }
+          }
+          setState(() {
+            debugPrint('----> $value');
+          });
+        });
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).primaryColor.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.category_outlined,
+              color: Theme.of(context).primaryColor,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Categories',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    getCategoriesName(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Theme.of(context).primaryColor,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   String getCategoriesName() {
     String name = 'Select Categories';

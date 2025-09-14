@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:colorful_safe_area/colorful_safe_area.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -36,72 +37,108 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(Icons.arrow_back)),
-        title: Text('Notifications Settings'),
-        actions: [
-          TextButton(onPressed: (){
-            _savePremiumSettings();
-          }, child: Text('Save', style: TextStyle(color: Colors.white, fontSize: 18),))
-        ],
-      ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const NotificationTitleWidget(title: 'Morning'),
-            SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.morning.name,),
-            const NotificationTitleWidget(title: 'Afternoon'),
-            SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.afternoon.name,),
-            const NotificationTitleWidget(title: 'Evening'),
-            SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.evening.name,),
-            const NotificationTitleWidget(title: 'Midnight'),
-            SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.midnight.name,),
-            // Container(
-            //     width: MediaQuery.of(context).size.width,
-            //     height: 45.0,
-            //     margin: EdgeInsets.only(left: 20.0, right: 20.0, bottom: 70.0),
-            //     child: ElevatedButton(
-            //         onPressed: () async {
-            //           if(Preferences.instance.isFirstOpen) {
-            //             Preferences.instance.isFirstOpen = false;
-            //           }
-            //
-            //
-            //           String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
-            //           String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
-            //           String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
-            //           String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
-            //           NotificationsModel model =
-            //           NotificationsModel(
-            //               startAt: '$startHour:$startMinute',
-            //               endAt: '$endtHour:$endMinute',
-            //               frequency: _frequency.toInt(), notificationData: ['notification 1','notification 2', 'notification 2']);
-            //           NotificationConfigService.instance.notificationDetails = model;
-            //           final permissionStatus = await  Permission.notification.status;
-            //             if ( permissionStatus != PermissionStatus.granted) {
-            //              await  Permission.notification.request();
-            //             }
-            //
-            //           await  NotificationHelper.instance.reScheduleNotifications();
-            //
-            //           if(widget.willPop) {
-            //             Navigator.pop(context);
-            //           } else {
-            //             Get.offAllNamed(RouteHelper.phraserScreen);
-            //           }
-            //         },
-            //         child: const Text(
-            //           'Save',
-            //           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-            //         ))),
+    return ColorfulSafeArea(
+      color: Theme.of(context).primaryColor,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Theme.of(context).primaryColor,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          title: const Text(
+            'Custom Reminders',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          actions: [
+            Container(
+              margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+              child: ElevatedButton(
+                onPressed: _savePremiumSettings,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                ),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
           ],
+        ),
+        body: Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header description
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Theme.of(context).primaryColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Set up personalized reminder schedules for different times of day. Choose frequency, days, and categories for each period.',
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const NotificationTitleWidget(title: 'Morning'),
+                SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.morning.name),
+                
+                const NotificationTitleWidget(title: 'Afternoon'),
+                SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.afternoon.name),
+                
+                const NotificationTitleWidget(title: 'Evening'),
+                SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.evening.name),
+                
+                const NotificationTitleWidget(title: 'Midnight'),
+                SpecificTimeNotificationWidget(notificationKey: CustomNotificationType.midnight.name),
+              ],
+            ),
+          ),
         ),
       ),
     );

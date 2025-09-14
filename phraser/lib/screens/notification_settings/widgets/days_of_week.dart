@@ -25,21 +25,34 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildDayCircle("M", "Monday", 0),
-        _buildDayCircle("T", "Tuesday", 1),
-        _buildDayCircle("W", "Wednesday", 2),
-        _buildDayCircle("T", "Thursday", 3),
-        _buildDayCircle("F", "Friday", 4),
-        _buildDayCircle("S", "Saturday", 5),
-        _buildDayCircle("S", "Sunday", 6),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildDayCircle("M", "Monday", 0, context),
+          _buildDayCircle("T", "Tuesday", 1, context),
+          _buildDayCircle("W", "Wednesday", 2, context),
+          _buildDayCircle("T", "Thursday", 3, context),
+          _buildDayCircle("F", "Friday", 4, context),
+          _buildDayCircle("S", "Saturday", 5, context),
+          _buildDayCircle("S", "Sunday", 6, context),
+        ],
+      ),
     );
   }
 
-  Widget _buildDayCircle(String dayLetter, String dayName, int index) {
+  Widget _buildDayCircle(String dayLetter, String dayName, int index, BuildContext context) {
+    final isSelected = _selectedDays[index];
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -47,26 +60,42 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
           widget.onDaysChanged?.call(_selectedDays);
         });
       },
-      child: Container(
-        width: 30,
-        height: 30,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: _selectedDays[index] ? Colors.lightBlue : Colors.grey,
+          color: isSelected 
+              ? Theme.of(context).primaryColor 
+              : Colors.transparent,
+          border: Border.all(
+            color: isSelected 
+                ? Theme.of(context).primaryColor 
+                : Theme.of(context).primaryColor.withOpacity(0.3),
+            width: 2,
+          ),
+          boxShadow: isSelected 
+              ? [
+                  BoxShadow(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ] 
+              : null,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              dayLetter,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+        child: Center(
+          child: Text(
+            dayLetter,
+            style: TextStyle(
+              color: isSelected 
+                  ? Colors.white 
+                  : Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
-
-          ],
+          ),
         ),
       ),
     );

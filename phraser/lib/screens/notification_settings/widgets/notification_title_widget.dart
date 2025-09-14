@@ -10,13 +10,58 @@ class NotificationTitleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(top: 10.0, bottom: 5.0),
-      padding: EdgeInsets.only(left: 10.0, top: 10.0, bottom: 10.0, right: 15.0),
-      decoration: BoxDecoration(
-          color: kPrimaryColor,
-          borderRadius: BorderRadius.only(topRight: Radius.circular(10.0), bottomRight: Radius.circular(10.0))
+      margin: const EdgeInsets.only(top: 20.0, bottom: 8.0, left: 16.0, right: 16.0),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 24,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).textTheme.headlineSmall?.color,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.5,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              _getTimeIcon(),
+              color: Theme.of(context).primaryColor,
+              size: 16,
+            ),
+          ),
+        ],
       ),
-      child: Text(title, style: TextStyle(color: Colors.white, fontSize: 18, ),),
     );
+  }
+
+  IconData _getTimeIcon() {
+    switch (title.toLowerCase()) {
+      case 'morning':
+        return Icons.wb_sunny_outlined;
+      case 'afternoon':
+        return Icons.wb_sunny;
+      case 'evening':
+        return Icons.wb_twilight;
+      case 'midnight':
+        return Icons.bedtime_outlined;
+      default:
+        return Icons.schedule;
+    }
   }
 }
