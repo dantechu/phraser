@@ -14,6 +14,23 @@ import 'package:timezone/data/latest.dart' as tz;
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
+/// Notification ID ranges to separate free and pro notifications
+/// 
+/// This system ensures that free and pro notifications can be managed independently:
+/// - Free notifications: IDs 1000-1999 (managed by FreeNotificationSettingsScreen)
+/// - Pro notifications: IDs 2000-2999 (for future pro features)
+/// - Test notifications: ID 99999 (for permission testing)
+/// 
+/// When saving free notification settings, only free notifications (1000-1999) are cancelled
+/// and rescheduled, leaving pro notifications (2000-2999) completely unaffected.
+class NotificationIdRanges {
+  static const int freeNotificationStart = 1000;
+  static const int freeNotificationEnd = 1999;
+  static const int proNotificationStart = 2000;
+  static const int proNotificationEnd = 2999;
+  static const int testNotificationId = 99999;
+}
+
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'high_importance_channel', // id
   'High Importance Notifications', // title
@@ -57,9 +74,10 @@ class NotificationHelper {
   }
   
   
-  Future<void> reScheduleNotifications({List<NotificationCategory>? categoriesList}) async {
-    // Cancel all existing notifications first
-    await cancelAllNotifications();
+  /// Schedule free notifications only (uses ID range 1000-1999)
+  Future<void> reScheduleFreeNotifications({List<NotificationCategory>? categoriesList}) async {
+    // Cancel only existing free notifications first
+    await cancelFreeNotifications();
 
     List<Phraser> nCategoryList = [];
     if(categoriesList != null && categoriesList.isNotEmpty) {
@@ -115,6 +133,15 @@ class NotificationHelper {
         startTime, endTime, notificationDetails.frequency);
 
     for(int i = 0; i<timeOfDayList.length; i++) {
+      // Use free notification ID range (1000-1999)
+      final notificationId = NotificationIdRanges.freeNotificationStart + i;
+      
+      // Ensure we don't exceed the free notification range
+      if (notificationId > NotificationIdRanges.freeNotificationEnd) {
+        debugPrint('Warning: Exceeded free notification ID range. Skipping notification $i');
+        continue;
+      }
+      
       final timingHour = timeOfDayList[i].hour;
       final timingMin = timeOfDayList[i].minute;
       Duration duration = DateTime(
@@ -171,10 +198,37 @@ class NotificationHelper {
       Random random = Random();
       debugPrint('************************* nCategoryLIst length: ${nCategoryList.length}');
       int index = random.nextInt(nCategoryList.length);
-       scheduleLocalNotification(id: i, title: 'Reminder', description: nCategoryList[index].quote, duration: duration);
+      
+      // Schedule with free notification ID
+      scheduleLocalNotification(
+        id: notificationId, 
+        title: 'Reminder', 
+        description: nCategoryList[index].quote, 
+        duration: duration
+      );
 
-      debugPrint('************************* [$i] ${nCategoryList[index].quote}');
+      debugPrint('************************* [Free ID: $notificationId] ${nCategoryList[index].quote}');
     }
+  }
+
+  /// Legacy method for backward compatibility - now calls reScheduleFreeNotifications
+  @Deprecated('Use reScheduleFreeNotifications for free notifications or reScheduleProNotifications for pro notifications')
+  Future<void> reScheduleNotifications({List<NotificationCategory>? categoriesList}) async {
+    debugPrint('Warning: reScheduleNotifications is deprecated. Use reScheduleFreeNotifications instead.');
+    await reScheduleFreeNotifications(categoriesList: categoriesList);
+  }
+
+  /// Future method for pro notifications (uses ID range 2000-2999)
+  Future<void> reScheduleProNotifications({List<NotificationCategory>? categoriesList}) async {
+    // Cancel only existing pro notifications first
+    await cancelProNotifications();
+    
+    // TODO: Implement pro notification scheduling logic
+    // This will be implemented when pro notifications feature is added
+    debugPrint('Pro notification scheduling - To be implemented');
+    
+    // For now, just log that this method was called
+    debugPrint('reScheduleProNotifications called with ${categoriesList?.length ?? 0} categories');
   }
 
     List<TimeOfDay> getTimeIntervals(TimeOfDay startTime, TimeOfDay endTime, int n) {
@@ -285,10 +339,114 @@ class NotificationHelper {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
+  /// Cancel only free notifications (ID range 1000-1999)
+  Future<void> cancelFreeNotifications() async {
+    debugPrint('Cancelling free notifications (ID: ${NotificationIdRanges.freeNotificationStart}-${NotificationIdRanges.freeNotificationEnd})');
+    
+    try {
+      // Get all pending notifications
+      final List<PendingNotificationRequest> pendingNotifications = 
+          await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      
+      // Cancel only free notifications
+      for (final notification in pendingNotifications) {
+        if (notification.id >= NotificationIdRanges.freeNotificationStart && 
+            notification.id <= NotificationIdRanges.freeNotificationEnd) {
+          await flutterLocalNotificationsPlugin.cancel(notification.id);
+          debugPrint('Cancelled free notification ID: ${notification.id}');
+        }
+      }
+      
+      debugPrint('Successfully cancelled all free notifications');
+    } catch (e) {
+      debugPrint('Error cancelling free notifications: $e');
+      // Fallback: cancel by specific ID range (less efficient but more reliable)
+      for (int id = NotificationIdRanges.freeNotificationStart; 
+           id <= NotificationIdRanges.freeNotificationEnd; 
+           id++) {
+        try {
+          await flutterLocalNotificationsPlugin.cancel(id);
+        } catch (cancelError) {
+          // Ignore individual cancel errors
+        }
+      }
+    }
+  }
+
+  /// Cancel only pro notifications (ID range 2000-2999)
+  Future<void> cancelProNotifications() async {
+    debugPrint('Cancelling pro notifications (ID: ${NotificationIdRanges.proNotificationStart}-${NotificationIdRanges.proNotificationEnd})');
+    
+    try {
+      // Get all pending notifications
+      final List<PendingNotificationRequest> pendingNotifications = 
+          await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+      
+      // Cancel only pro notifications
+      for (final notification in pendingNotifications) {
+        if (notification.id >= NotificationIdRanges.proNotificationStart && 
+            notification.id <= NotificationIdRanges.proNotificationEnd) {
+          await flutterLocalNotificationsPlugin.cancel(notification.id);
+          debugPrint('Cancelled pro notification ID: ${notification.id}');
+        }
+      }
+      
+      debugPrint('Successfully cancelled all pro notifications');
+    } catch (e) {
+      debugPrint('Error cancelling pro notifications: $e');
+      // Fallback: cancel by specific ID range
+      for (int id = NotificationIdRanges.proNotificationStart; 
+           id <= NotificationIdRanges.proNotificationEnd; 
+           id++) {
+        try {
+          await flutterLocalNotificationsPlugin.cancel(id);
+        } catch (cancelError) {
+          // Ignore individual cancel errors
+        }
+      }
+    }
+  }
+
   /// Get all the notification the are in pending state and not delivered
   Future<void> checkPendingNotifications() async {
     final available = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    debugPrint('****************************** ${available.length} ');
+    debugPrint('****************************** Total pending: ${available.length}');
+    
+    int freeCount = 0;
+    int proCount = 0;
+    int otherCount = 0;
+    
+    for (final notification in available) {
+      if (notification.id >= NotificationIdRanges.freeNotificationStart && 
+          notification.id <= NotificationIdRanges.freeNotificationEnd) {
+        freeCount++;
+      } else if (notification.id >= NotificationIdRanges.proNotificationStart && 
+                 notification.id <= NotificationIdRanges.proNotificationEnd) {
+        proCount++;
+      } else {
+        otherCount++;
+      }
+    }
+    
+    debugPrint('Free notifications: $freeCount, Pro notifications: $proCount, Other: $otherCount');
+  }
+
+  /// Get pending notifications by type
+  Future<List<PendingNotificationRequest>> getPendingFreeNotifications() async {
+    final allPending = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    return allPending.where((notification) => 
+        notification.id >= NotificationIdRanges.freeNotificationStart && 
+        notification.id <= NotificationIdRanges.freeNotificationEnd
+    ).toList();
+  }
+
+  /// Get pending pro notifications
+  Future<List<PendingNotificationRequest>> getPendingProNotifications() async {
+    final allPending = await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+    return allPending.where((notification) => 
+        notification.id >= NotificationIdRanges.proNotificationStart && 
+        notification.id <= NotificationIdRanges.proNotificationEnd
+    ).toList();
   }
 
 }

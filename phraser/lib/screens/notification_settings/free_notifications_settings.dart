@@ -90,7 +90,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
         
         // Try to show a silent test notification
         await flutterLocalNotificationsPlugin.show(
-          99999, // Test notification ID
+          99999, // Use test notification ID (outside free/pro ranges)
           '', // Empty title
           '', // Empty body
           platformChannelSpecifics,
@@ -150,7 +150,10 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
       
       NotificationConfigService.instance.notificationDetails = model;
 
-      await NotificationHelper.instance.reScheduleNotifications();
+      // Schedule free notifications (ID range 1000-1999)
+      // This will cancel only existing free notifications and create new ones
+      // Pro notifications (ID range 2000-2999) remain unaffected
+      await NotificationHelper.instance.reScheduleFreeNotifications();
 
       // Show success message
       scaffoldMessenger.showSnackBar(
