@@ -29,10 +29,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final CoinsUseCases _coinsUseCases = Get.find<CoinsUseCases>();
   
   // Animation controllers for enhanced UX
-  late AnimationController _headerAnimationController;
-  late AnimationController _inputAnimationController;
-  late Animation<double> _headerAnimation;
-  late Animation<double> _inputAnimation;
+  AnimationController? _headerAnimationController;
+  AnimationController? _inputAnimationController;
+  Animation<double>? _headerAnimation;
+  Animation<double>? _inputAnimation;
   
   // Enhanced state management
   bool _isTyping = false;
@@ -43,35 +43,47 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _initializeAnimations();
     _initializeQuickSuggestions();
     _setupTextControllerListener();
+    
+    // Initialize animations after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _initializeAnimations();
       initializeData();
     });
   }
   
   void _initializeAnimations() {
-    _headerAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _inputAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 600),
-      vsync: this,
-    );
+    if (mounted) {
+      _headerAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 600),
+        vsync: this,
+      );
+      _inputAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 400),
+        vsync: this,
+      );
     
-    _headerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _headerAnimationController, curve: Curves.easeOutBack),
-    );
-    _inputAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _inputAnimationController, curve: Curves.elasticOut),
-    );
+      // Use safer curves that stay within bounds
+      _headerAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _headerAnimationController!, curve: Curves.easeOut),
+      );
+      _inputAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: _inputAnimationController!, curve: Curves.easeOutCubic),
+      );
     
-    _headerAnimationController.forward();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _inputAnimationController.forward();
-    });
+      // Start animations with small delay to prevent startup overflow
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _headerAnimationController?.forward();
+        }
+      });
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          _inputAnimationController?.forward();
+        }
+      });
+    }
   }
   
   void _initializeQuickSuggestions() {
@@ -102,8 +114,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   
   @override
   void dispose() {
-    _headerAnimationController.dispose();
-    _inputAnimationController.dispose();
+    _headerAnimationController?.dispose();
+    _inputAnimationController?.dispose();
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -126,44 +138,43 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Column(
+              children: [
             // Enhanced Header with Animation
-            AnimatedBuilder(
-              animation: _headerAnimation,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, -50 * (1 - _headerAnimation.value)),
-                  child: Opacity(
-                    opacity: _headerAnimation.value,
-                    child: _buildEnhancedHeader(context),
-                  ),
-                );
-              },
-            ),
+            _headerAnimation != null
+                ? AnimatedBuilder(
+                    animation: _headerAnimation!,
+                    builder: (context, child) {
+                      final safeOpacity = _headerAnimation!.value.clamp(0.0, 1.0);
+                      return Transform.translate(
+                        offset: Offset(0, -20 * (1 - safeOpacity)),
+                        child: Opacity(
+                          opacity: safeOpacity,
+                          child: _buildEnhancedHeader(context),
+                        ),
+                      );
+                    },
+                  )
+                : _buildEnhancedHeader(context),
             
             // Chat Messages Area
             Expanded(
               child: GetBuilder<ChatViewModel>(
                 builder: (viewModel) {
                   return Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Theme.of(context).scaffoldBackgroundColor,
-                          Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
-                        ],
-                      ),
-                    ),
                     child: SingleChildScrollView(
                       controller: scrollController,
                       physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                        child: Column(
-                          children: [
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight - 140, // Account for header and input
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          child: Column(
+                            children: [
                             // Welcome Message or Chat History
                             if (chatViewModel.localHistory.isEmpty) ...[
                               _buildWelcomeMessage(),
@@ -242,7 +253,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                             
                             // Add some bottom padding for better scrolling
                             const SizedBox(height: 100),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -252,19 +264,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             
             // Enhanced Input Area
-            AnimatedBuilder(
-              animation: _inputAnimation,
-              builder: (context, child) {
-                return Transform.translate(
-                  offset: Offset(0, 50 * (1 - _inputAnimation.value)),
-                  child: Opacity(
-                    opacity: _inputAnimation.value,
-                    child: _buildEnhancedInputArea(context),
-                  ),
-                );
-              },
-            ),
-          ],
+            _inputAnimation != null
+                ? AnimatedBuilder(
+                    animation: _inputAnimation!,
+                    builder: (context, child) {
+                      final safeOpacity = _inputAnimation!.value.clamp(0.0, 1.0);
+                      return Transform.translate(
+                        offset: Offset(0, 20 * (1 - safeOpacity)),
+                        child: Opacity(
+                          opacity: safeOpacity,
+                          child: _buildEnhancedInputArea(context),
+                        ),
+                      );
+                    },
+                  )
+                : _buildEnhancedInputArea(context),
+              ]);
+          },
         ),
       ),
     );
