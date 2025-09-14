@@ -1,3 +1,4 @@
+import 'package:colorful_safe_area/colorful_safe_area.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -242,87 +243,238 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(Icons.arrow_back)),
-        title: Text('Notifications Settings'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            children: [
-              SizedBox(height: 50.0,),
-              Container(
-                  width: 100.0,
-                  height: 100.0,
-                  child: Image.asset(AppAssets.kNotificationIcon)),
-              SizedBox(height: 20.0,),
-              Text('Set daily motivation reminders\nto stay blessed', style: TextStyle(fontSize: 20.0),textAlign: TextAlign.center,),
-            ],
+    return ColorfulSafeArea(
+      color: Theme.of(context).primaryColor,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: Theme.of(context).primaryColor,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.timer_outlined, color: kPrimaryColor,)),
-                  title: Text('Starts at'),
-                  subtitle: Text(_startTime.format(context)),
-                  onTap: () => _selectStartTime(context),
-                ),
-              ),
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.timer_outlined, color: kPrimaryColor,)),
-                  title: Text('Ends at'),
-                  subtitle: Text(_endTime.format(context)),
-                  onTap: () => _selectEndTime(context),
-                ),
-              ),
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.speed, color: kPrimaryColor,)),
-                  title: Text('Frequency      ${_frequency.toInt()}'),
-                  subtitle: Row(
+          title: const Text(
+            'Daily Reminders',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header description
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text('0'),
                       Container(
-                        width: MediaQuery.of(context).size.width/1.7,
-                        child: Slider(
-                          value: _frequency,
-                          min: 0.0,
-                          max: 10.0,
-                          divisions: 10,
-                          onChanged: _onFrequencyChanged,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          '🔔',
+                          style: TextStyle(fontSize: 20),
                         ),
                       ),
-                      Text('10'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Daily Motivation Reminders',
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.headlineSmall?.color,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Set up simple daily reminders to stay blessed and motivated throughout your day.',
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                fontSize: 13,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          Container(
-              width: MediaQuery.of(context).size.width,
-              height: 45.0,
-              margin: EdgeInsets.only(left: 20.0, right: 20.0, bottom: 70.0),
-              child: ElevatedButton(
-                  onPressed: () async {
+                // Settings Container
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.08),
+                      width: 1,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Time Selection Section
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTimeCard(
+                                context,
+                                title: 'Start Time',
+                                time: _startTime.format(context),
+                                emoji: '⏰',
+                                onTap: () => _selectStartTime(context),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildTimeCard(
+                                context,
+                                title: 'End Time',
+                                time: _endTime.format(context),
+                                emoji: '⏰',
+                                onTap: () => _selectEndTime(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // Frequency Section
+                        Text(
+                          'Frequency',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.titleMedium?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text(
+                                '🔔',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Daily Reminders',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).primaryColor,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '${_frequency.toInt()}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: Theme.of(context).primaryColor,
+                                        inactiveTrackColor:
+                                            Theme.of(context).primaryColor.withOpacity(0.3),
+                                        thumbColor: Theme.of(context).primaryColor,
+                                        overlayColor:
+                                            Theme.of(context).primaryColor.withOpacity(0.1),
+                                        trackHeight: 3,
+                                        thumbShape: const RoundSliderThumbShape(
+                                            enabledThumbRadius: 8),
+                                      ),
+                                      child: Slider(
+                                        value: _frequency,
+                                        min: 0.0,
+                                        max: 10.0,
+                                        divisions: 10,
+                                        onChanged: _onFrequencyChanged,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Save Button
+                Container(
+                  margin: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 20),
+                  child: ElevatedButton(
+                    onPressed: () async {
                     if(Preferences.instance.isFirstOpen) {
                       Preferences.instance.isFirstOpen = false;
                     }
@@ -441,14 +593,88 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                       return;
                     }
 
-                    // Save notification settings
-                    await _saveNotificationSettings();
-                  },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-                  ))),
-        ],
+                      // Save notification settings
+                      await _saveNotificationSettings();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text(
+                      'Save Reminder Settings',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeCard(
+    BuildContext context, {
+    required String title,
+    required String time,
+    required String emoji,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
