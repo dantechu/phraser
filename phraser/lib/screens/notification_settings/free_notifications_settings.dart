@@ -58,6 +58,11 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
 
   void _showPermissionSettingsDialog() {
     debugPrint('Showing permission settings dialog');
+    
+    final String instructions = defaultTargetPlatform == TargetPlatform.iOS
+        ? 'Go to Settings > I AM Blessed > Notifications and turn on "Allow Notifications".'
+        : 'Go to Settings > Apps > I AM Blessed > Notifications and turn on notifications.';
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -65,7 +70,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
         return AlertDialog(
           title: Text('Notification Permission Required'),
           content: Text(
-            'To receive daily motivation reminders, please enable notification permission from app settings.\n\nGo to Settings > Apps > Phraser > Notifications and turn on notifications.',
+            'To receive daily motivation reminders, please enable notification permission from your device settings.\n\n$instructions',
           ),
           actions: [
             TextButton(
@@ -226,16 +231,24 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                       if (permissionStatus == PermissionStatus.denied) {
                         final requestResult = await Permission.notification.request();
                         debugPrint('iOS permission request result: $requestResult');
-                        permissionGranted = requestResult == PermissionStatus.granted || requestResult == PermissionStatus.provisional;
+                        
+                        if (requestResult == PermissionStatus.granted || requestResult == PermissionStatus.provisional) {
+                          permissionGranted = true;
+                        } else {
+                          // If user denied the request, show settings dialog 
+                          // because iOS won't show the permission dialog again
+                          _showPermissionSettingsDialog();
+                          return;
+                        }
+                      } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
+                        // Always show dialog for permanently denied on iOS
+                        _showPermissionSettingsDialog();
+                        return;
                       } else {
+                        // Permission is already granted, provisional, or limited
                         permissionGranted = permissionStatus == PermissionStatus.granted || 
                                           permissionStatus == PermissionStatus.provisional ||
                                           permissionStatus == PermissionStatus.limited;
-                      }
-                      
-                      if (!permissionGranted && permissionStatus == PermissionStatus.permanentlyDenied) {
-                        _showPermissionSettingsDialog();
-                        return;
                       }
                     } else {
                       // Android-specific permission handling
@@ -263,12 +276,18 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     }
                     
                     if (!permissionGranted) {
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Notification permission is required to set reminders'),
-                          backgroundColor: Colors.orange,
-                        ),
-                      );
+                      if (defaultTargetPlatform == TargetPlatform.iOS) {
+                        // On iOS, if we reach here without permission, show settings dialog
+                        _showPermissionSettingsDialog();
+                      } else {
+                        // On Android, show snackbar for temporary denial
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Notification permission is required to set reminders'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                      }
                       return;
                     }
 
