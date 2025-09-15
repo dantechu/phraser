@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/consts/colors.dart';
 import 'package:phraser/services/model/data_repository.dart';
+import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart';
 import '../util/utils.dart';
 
@@ -31,19 +32,24 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black87),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Mood-Based Quotes',
           style: TextStyle(
-            color: Colors.black87,
+            color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -57,9 +63,9 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: isDark ? Theme.of(context).cardColor : Colors.white,
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
               ),
@@ -67,20 +73,12 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'How are you feeling today?',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 Text(
                   'Select your mood to discover quotes that resonate with you',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                    fontSize: 16,
+                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -110,52 +108,68 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       decoration: BoxDecoration(
-                        color: isSelected ? mood.color.withOpacity(0.8) : Colors.white,
+                        color: isSelected 
+                            ? kPrimaryColor.withOpacity(0.15) 
+                            : (isDark ? Theme.of(context).cardColor : Colors.white),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? AppColors.primaryColor : Colors.grey.shade200,
+                          color: isSelected 
+                              ? kPrimaryColor 
+                              : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isSelected 
-                                ? AppColors.primaryColor.withOpacity(0.3)
-                                : Colors.black.withOpacity(0.05),
+                                ? kPrimaryColor.withOpacity(0.2)
+                                : (isDark 
+                                    ? Colors.black.withOpacity(0.2) 
+                                    : Colors.black.withOpacity(0.05)),
                             blurRadius: isSelected ? 12 : 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(12),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               mood.emoji,
                               style: TextStyle(
-                                fontSize: isSelected ? 32 : 28,
+                                fontSize: isSelected ? 28 : 24,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              mood.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                color: isSelected ? AppColors.primaryColor : Colors.black87,
+                            const SizedBox(height: 6),
+                            Flexible(
+                              child: Text(
+                                mood.name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                  color: isSelected 
+                                      ? kPrimaryColor 
+                                      : Theme.of(context).primaryColorDark,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              mood.description,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade600,
+                            const SizedBox(height: 2),
+                            Flexible(
+                              child: Text(
+                                mood.description,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Theme.of(context).primaryColorDark.withOpacity(0.6),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -176,7 +190,7 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
                 child: ElevatedButton(
                   onPressed: _showMoodQuotes,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
+                    backgroundColor: kPrimaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -231,7 +245,7 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
     Get.snackbar(
       'Mood Set!',
       'Showing ${filteredQuotes.length} quotes for your $selectedMood mood',
-      backgroundColor: AppColors.primaryColor.withOpacity(0.9),
+      backgroundColor: kPrimaryColor.withOpacity(0.9),
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
       margin: const EdgeInsets.all(16),

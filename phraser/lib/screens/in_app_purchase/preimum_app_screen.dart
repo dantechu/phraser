@@ -131,17 +131,15 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         InkWell(
-                            onTap: () {
+                            onTap: (){
                               Navigator.pop(context);
                             },
-                            child: Icon(
-                              Icons.close,
-                              size: 27.0,
-                            )),
+                            child: Icon(Icons.close, size: 27.0,)),
                         SizedBox(width: 15.0),
                         //  Text('Settings', style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold ),)
                       ],
                     ),
+
                   ),
                 ),
                 SizedBox(height: 0.0),
