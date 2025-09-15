@@ -21,6 +21,7 @@ class Preferences {
   final String _premiumAppKey = 'premium_app';
   final String _customNotificationsKey = 'custom_notifications';
   final String _selectedRegionKey = 'selected_region';
+  final String _selectedNavigationTabKey = 'selected_navigation_tab';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -62,6 +63,10 @@ class Preferences {
     }
   }
 
+  set selectedNavigationTab(String tabName) {
+    _preferences!.setString(_selectedNavigationTabKey, tabName);
+  }
+
   bool get isCategoriesPresent {
     return _preferences!.getBool(_categoriesKey) ?? false;
   }
@@ -92,6 +97,10 @@ class Preferences {
 
   String? get selectedRegion {
     return _preferences!.getString(_selectedRegionKey);
+  }
+
+  String get selectedNavigationTab {
+    return _preferences!.getString(_selectedNavigationTabKey) ?? 'Categories';
   }
 
   Map<String, dynamic> defaultCustomNotificationsData = {

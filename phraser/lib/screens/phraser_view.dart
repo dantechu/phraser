@@ -29,12 +29,28 @@ class PhraserViewScreen extends StatefulWidget {
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
   final CarouselController _carouselController = CarouselController();
   final _phraserViewModel = Get.put(PhraserViewModel());
+  String selectedTab = 'Categories';
 
   @override
   void initState() {
     super.initState();
     _phraserViewModel.themePosition = Preferences.instance.textThemePosition;
+    selectedTab = Preferences.instance.selectedNavigationTab;
     AdsHelper.loadAdmobBannerAd();
+    
+    // Restore the last selected tab content after the widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _restoreSelectedTabContent();
+    });
+  }
+
+  void _restoreSelectedTabContent() {
+    // This method handles restoring the content based on the selected tab
+    // For now, we just ensure the selected state is properly set
+    // The actual content restoration happens when user navigates
+    setState(() {
+      // Trigger a rebuild to show the correct selected state
+    });
   }
 
   @override
@@ -251,7 +267,10 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    bool isSelected = false,
   }) {
+    final bool isSelectedTab = selectedTab == label;
+    
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -260,22 +279,22 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey.withOpacity(0.1),
+              color: isSelectedTab ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
               size: 24,
-              color: Colors.black87,
+              color: isSelectedTab ? Theme.of(context).primaryColor : Colors.black87,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: Colors.black87,
+              color: isSelectedTab ? Theme.of(context).primaryColor : Colors.black87,
             ),
           ),
         ],
@@ -283,8 +302,17 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     );
   }
 
+  // Helper method to handle tab selection
+  void _selectTab(String tabName) {
+    setState(() {
+      selectedTab = tabName;
+    });
+    Preferences.instance.selectedNavigationTab = tabName;
+  }
+
   // Navigation Methods
   void _navigateToCategories() {
+    _selectTab('Categories');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => CategoriesListScreen()),
@@ -296,6 +324,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   }
 
   void _navigateToMoodQuotes() {
+    _selectTab('Mood');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const MoodQuotesScreen()),
@@ -303,6 +332,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   }
 
   void _navigateToHabits() {
+    _selectTab('Habits');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const HabitBuilderScreen()),
