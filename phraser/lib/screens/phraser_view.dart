@@ -98,7 +98,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Container(
-                            padding: const EdgeInsets.only(bottom: 120.0),
+                            padding: const EdgeInsets.only(bottom: 166.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -192,7 +192,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   left: 16,
                   right: 16,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(25),
