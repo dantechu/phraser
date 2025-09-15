@@ -234,13 +234,6 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                           label: 'AI Chat',
                           onTap: () => Get.toNamed(RouteHelper.chatScreen),
                         ),
-                        
-                        // Themes
-                        _buildNavButton(
-                          icon: Icons.palette_outlined,
-                          label: 'Themes',
-                          onTap: () => _navigateToThemes(),
-                        ),
                       ],
                     ),
                   ),

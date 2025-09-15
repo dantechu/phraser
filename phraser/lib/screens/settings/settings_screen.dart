@@ -13,6 +13,9 @@ import 'package:phraser/screens/notification_settings/notification_settings.dart
 import 'package:phraser/screens/theme/AppThemeScreen.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
+import 'package:phraser/util/helper/route_helper.dart';
+import 'package:phraser/util/preferences.dart';
 
 import '../../widgets/simple_widgets.dart';
 
@@ -179,6 +182,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               8.height,
               SettingItemWidget(
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                leading: noteLeadingWidget(context, image: Icons.palette_outlined, color: Colors.purple),
+                title: 'Themes',
+                titleTextColor: Theme.of(context).primaryColorDark,
+                onTap: () {
+                  _navigateToThemes();
+                },
+              ),
+              SettingItemWidget(
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 leading: noteLeadingWidget(context, image: Icons.favorite_outlined, color: Colors.red),
                 title: 'Favorites',
                 titleTextColor: Theme.of(context).primaryColorDark,
@@ -336,6 +348,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!await launchUrl(url)) {
       Fluttertoast.showToast(msg: 'Unable to launch this URL!');
     }
+  }
+
+  void _navigateToThemes() {
+    Get.toNamed(RouteHelper.phraserThemeListScreen);
   }
 
 }
