@@ -3,6 +3,7 @@ import 'package:core/core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:phraser/consts/colors.dart';
+import 'package:phraser/util/colors.dart';
 import 'package:flutter/services.dart';
 
 class ConversationBox extends StatefulWidget {
@@ -83,9 +84,10 @@ class _ConversationBoxState extends State<ConversationBox> with TickerProviderSt
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: isDarkMode
-                        ? [const Color(0xFF2196F3), const Color(0xFF1976D2)]
-                        : [const Color(0xFF4CAF50), const Color(0xFF388E3C)],
+                    colors: [
+                      kPrimaryColor,
+                      kPrimaryColor.withOpacity(0.8),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -97,7 +99,7 @@ class _ConversationBoxState extends State<ConversationBox> with TickerProviderSt
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: (isDarkMode ? Colors.blue : Colors.green).withOpacity(0.3),
+                      color: kPrimaryColor.withOpacity(0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
