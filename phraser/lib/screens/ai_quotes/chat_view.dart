@@ -203,7 +203,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                                            ? interaction.interactions.last.timestamp!
                                                            : interaction.timestamp,
                                                 userText: interaction.interactions.isNotEmpty
-                                                          ? interaction.interactions.last.prompt
+                                                          ? _extractOriginalUserInput(interaction.interactions.last.prompt)
                                                           : 'User message',
                                               ),
                                               ConversationBox(
@@ -212,9 +212,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                                   "0XFFEB508D",
                                                   "0XFF9D325C"
                                                 ],
-                                                userText: interaction.interactions.isNotEmpty
-                                                          ? interaction.interactions.last.prompt
-                                                          : 'User message',
+                                                userText: '',
                                                 characterText: interaction.interactions.isNotEmpty
                                                                ? interaction.interactions.last.response
                                                                : 'AI response',
@@ -736,13 +734,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       // Add haptic feedback for professional feel
       HapticFeedback.mediumImpact();
 
-      // Use enhanced prompt for AI but we'll modify the display later
+      // Use enhanced prompt for AI but store original input for history
       final result = await _aiInteraction.fetchAIResponse(
           MessageDataModel(
               role: MessageRole.user,
               content: enhancedPrompt), // Enhanced for better AI response
           updateString(AppConfigService.instance.adminPanelID),
-          '');
+          originalUserInput); // Pass original input for history storage
 
       if (result.isSuccess) {
         // Success feedback
@@ -891,6 +889,29 @@ Format each quote clearly with attribution. End with a brief encouraging message
     } catch (e) {
       debugPrint('Error replacing user message: $e');
     }
+  }
+
+  /// Extracts the original user input from enhanced prompts
+  String _extractOriginalUserInput(String prompt) {
+    // If it's an enhanced prompt, extract the original input from quotes
+    final match = RegExp(r'quotes about "([^"]+)"').firstMatch(prompt);
+    if (match != null && match.group(1) != null) {
+      return match.group(1)!.trim();
+    }
+    
+    // If no quotes found but it contains "about" keyword, try to extract
+    final aboutMatch = RegExp(r'about\s+(.+?)(?:\s+that|\.|$)', caseSensitive: false).firstMatch(prompt);
+    if (aboutMatch != null && aboutMatch.group(1) != null) {
+      return aboutMatch.group(1)!.trim();
+    }
+    
+    // If it's a simple prompt without enhancement, return as is
+    if (!prompt.contains('You are an inspiring AI') && prompt.length < 50) {
+      return prompt.trim();
+    }
+    
+    // Fallback: return the prompt as is if we can't extract
+    return prompt.trim();
   }
 
   String updateString(String input) {
