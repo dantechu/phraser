@@ -67,6 +67,10 @@ class Preferences {
     _preferences!.setString(_selectedNavigationTabKey, tabName);
   }
 
+  void setStringList(String key, List<String> value) {
+    _preferences!.setStringList(key, value);
+  }
+
   bool get isCategoriesPresent {
     return _preferences!.getBool(_categoriesKey) ?? false;
   }
@@ -101,6 +105,10 @@ class Preferences {
 
   String get selectedNavigationTab {
     return _preferences!.getString(_selectedNavigationTabKey) ?? 'Categories';
+  }
+
+  List<String> getStringList(String key) {
+    return _preferences!.getStringList(key) ?? [];
   }
 
   Map<String, dynamic> defaultCustomNotificationsData = {

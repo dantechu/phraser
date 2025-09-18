@@ -7,8 +7,10 @@ import 'package:phraser/consts/text_themes.dart';
 import 'package:phraser/consts/theme_images_list.dart';
 import 'package:phraser/floor_db/favorites_dao.dart';
 import 'package:phraser/screens/categories_list_screen.dart';
+import 'package:phraser/screens/habit_stats_screen.dart';
 import 'package:phraser/services/model/data_repository.dart';
 import 'package:phraser/util/Floor_db.dart';
+import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/share_dialog.dart';
@@ -174,7 +176,53 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   }).toList(),
                 ),
 
-                // Settings Icon in Top Right
+                // Top Left - Habit Progress Icon (only visible when Habits tab is selected)
+                if (selectedTab == 'Habits')
+                  Positioned(
+                    top: 50,
+                    left: 20,
+                    child: GestureDetector(
+                      onTap: _navigateToHabitStats,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            const Icon(
+                              Icons.track_changes,
+                              size: 20,
+                              color: kPrimaryColor,
+                            ),
+                            // Progress indicator dot
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: kPrimaryColor,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Top Right - Settings Icon
                 Positioned(
                   top: 50,
                   right: 20,
@@ -349,6 +397,13 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
+  }
+
+  void _navigateToHabitStats() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const HabitStatsScreen()),
     );
   }
 }

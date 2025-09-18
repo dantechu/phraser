@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/util/colors.dart';
+import 'package:phraser/util/preferences.dart' show Preferences;
 
 class HabitBuilderScreen extends StatefulWidget {
   const HabitBuilderScreen({super.key});
@@ -468,7 +469,9 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   }
 
   void _startHabits() {
-    // Save habits (simplified - in real app would save to database)
+    // Save habits to preferences (simplified storage)
+    final selectedHabitsList = selectedHabits.toList();
+    Preferences.instance.setStringList('user_habits', selectedHabitsList);
 
     Get.snackbar(
       'Habits Created!',

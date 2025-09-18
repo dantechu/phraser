@@ -361,7 +361,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: _buildMenuTile(
                   icon: Icons.add_comment_outlined,
                   title: 'New Chat',
-                  subtitle: 'Start fresh conversation',
                   iconColor: Colors.green,
                 ),
               ),
@@ -370,7 +369,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: _buildMenuTile(
                   icon: Icons.clear_outlined,
                   title: 'Clear Current Chat',
-                  subtitle: 'Remove current messages',
                   iconColor: Colors.orange,
                 ),
               ),
@@ -379,7 +377,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: _buildMenuTile(
                   icon: Icons.history_outlined,
                   title: 'Chat History',
-                  subtitle: 'View previous conversations',
                   iconColor: Colors.blue,
                 ),
               ),
@@ -388,7 +385,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 child: _buildMenuTile(
                   icon: Icons.delete_forever_outlined,
                   title: 'Delete All History',
-                  subtitle: 'Permanently remove all chats',
                   iconColor: Colors.red,
                 ),
               ),
@@ -403,11 +399,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   Widget _buildMenuTile({
     required IconData icon,
     required String title,
-    required String subtitle,
     required Color iconColor,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
@@ -423,27 +418,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
         ],
