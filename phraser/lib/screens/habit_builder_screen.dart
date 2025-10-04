@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart' show Preferences;
+import 'package:phraser/services/model/habit_model.dart';
+
+class CategoryTemplate {
+  final HabitCategory category;
+  final String name;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final Color iconColor;
+
+  CategoryTemplate({
+    required this.category,
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.iconColor,
+  });
+}
 
 class HabitBuilderScreen extends StatefulWidget {
   const HabitBuilderScreen({super.key});
@@ -11,34 +30,90 @@ class HabitBuilderScreen extends StatefulWidget {
 }
 
 class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
-  List<HabitTemplate> habitTemplates = [
-    HabitTemplate('💧', 'Drink Water', 'Stay hydrated throughout the day',
-        Colors.blue.shade100),
-    HabitTemplate('📖', 'Read Daily', 'Read for at least 15 minutes',
-        Colors.orange.shade100),
-    HabitTemplate(
-        '🧘', 'Meditate', 'Practice mindfulness daily', Colors.purple.shade100),
-    HabitTemplate(
-        '🏃', 'Exercise', 'Stay active and healthy', Colors.green.shade100),
-    HabitTemplate(
-        '📝', 'Journal', 'Write down your thoughts', Colors.yellow.shade100),
-    HabitTemplate('🌅', 'Early Rise', 'Wake up early to start fresh',
-        Colors.pink.shade100),
-    HabitTemplate(
-        '🥗', 'Eat Healthy', 'Choose nutritious meals', Colors.lime.shade100),
-    HabitTemplate('💤', 'Sleep Well', 'Get 7-8 hours of quality sleep',
-        Colors.indigo.shade100),
-    HabitTemplate(
-        '📱', 'Digital Detox', 'Limit screen time', Colors.red.shade100),
-    HabitTemplate('🙏', 'Practice Gratitude', 'Count your daily blessings',
-        Colors.teal.shade100),
-    HabitTemplate('🎨', 'Creative Time', 'Engage in creative activities',
-        Colors.cyan.shade100),
-    HabitTemplate('🤝', 'Connect', 'Reach out to friends/family',
-        Colors.deepOrange.shade100),
+  List<CategoryTemplate> habitCategories = [
+    CategoryTemplate(
+      category: HabitCategory.healthFitness,
+      name: 'Health & Fitness',
+      description: 'Physical wellness and exercise',
+      icon: Icons.fitness_center,
+      color: Colors.orange.shade100,
+      iconColor: Colors.orange.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.mindEmotions,
+      name: 'Mind & Emotions',
+      description: 'Mental wellness and emotional health',
+      icon: Icons.psychology,
+      color: Colors.blue.shade100,
+      iconColor: Colors.blue.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.learningGrowth,
+      name: 'Learning & Growth',
+      description: 'Education and personal development',
+      icon: Icons.school,
+      color: Colors.purple.shade100,
+      iconColor: Colors.purple.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.productivityWork,
+      name: 'Productivity & Work',
+      description: 'Efficiency and professional development',
+      icon: Icons.trending_up,
+      color: Colors.green.shade100,
+      iconColor: Colors.green.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.financeMoney,
+      name: 'Finance & Money',
+      description: 'Financial wellness and management',
+      icon: Icons.attach_money,
+      color: Colors.teal.shade100,
+      iconColor: Colors.teal.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.lifestyleRoutine,
+      name: 'Lifestyle & Routine',
+      description: 'Daily routines and lifestyle choices',
+      icon: Icons.schedule,
+      color: Colors.pink.shade100,
+      iconColor: Colors.pink.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.relationshipsSocial,
+      name: 'Relationships & Social',
+      description: 'Social connections and relationships',
+      icon: Icons.people,
+      color: Colors.red.shade100,
+      iconColor: Colors.red.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.creativityHobbies,
+      name: 'Creativity & Hobbies',
+      description: 'Creative expression and hobbies',
+      icon: Icons.palette,
+      color: Colors.deepOrange.shade100,
+      iconColor: Colors.deepOrange.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.contributionImpact,
+      name: 'Contribution & Impact',
+      description: 'Making a positive difference',
+      icon: Icons.volunteer_activism,
+      color: Colors.brown.shade100,
+      iconColor: Colors.brown.shade700,
+    ),
+    CategoryTemplate(
+      category: HabitCategory.spiritualityMindfulness,
+      name: 'Spirituality & Mindfulness',
+      description: 'Spiritual practices and mindfulness',
+      icon: Icons.spa,
+      color: Colors.indigo.shade100,
+      iconColor: Colors.indigo.shade700,
+    ),
   ];
 
-  Set<String> selectedHabits = {};
+  Set<HabitCategory> selectedCategories = {};
   int currentStep = 0;
 
   @override
@@ -121,8 +196,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                 if (currentStep == 1) const SizedBox(height: 4),
                 Text(
                   currentStep == 0
-                      ? 'Select habits you want to build. Start with 2-3 for best results.'
-                      : 'Review your selected habits and start your journey!',
+                      ? 'Select categories of habits you want to build. Start with 2-3 for best results.'
+                      : 'Review your selected categories and start your journey!',
                   style: TextStyle(
                     fontSize: 14,
                     color: Theme.of(context).primaryColorDark.withOpacity(0.7),
@@ -170,7 +245,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                 Expanded(
                   flex: currentStep == 0 ? 1 : 2,
                   child: ElevatedButton(
-                    onPressed: selectedHabits.isNotEmpty ? _nextStep : null,
+                    onPressed: selectedCategories.isNotEmpty ? _nextStep : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: kPrimaryColor,
                       foregroundColor: Colors.white,
@@ -181,7 +256,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                       elevation: 2,
                     ),
                     child: Text(
-                      currentStep == 0 ? 'Continue' : 'Start My Habits',
+                      currentStep == 0 ? 'Continue' : 'Start Building Habits',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -207,13 +282,13 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
           mainAxisSpacing: 16,
           childAspectRatio: 1.0,
         ),
-        itemCount: habitTemplates.length,
+        itemCount: habitCategories.length,
         itemBuilder: (context, index) {
-          final habit = habitTemplates[index];
-          final isSelected = selectedHabits.contains(habit.name);
+          final category = habitCategories[index];
+          final isSelected = selectedCategories.contains(category.category);
 
           return GestureDetector(
-            onTap: () => _toggleHabit(habit.name),
+            onTap: () => _toggleCategory(category.category),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               decoration: BoxDecoration(
@@ -262,16 +337,17 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                           ),
                         ),
                       ),
-                    Text(
-                      habit.emoji,
-                      style: TextStyle(
-                        fontSize: isSelected ? 24 : 20,
-                      ),
+                    Icon(
+                      category.icon,
+                      size: isSelected ? 48 : 42,
+                      color: isSelected
+                          ? kPrimaryColor
+                          : category.iconColor,
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
                     Flexible(
                       child: Text(
-                        habit.name,
+                        category.name,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight:
@@ -281,14 +357,14 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                               : Theme.of(context).primaryColorDark,
                         ),
                         textAlign: TextAlign.center,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Flexible(
                       child: Text(
-                        habit.description,
+                        category.description,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 9,
@@ -311,8 +387,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   }
 
   Widget _buildReviewStep(bool isDark) {
-    final selectedHabitsList = habitTemplates
-        .where((habit) => selectedHabits.contains(habit.name))
+    final selectedCategoriesList = habitCategories
+        .where((category) => selectedCategories.contains(category.category))
         .toList();
 
     return Padding(
@@ -339,7 +415,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Your Selected Habits',
+                  'Your Selected Categories',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -347,18 +423,18 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ...selectedHabitsList.map((habit) => Padding(
+                ...selectedCategoriesList.map((category) => Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
                         children: [
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: habit.color,
+                              color: category.color,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(habit.emoji,
-                                style: const TextStyle(fontSize: 20)),
+                            child: Icon(category.icon,
+                                size: 24, color: category.iconColor),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -366,7 +442,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  habit.name,
+                                  category.name,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -374,7 +450,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                                   ),
                                 ),
                                 Text(
-                                  habit.description,
+                                  category.description,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Theme.of(context)
@@ -442,12 +518,12 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
     );
   }
 
-  void _toggleHabit(String habitName) {
+  void _toggleCategory(HabitCategory category) {
     setState(() {
-      if (selectedHabits.contains(habitName)) {
-        selectedHabits.remove(habitName);
+      if (selectedCategories.contains(category)) {
+        selectedCategories.remove(category);
       } else {
-        selectedHabits.add(habitName);
+        selectedCategories.add(category);
       }
     });
   }
@@ -469,13 +545,52 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   }
 
   void _startHabits() {
-    // Save habits to preferences (simplified storage)
-    final selectedHabitsList = selectedHabits.toList();
-    Preferences.instance.setStringList('user_habits', selectedHabitsList);
+    // Create default habits for each selected category
+    List<String> defaultHabits = [];
+    
+    for (var category in selectedCategories) {
+      switch (category) {
+        case HabitCategory.healthFitness:
+          defaultHabits.addAll(['Drink Water', 'Exercise', 'Sleep Well']);
+          break;
+        case HabitCategory.mindEmotions:
+          defaultHabits.addAll(['Journal', 'Practice Gratitude']);
+          break;
+        case HabitCategory.learningGrowth:
+          defaultHabits.addAll(['Read Daily']);
+          break;
+        case HabitCategory.productivityWork:
+          defaultHabits.addAll(['Digital Detox']);
+          break;
+        case HabitCategory.financeMoney:
+          defaultHabits.addAll(['Track Expenses']);
+          break;
+        case HabitCategory.lifestyleRoutine:
+          defaultHabits.addAll(['Early Rise']);
+          break;
+        case HabitCategory.relationshipsSocial:
+          defaultHabits.addAll(['Connect']);
+          break;
+        case HabitCategory.creativityHobbies:
+          defaultHabits.addAll(['Creative Time']);
+          break;
+        case HabitCategory.contributionImpact:
+          defaultHabits.addAll(['Volunteer']);
+          break;
+        case HabitCategory.spiritualityMindfulness:
+          defaultHabits.addAll(['Meditate']);
+          break;
+      }
+    }
+    
+    // Save both categories and habits to preferences
+    final selectedCategoriesList = selectedCategories.map((c) => c.toString().split('.').last).toList();
+    Preferences.instance.setStringList('user_categories', selectedCategoriesList);
+    Preferences.instance.setStringList('user_habits', defaultHabits);
 
     Get.snackbar(
       'Habits Created!',
-      'Your ${selectedHabits.length} habits have been set up. Start building your routine!',
+      'Your ${defaultHabits.length} habits have been set up. Start building your routine!',
       backgroundColor: kPrimaryColor.withOpacity(0.9),
       colorText: Colors.white,
       duration: const Duration(seconds: 3),

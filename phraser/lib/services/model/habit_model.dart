@@ -5,14 +5,16 @@ import '../../util/constant_strings.dart';
 enum HabitFrequency { daily, weekly, monthly }
 
 enum HabitCategory { 
-  mindfulness, 
-  fitness, 
-  productivity, 
-  relationships, 
-  learning, 
-  creativity, 
-  health, 
-  spirituality 
+  healthFitness, 
+  mindEmotions, 
+  learningGrowth, 
+  productivityWork, 
+  financeMoney, 
+  lifestyleRoutine, 
+  relationshipsSocial, 
+  creativityHobbies, 
+  contributionImpact, 
+  spiritualityMindfulness 
 }
 
 enum HabitDifficulty { beginner, intermediate, advanced }
@@ -94,7 +96,7 @@ class Habit {
 
   HabitCategory get categoryEnum => HabitCategory.values.firstWhere(
     (e) => e.toString().split('.').last == category,
-    orElse: () => HabitCategory.mindfulness,
+    orElse: () => HabitCategory.healthFitness,
   );
 
   HabitFrequency get frequencyEnum => HabitFrequency.values.firstWhere(
@@ -140,7 +142,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Daily Meditation",
         description: "Practice mindfulness and find inner peace through daily meditation",
-        category: HabitCategory.mindfulness,
+        category: HabitCategory.spiritualityMindfulness,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.beginner,
         targetValue: 10,
@@ -153,7 +155,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Morning Exercise",
         description: "Start your day with energizing physical activity",
-        category: HabitCategory.fitness,
+        category: HabitCategory.healthFitness,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.beginner,
         targetValue: 30,
@@ -166,7 +168,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Gratitude Journal",
         description: "Write down three things you're grateful for each day",
-        category: HabitCategory.mindfulness,
+        category: HabitCategory.mindEmotions,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.beginner,
         targetValue: 3,
@@ -179,7 +181,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Read Books",
         description: "Expand your knowledge through daily reading",
-        category: HabitCategory.learning,
+        category: HabitCategory.learningGrowth,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.intermediate,
         targetValue: 20,
@@ -192,7 +194,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Creative Writing",
         description: "Express your thoughts and ideas through writing",
-        category: HabitCategory.creativity,
+        category: HabitCategory.creativityHobbies,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.intermediate,
         targetValue: 15,
@@ -205,7 +207,7 @@ class HabitTemplate {
       HabitTemplate(
         name: "Deep Work Focus",
         description: "Practice focused work without distractions",
-        category: HabitCategory.productivity,
+        category: HabitCategory.productivityWork,
         frequency: HabitFrequency.daily,
         difficulty: HabitDifficulty.advanced,
         targetValue: 90,

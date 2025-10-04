@@ -735,21 +735,25 @@ class _HabitSetupScreenState extends State<HabitSetupScreen> {
 
   IconData _getCategoryIcon(HabitCategory category) {
     switch (category) {
-      case HabitCategory.mindfulness:
-        return Icons.self_improvement;
-      case HabitCategory.fitness:
+      case HabitCategory.healthFitness:
         return Icons.fitness_center;
-      case HabitCategory.productivity:
-        return Icons.trending_up;
-      case HabitCategory.relationships:
-        return Icons.people;
-      case HabitCategory.learning:
+      case HabitCategory.mindEmotions:
+        return Icons.psychology;
+      case HabitCategory.learningGrowth:
         return Icons.school;
-      case HabitCategory.creativity:
+      case HabitCategory.productivityWork:
+        return Icons.trending_up;
+      case HabitCategory.financeMoney:
+        return Icons.attach_money;
+      case HabitCategory.lifestyleRoutine:
+        return Icons.schedule;
+      case HabitCategory.relationshipsSocial:
+        return Icons.people;
+      case HabitCategory.creativityHobbies:
         return Icons.palette;
-      case HabitCategory.health:
-        return Icons.health_and_safety;
-      case HabitCategory.spirituality:
+      case HabitCategory.contributionImpact:
+        return Icons.volunteer_activism;
+      case HabitCategory.spiritualityMindfulness:
         return Icons.spa;
       default:
         return Icons.track_changes;
@@ -758,22 +762,26 @@ class _HabitSetupScreenState extends State<HabitSetupScreen> {
 
   String _getCategoryName(HabitCategory category) {
     switch (category) {
-      case HabitCategory.mindfulness:
-        return 'Mindfulness';
-      case HabitCategory.fitness:
-        return 'Fitness';
-      case HabitCategory.productivity:
-        return 'Productivity';
-      case HabitCategory.relationships:
-        return 'Relationships';
-      case HabitCategory.learning:
-        return 'Learning';
-      case HabitCategory.creativity:
-        return 'Creativity';
-      case HabitCategory.health:
-        return 'Health';
-      case HabitCategory.spirituality:
-        return 'Spirituality';
+      case HabitCategory.healthFitness:
+        return 'Health & Fitness';
+      case HabitCategory.mindEmotions:
+        return 'Mind & Emotions';
+      case HabitCategory.learningGrowth:
+        return 'Learning & Growth';
+      case HabitCategory.productivityWork:
+        return 'Productivity & Work';
+      case HabitCategory.financeMoney:
+        return 'Finance & Money';
+      case HabitCategory.lifestyleRoutine:
+        return 'Lifestyle & Routine';
+      case HabitCategory.relationshipsSocial:
+        return 'Relationships & Social';
+      case HabitCategory.creativityHobbies:
+        return 'Creativity & Hobbies';
+      case HabitCategory.contributionImpact:
+        return 'Contribution & Impact';
+      case HabitCategory.spiritualityMindfulness:
+        return 'Spirituality & Mindfulness';
       default:
         return category.toString().split('.').last.capitalize!;
     }

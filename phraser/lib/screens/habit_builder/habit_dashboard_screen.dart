@@ -614,22 +614,26 @@ class _HabitDashboardScreenState extends State<HabitDashboardScreen>
 
   String _getCategoryName(HabitCategory category) {
     switch (category) {
-      case HabitCategory.mindfulness:
-        return 'Mindfulness';
-      case HabitCategory.fitness:
-        return 'Fitness';
-      case HabitCategory.productivity:
-        return 'Productivity';
-      case HabitCategory.relationships:
-        return 'Relationships';
-      case HabitCategory.learning:
-        return 'Learning';
-      case HabitCategory.creativity:
-        return 'Creativity';
-      case HabitCategory.health:
-        return 'Health';
-      case HabitCategory.spirituality:
-        return 'Spirituality';
+      case HabitCategory.healthFitness:
+        return 'Health & Fitness';
+      case HabitCategory.mindEmotions:
+        return 'Mind & Emotions';
+      case HabitCategory.learningGrowth:
+        return 'Learning & Growth';
+      case HabitCategory.productivityWork:
+        return 'Productivity & Work';
+      case HabitCategory.financeMoney:
+        return 'Finance & Money';
+      case HabitCategory.lifestyleRoutine:
+        return 'Lifestyle & Routine';
+      case HabitCategory.relationshipsSocial:
+        return 'Relationships & Social';
+      case HabitCategory.creativityHobbies:
+        return 'Creativity & Hobbies';
+      case HabitCategory.contributionImpact:
+        return 'Contribution & Impact';
+      case HabitCategory.spiritualityMindfulness:
+        return 'Spirituality & Mindfulness';
       default:
         return category.toString().split('.').last;
     }

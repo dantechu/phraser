@@ -140,21 +140,25 @@ class StreakDisplayWidget extends StatelessWidget {
     
     // Default colors based on category
     switch (habit.categoryEnum) {
-      case HabitCategory.mindfulness:
-        return Colors.blue;
-      case HabitCategory.fitness:
+      case HabitCategory.healthFitness:
         return Colors.orange;
-      case HabitCategory.productivity:
-        return Colors.green;
-      case HabitCategory.relationships:
-        return Colors.pink;
-      case HabitCategory.learning:
+      case HabitCategory.mindEmotions:
+        return Colors.blue;
+      case HabitCategory.learningGrowth:
         return Colors.purple;
-      case HabitCategory.creativity:
-        return Colors.red;
-      case HabitCategory.health:
+      case HabitCategory.productivityWork:
+        return Colors.green;
+      case HabitCategory.financeMoney:
         return Colors.teal;
-      case HabitCategory.spirituality:
+      case HabitCategory.lifestyleRoutine:
+        return Colors.pink;
+      case HabitCategory.relationshipsSocial:
+        return Colors.red;
+      case HabitCategory.creativityHobbies:
+        return Colors.deepOrange;
+      case HabitCategory.contributionImpact:
+        return Colors.brown;
+      case HabitCategory.spiritualityMindfulness:
         return Colors.indigo;
       default:
         return Colors.blue;
@@ -163,21 +167,25 @@ class StreakDisplayWidget extends StatelessWidget {
 
   IconData _getHabitIcon() {
     switch (habit.categoryEnum) {
-      case HabitCategory.mindfulness:
-        return Icons.self_improvement;
-      case HabitCategory.fitness:
+      case HabitCategory.healthFitness:
         return Icons.fitness_center;
-      case HabitCategory.productivity:
-        return Icons.trending_up;
-      case HabitCategory.relationships:
-        return Icons.people;
-      case HabitCategory.learning:
+      case HabitCategory.mindEmotions:
+        return Icons.psychology;
+      case HabitCategory.learningGrowth:
         return Icons.school;
-      case HabitCategory.creativity:
+      case HabitCategory.productivityWork:
+        return Icons.trending_up;
+      case HabitCategory.financeMoney:
+        return Icons.attach_money;
+      case HabitCategory.lifestyleRoutine:
+        return Icons.schedule;
+      case HabitCategory.relationshipsSocial:
+        return Icons.people;
+      case HabitCategory.creativityHobbies:
         return Icons.palette;
-      case HabitCategory.health:
-        return Icons.health_and_safety;
-      case HabitCategory.spirituality:
+      case HabitCategory.contributionImpact:
+        return Icons.volunteer_activism;
+      case HabitCategory.spiritualityMindfulness:
         return Icons.spa;
       default:
         return Icons.track_changes;
