@@ -187,7 +187,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.grey[850]!.withOpacity(0.9)
+                              : Colors.white.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(25),
                           boxShadow: [
                             BoxShadow(
@@ -232,7 +234,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.grey[850]!.withOpacity(0.9)
+                            : Colors.white.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(25),
                         boxShadow: [
                           BoxShadow(
@@ -242,10 +246,12 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.settings_outlined,
                         size: 20,
-                        color: Colors.black87,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white70 
+                            : Colors.black87,
                       ),
                     ),
                   ),
@@ -259,7 +265,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? Theme.of(context).primaryColor.withOpacity(0.9)
+                          : Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
                         BoxShadow(
@@ -319,6 +327,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     bool isSelected = false,
   }) {
     final bool isSelectedTab = selectedTab == label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return GestureDetector(
       onTap: onTap,
@@ -328,13 +337,17 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isSelectedTab ? Theme.of(context).primaryColor.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+              color: isSelectedTab 
+                  ? Theme.of(context).primaryColor.withOpacity(0.1) 
+                  : (isDark ? Colors.grey[700]!.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
               size: 24,
-              color: isSelectedTab ? Theme.of(context).primaryColor : Colors.black87,
+              color: isSelectedTab 
+                  ? (isDark ? Colors.white : Theme.of(context).primaryColor)
+                  : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
           const SizedBox(height: 6),
@@ -343,7 +356,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isSelectedTab ? Theme.of(context).primaryColor : Colors.black87,
+              color: isSelectedTab 
+                  ? (isDark ? Colors.white : Theme.of(context).primaryColor)
+                  : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
         ],

@@ -43,13 +43,22 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 8.0),
-          child: Text(widget.sectionName,style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),),
+          child: Text(
+            widget.sectionName,
+            style: TextStyle(
+              fontSize: 20.0, 
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
         ),
        Container(
          height: 210.0,
@@ -123,7 +132,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                          //  NavigationHelper.pushReplacement(context, const PhraserViewScreen());
                          },
                          child: Card(
-                           shadowColor: Colors.grey,
+                           shadowColor: isDark ? Colors.grey[600] : Colors.grey,
+                           color: isDark ? Colors.grey[800] : Colors.white,
                            margin: EdgeInsets.zero,
                            child: CachedNetworkImage(imageUrl: ConstantURls.kCategoryImagesBaseURL+updatedList[index].categoryImage, fit:  BoxFit.contain),
                          ).cornerRadiusWithClipRRect(10),
@@ -139,7 +149,13 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                    ),
                  ),
                  SizedBox(height: 5.0),
-                 Text(updatedList[index].categoryName, style: TextStyle(fontSize: 16.0),),
+                 Text(
+                   updatedList[index].categoryName, 
+                   style: TextStyle(
+                     fontSize: 16.0,
+                     color: isDark ? Colors.white : Colors.black87,
+                   ),
+                 ),
                ],
              ),
            );

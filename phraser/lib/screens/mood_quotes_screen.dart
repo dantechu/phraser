@@ -40,19 +40,18 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios,
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black87,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Mood-Based Quotes',
           style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
           ),
+
         ),
         centerTitle: true,
       ),

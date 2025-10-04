@@ -291,13 +291,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // Enhanced Header Widget with Chat Management
   Widget _buildEnhancedHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
           bottom: BorderSide(
-            color: Colors.grey.withOpacity(0.2),
+            color: isDark ? Colors.grey[700]! : Colors.grey.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -306,9 +308,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios,
               size: 20,
+              color: isDark ? Colors.white : Colors.black87,
             ),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -318,11 +321,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'AI Quotes Assistant',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
                 Text(
@@ -342,9 +346,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           ),
           // Chat Management Menu
           PopupMenuButton<String>(
-            icon: const Icon(
+            icon: Icon(
               Icons.more_vert,
-              color: Colors.black87,
+              color: isDark ? Colors.white : Colors.black87,
               size: 24,
             ),
             shape: RoundedRectangleBorder(
@@ -352,7 +356,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             ),
             offset: const Offset(0, 45),
             elevation: 8,
-            color: Colors.white,
+            color: isDark ? Colors.grey[850] : Colors.white,
             itemBuilder: (BuildContext context) => [
               PopupMenuItem<String>(
                 value: 'new_chat',
@@ -418,10 +422,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           const SizedBox(width: 12),
           Text(
             title,
-            style: const TextStyle(
+            style:  TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
             ),
           ),
         ],
@@ -431,6 +435,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // Simple Welcome Message
   Widget _buildWelcomeMessage() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 20),
       padding: const EdgeInsets.all(20),
@@ -449,12 +455,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             style: TextStyle(fontSize: 32),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             'Welcome to AI Quotes Assistant',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
@@ -463,7 +470,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: isDark ? Colors.grey[400] : Colors.grey.shade600,
               height: 1.4,
             ),
           ),
@@ -480,7 +487,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           'Try these popular themes:',
           style: TextStyle(
             fontSize: 14,
-            color: Colors.grey.shade600,
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[400] : Colors.grey.shade600,
           ),
         ),
         const SizedBox(height: 12),
@@ -602,13 +609,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   // Clean Input Area
   Widget _buildEnhancedInputArea(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
           top: BorderSide(
-            color: Colors.grey.withOpacity(0.2),
+            color: isDark ? Colors.grey[700]! : Colors.grey.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -620,21 +629,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: isDark ? Colors.grey[800] : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(20),
                   border: _isTyping
                       ? Border.all(color: AppColors.primaryColor, width: 1)
-                      : Border.all(color: Colors.grey.shade300, width: 1),
+                      : Border.all(color: isDark ? Colors.grey[600]! : Colors.grey.shade300, width: 1),
                 ),
                 child: TextField(
                   controller: _textController,
                   focusNode: _focusNode,
-                  style: const TextStyle(fontSize: 16),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
                     hintText: 'Type a word for inspiration...',
                     hintStyle: TextStyle(
-                      color: Colors.grey.shade500,
+                      color: isDark ? Colors.grey[500] : Colors.grey.shade500,
                       fontSize: 14,
                     ),
                     border: InputBorder.none,

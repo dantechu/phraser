@@ -30,9 +30,12 @@ class _CategoriesListScreenState extends State<CategoriesListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ColorfulSafeArea(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Scaffold(
+        backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
         body: GetBuilder<CategoriesListViewModel>(
           init: CategoriesListViewModel(),
           builder: (_){
@@ -55,9 +58,20 @@ class _CategoriesListScreenState extends State<CategoriesListScreen> {
                                 onTap: (){
                                   Navigator.pop(context);
                                 },
-                                child: Icon(Icons.close, size: 27.0,)),
+                                child: Icon(
+                                  Icons.close, 
+                                  size: 27.0,
+                                  color: isDark ? Colors.white : Colors.black87,
+                                )),
                             SizedBox(width: 15.0),
-                            Text('Categories', style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold ),)
+                            Text(
+                              'Categories', 
+                              style: TextStyle(
+                                fontSize: 25.0,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            )
                           ],
                         ),
 

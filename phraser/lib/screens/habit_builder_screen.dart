@@ -127,16 +127,16 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
             Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios,
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black87,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Habit Builder',
           style: TextStyle(
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black87,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
