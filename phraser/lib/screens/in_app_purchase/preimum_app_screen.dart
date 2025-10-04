@@ -113,78 +113,264 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ColorfulSafeArea(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Scaffold(
-          body: SingleChildScrollView(
-            child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-            Column(
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 15.0, top: 0.0, bottom: 20.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        InkWell(
-                            onTap: (){
-                              Navigator.pop(context);
-                            },
-                            child: Icon(Icons.close, size: 27.0,)),
-                        SizedBox(width: 15.0),
-                        //  Text('Settings', style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold ),)
-                      ],
-                    ),
-
+        backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header Section
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      kPrimaryColor,
+                      kPrimaryColor.withOpacity(0.8),
+                    ],
                   ),
                 ),
-                SizedBox(height: 0.0),
-                Container(height: 100.0, width: 100.0, child: Image.asset(AppAssets.kCrownImage)),
-                SizedBox(height: 10.0),
-                Text(
-                  'Get Premium',
-                  style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold, color: kPrimaryColor),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        // Close button and header
+                        Row(
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.pop(context),
+                              borderRadius: BorderRadius.circular(24),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(24),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back_ios_new,
+                                  size: 20,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'Premium',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // Crown icon
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Image.asset(
+                            AppAssets.kCrownImage,
+                            height: 40,
+                            width: 40,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        
+                        // Title and subtitle
+                        const Text(
+                          'Unlock Premium',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Get unlimited access to all features',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white70,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
                 ),
-                SizedBox(height: 40.0),
-                _getPremiumItemWidget('Full access to all the features'),
-                SizedBox(
-                  height: 15.0,
-                ),
-                _getPremiumItemWidget('Cancel anytime when you want'),
-                SizedBox(
-                  height: 15.0,
-                ),
-                _getPremiumItemWidget('Ad-free experience'),
-                SizedBox(
-                  height: 15.0,
-                ),
-                _getPremiumItemWidget('Unlock all categories'),
-                SizedBox(
-                  height: 15.0,
-                ),
-                _getPremiumItemWidget('only \$1.99/Month, billed monthly'),
-                SizedBox(
-                  height: 15.0,
-                ),
-                _getPremiumItemWidget('Unlimited access to AI quotes assistant'),
-                SizedBox(
-                  height: 90.0,
-                ),
-              ],
-            ),
-            Column(
-              children: [
-                const TermsAndPolicyTextWidget(),
-                const SizedBox(height: 20.0,),
-                Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: 45.0,
-                    margin: EdgeInsets.only(left: 20.0, right: 20.0),
-                    child: ElevatedButton(
+              ),
+
+              // Features Section
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    // Features Card
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[850] : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Premium Features',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            _buildFeatureItem(
+                              context,
+                              Icons.auto_awesome,
+                              'Full access to all features',
+                              'Unlock every tool and capability',
+                              Colors.purple,
+                            ),
+                            _buildFeatureItem(
+                              context,
+                              Icons.block,
+                              'Ad-free experience',
+                              'Enjoy uninterrupted usage',
+                              Colors.green,
+                            ),
+                            _buildFeatureItem(
+                              context,
+                              Icons.category,
+                              'Unlock all categories',
+                              'Access premium content libraries',
+                              Colors.blue,
+                            ),
+                            _buildFeatureItem(
+                              context,
+                              Icons.psychology,
+                              'AI quotes assistant',
+                              'Unlimited personalized quotes',
+                              Colors.orange,
+                            ),
+                            _buildFeatureItem(
+                              context,
+                              Icons.cancel,
+                              'Cancel anytime',
+                              'No commitment, full flexibility',
+                              Colors.red,
+                              isLast: true,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Pricing Card
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            kPrimaryColor.withOpacity(0.1),
+                            kPrimaryColor.withOpacity(0.05),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: kPrimaryColor.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              color: kPrimaryColor,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '\$1.99',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: kPrimaryColor,
+                              ),
+                            ),
+                            Text(
+                              'per month',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Billed monthly • Cancel anytime',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.grey[500] : Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Subscribe Button
+                    Container(
+                      width: double.infinity,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            kPrimaryColor,
+                            kPrimaryColor.withOpacity(0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimaryColor.withOpacity(0.3),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
                         onPressed: () {
                           try {
                             final productItem = purchaseViewModel.products.first;
@@ -193,22 +379,137 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                             Fluttertoast.showToast(msg: 'Please try again later');
                           }
                         },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
                         child: const Text(
-                          'Continue (\$1.99 / Month)',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-                        ))),
-               const  SizedBox(height: 20.0,),
-                 GestureDetector(
-                     onTap: (){
-                       _restorePurchases(purchaseViewModel);
-                     },
-                     child: Text("Already Subscribed ?", style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),)),
-                const SizedBox(height: 30.0,),
-              ],
-            )
-        ],
+                          'Start Premium - \$1.99/month',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Restore Purchase Button
+                    TextButton(
+                      onPressed: () => _restorePurchases(purchaseViewModel),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      child: Text(
+                        'Already subscribed? Restore purchases',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Terms and Policy
+                    const TermsAndPolicyTextWidget(),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-          )),
+    );
+  }
+
+  Widget _buildFeatureItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+    Color iconColor, {
+    bool isLast = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              // Icon container
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              
+              // Text content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Check icon
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.green,
+                  size: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (!isLast)
+          Container(
+            margin: const EdgeInsets.only(left: 56),
+            height: 1,
+            color: isDark ? Colors.grey[700] : Colors.grey[200],
+          ),
+      ],
     );
   }
 
