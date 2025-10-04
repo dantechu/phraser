@@ -6,12 +6,12 @@ import 'package:phraser/util/Floor_db.dart';
 
 class PhraserViewModel extends GetxController {
 
-  int themePosition = 0;
+  var themePosition = 0.obs;
   bool? _isFavorite;
 
 
   void changeThemePosition(int newPosition) {
-    themePosition = newPosition;
+    themePosition.value = newPosition;
     update();
   }
 

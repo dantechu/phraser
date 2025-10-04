@@ -88,11 +88,13 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
                     final isSelected = selectedThemeIndex == index;
                     
                     return GestureDetector(
-                      onTap: () {
+                      onTap: () async {
+                        // Update local state immediately for visual feedback
                         setState(() {
                           selectedThemeIndex = index;
                         });
                         
+                        // Save the preference first
                         Preferences.instance.textThemePosition = index;
                         
                         // Call the callback immediately to update the theme
@@ -100,7 +102,13 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
                           widget.onThemeSelected!(index);
                         }
                         
-                        Navigator.pop(context, index);
+                        // Add a small delay to ensure the theme change is processed
+                        await Future.delayed(const Duration(milliseconds: 200));
+                        
+                        // Then navigate back with the selected index
+                        if (mounted) {
+                          Navigator.pop(context, index);
+                        }
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
@@ -146,6 +154,7 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
                                   ),
                                 ),
                               ),
+                              
                               
                               
                               // Selection Indicator

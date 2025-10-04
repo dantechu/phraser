@@ -37,7 +37,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   @override
   void initState() {
     super.initState();
-    _phraserViewModel.themePosition = Preferences.instance.textThemePosition;
+    _phraserViewModel.themePosition.value = Preferences.instance.textThemePosition;
     selectedTab = Preferences.instance.selectedNavigationTab;
     AdsHelper.loadAdmobBannerAd();
     
@@ -59,9 +59,8 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GetBuilder<PhraserViewModel>(
-        init: _phraserViewModel,
-        builder: (vm) {
+      body: Obx(() {
+        final vm = _phraserViewModel;
           return Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
@@ -72,7 +71,8 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   child: Image.asset(
-                    ThemeImagesList.themeImagesList[vm.themePosition].themeImage,
+                    ThemeImagesList.themeImagesList[vm.themePosition.value].themeImage,
+                    key: ValueKey('theme_${vm.themePosition.value}'),
                     fit: BoxFit.fill,
                     height: MediaQuery.of(context).size.height,
                   ),
@@ -89,7 +89,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         int randomPosition = random.nextInt(ThemeImagesList.themeImagesList.length);
                         _phraserViewModel.changeThemePosition(randomPosition);
                       }
-                      testPrint('onPageChanged and new Position is ${vm.themePosition}');
+                      testPrint('onPageChanged and new Position is ${vm.themePosition.value}');
                     },
                     initialPage: Preferences.instance.currentPhraserPosition,
                     height: MediaQuery.of(context).size.height,
@@ -104,13 +104,13 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         getTextTheme(
                           context,
                           item.quote,
-                          vm.themePosition,
+                          vm.themePosition.value,
                           MediaQuery.of(context).size.height,
-                          ThemeImagesList.themeImagesList[vm.themePosition].textFontFamily,
-                          ThemeImagesList.themeImagesList[vm.themePosition].textColor,
-                          ThemeImagesList.themeImagesList[vm.themePosition].textSize,
+                          ThemeImagesList.themeImagesList[vm.themePosition.value].textFontFamily,
+                          ThemeImagesList.themeImagesList[vm.themePosition.value].textColor,
+                          ThemeImagesList.themeImagesList[vm.themePosition.value].textSize,
                           false,
-                          ThemeImagesList.themeImagesList[vm.themePosition].textWeight,
+                          ThemeImagesList.themeImagesList[vm.themePosition.value].textWeight,
                         ),
                         
                         // Favorite and Share Buttons
@@ -144,7 +144,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                     size: 30.0,
                                     color: vm.isFavorite
                                         ? Colors.red
-                                        : ThemeImagesList.themeImagesList[vm.themePosition].textColor,
+                                        : ThemeImagesList.themeImagesList[vm.themePosition.value].textColor,
                                   ),
                                 ),
                                 
@@ -156,16 +156,16 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                     await Future.delayed(const Duration(microseconds: 200), () {
                                       showShareDialog(
                                         context: context,
-                                        themeModel: ThemeImagesList.themeImagesList[vm.themePosition],
+                                        themeModel: ThemeImagesList.themeImagesList[vm.themePosition.value],
                                         textToShare: item.quote,
-                                        themePosition: vm.themePosition,
+                                        themePosition: vm.themePosition.value,
                                       );
                                     });
                                   },
                                   child: Icon(
                                     Icons.share,
                                     size: 30.0,
-                                    color: ThemeImagesList.themeImagesList[vm.themePosition].textColor,
+                                    color: ThemeImagesList.themeImagesList[vm.themePosition.value].textColor,
                                   ),
                                 ),
                               ],
@@ -314,8 +314,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
               ],
             ),
           );
-        },
-      ),
+        }),
     );
   }
 
@@ -411,20 +410,10 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
           onThemeSelected: (index) {
             // Update theme immediately when selected
             _phraserViewModel.changeThemePosition(index);
-            setState(() {}); // Force rebuild of the entire widget
           },
         ),
       ),
-    ).then((selectedIndex) {
-      // Fallback: ensure theme is updated when returning
-      if (selectedIndex != null) {
-        _phraserViewModel.changeThemePosition(selectedIndex);
-        setState(() {}); // Force rebuild
-      } else {
-        _phraserViewModel.changeThemePosition(Preferences.instance.textThemePosition);
-        setState(() {}); // Force rebuild
-      }
-    });
+    );
   }
 
   void _navigateToSettings() {
