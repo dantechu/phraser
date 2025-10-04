@@ -11,6 +11,7 @@ import 'package:phraser/screens/in_app_purchase/preimum_app_screen.dart';
 import 'package:phraser/screens/notification_settings/free_notifications_settings.dart';
 import 'package:phraser/screens/notification_settings/notification_settings.dart';
 import 'package:phraser/screens/theme/AppThemeScreen.dart';
+import 'package:phraser/theme/theme_controller.dart';
 import 'package:rate_my_app/rate_my_app.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
@@ -61,7 +62,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
       googlePlayIdentifier: 'com.phrsre.daily.affirmation.phraser',
       appStoreIdentifier: '6447237178',
     );
-
+    
+    // Load current theme from ThemeController
+    final currentTheme = ThemeController().themeMode;
+    setState(() {
+      switch (currentTheme) {
+        case ThemeMode.light:
+          themeTitle = 'Light';
+          break;
+        case ThemeMode.dark:
+          themeTitle = 'Dark';
+          break;
+        case ThemeMode.system:
+          themeTitle = 'System';
+          break;
+      }
+    });
   }
 
   Widget build(BuildContext context) {
@@ -142,7 +158,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fontSize: 14,
                       ),
                     ),
-                    onTap: () => NavigationHelper.pushRoute(context, AppThemeScreen()),
+                    onTap: () => _showThemeDialog(context),
                   ),
                   _buildSettingTile(
                     context,
@@ -319,6 +335,186 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _navigateToThemes() {
     Get.toNamed(RouteHelper.phraserThemeListScreen);
+  }
+
+  void _showThemeDialog(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentTheme = ThemeController().themeMode;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? Colors.grey[850] : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Choose Theme',
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildThemeOption(
+                context,
+                'Light',
+                'Use light theme',
+                Icons.light_mode,
+                Colors.orange,
+                currentTheme == ThemeMode.light,
+                () => _selectTheme('Light'),
+              ),
+              const SizedBox(height: 8),
+              _buildThemeOption(
+                context,
+                'Dark',
+                'Use dark theme',
+                Icons.dark_mode,
+                Colors.indigo,
+                currentTheme == ThemeMode.dark,
+                () => _selectTheme('Dark'),
+              ),
+              const SizedBox(height: 8),
+              _buildThemeOption(
+                context,
+                'System',
+                'Follow system setting',
+                Icons.settings_display,
+                Colors.grey,
+                currentTheme == ThemeMode.system,
+                () => _selectTheme('System'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: isDark ? Colors.grey[400] : Colors.grey[600],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color iconColor,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          onTap();
+          Navigator.of(context).pop();
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected 
+                ? (isDark ? Colors.grey[700] : Colors.grey[100])
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: isSelected 
+                ? Border.all(
+                    color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+                    width: 1,
+                  )
+                : null,
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: iconColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSelected)
+                Icon(
+                  Icons.check_circle,
+                  color: isDark ? Colors.blue[400] : Colors.blue[600],
+                  size: 20,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _selectTheme(String theme) {
+    ThemeMode themeMode;
+    
+    // Convert string to ThemeMode
+    switch (theme) {
+      case 'Light':
+        themeMode = ThemeMode.light;
+        break;
+      case 'Dark':
+        themeMode = ThemeMode.dark;
+        break;
+      case 'System':
+      default:
+        themeMode = ThemeMode.system;
+        break;
+    }
+    
+    // Apply theme using existing ThemeController
+    ThemeController().saveTheme(themeMode);
+    ThemeController().switchTheme();
+    
+    // Update local state
+    setState(() {
+      themeTitle = theme;
+    });
   }
 
   Widget _buildSectionCard(
