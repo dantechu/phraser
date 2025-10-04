@@ -107,7 +107,7 @@ class CategoriesListViewModel extends GetxController {
     try{
       var response = await Dio().get(ConstantURls.kGetPhrasersByCategory+'$id');
       if (response.statusCode == 200) {
-        testPrint('single category list quotes: ${response.statusCode}');
+        print('single category list quotes: ${response.statusCode}');
         PhrasersListModel listModel = PhrasersListModel.fromJson(response.data);
 
         insertPhrasersToFloorDB(listModel.phraser);

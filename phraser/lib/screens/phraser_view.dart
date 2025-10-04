@@ -20,6 +20,7 @@ import '../services/view_model/phraser_view_model.dart';
 import 'mood_quotes_screen.dart';
 import 'habit_builder_screen.dart';
 import 'settings/settings_screen.dart';
+import 'theme/phraser_theme_list_screen.dart';
 
 class PhraserViewScreen extends StatefulWidget {
   const PhraserViewScreen({super.key});
@@ -59,7 +60,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GetBuilder<PhraserViewModel>(
-        init: PhraserViewModel(),
+        init: _phraserViewModel,
         builder: (vm) {
           return Container(
             width: MediaQuery.of(context).size.width,
@@ -71,7 +72,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                   width: MediaQuery.of(context).size.width,
                   height: MediaQuery.of(context).size.height,
                   child: Image.asset(
-                    ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].themeImage,
+                    ThemeImagesList.themeImagesList[vm.themePosition].themeImage,
                     fit: BoxFit.fill,
                     height: MediaQuery.of(context).size.height,
                   ),
@@ -88,7 +89,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         int randomPosition = random.nextInt(ThemeImagesList.themeImagesList.length);
                         _phraserViewModel.changeThemePosition(randomPosition);
                       }
-                      testPrint('onPageChanged and new Position is ${_phraserViewModel.themePosition}');
+                      testPrint('onPageChanged and new Position is ${vm.themePosition}');
                     },
                     initialPage: Preferences.instance.currentPhraserPosition,
                     height: MediaQuery.of(context).size.height,
@@ -103,13 +104,13 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         getTextTheme(
                           context,
                           item.quote,
-                          _phraserViewModel.themePosition,
+                          vm.themePosition,
                           MediaQuery.of(context).size.height,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textFontFamily,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textSize,
+                          ThemeImagesList.themeImagesList[vm.themePosition].textFontFamily,
+                          ThemeImagesList.themeImagesList[vm.themePosition].textColor,
+                          ThemeImagesList.themeImagesList[vm.themePosition].textSize,
                           false,
-                          ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textWeight,
+                          ThemeImagesList.themeImagesList[vm.themePosition].textWeight,
                         ),
                         
                         // Favorite and Share Buttons
@@ -143,7 +144,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                     size: 30.0,
                                     color: vm.isFavorite
                                         ? Colors.red
-                                        : ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
+                                        : ThemeImagesList.themeImagesList[vm.themePosition].textColor,
                                   ),
                                 ),
                                 
@@ -155,16 +156,16 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                     await Future.delayed(const Duration(microseconds: 200), () {
                                       showShareDialog(
                                         context: context,
-                                        themeModel: ThemeImagesList.themeImagesList[_phraserViewModel.themePosition],
+                                        themeModel: ThemeImagesList.themeImagesList[vm.themePosition],
                                         textToShare: item.quote,
-                                        themePosition: _phraserViewModel.themePosition,
+                                        themePosition: vm.themePosition,
                                       );
                                     });
                                   },
                                   child: Icon(
                                     Icons.share,
                                     size: 30.0,
-                                    color: ThemeImagesList.themeImagesList[_phraserViewModel.themePosition].textColor,
+                                    color: ThemeImagesList.themeImagesList[vm.themePosition].textColor,
                                   ),
                                 ),
                               ],
@@ -388,8 +389,26 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   }
 
   void _navigateToThemes() {
-    Get.toNamed(RouteHelper.phraserThemeListScreen)?.then((value) {
-      _phraserViewModel.changeThemePosition(Preferences.instance.textThemePosition);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PhraserThemeListScreen(
+          onThemeSelected: (index) {
+            // Update theme immediately when selected
+            _phraserViewModel.changeThemePosition(index);
+            setState(() {}); // Force rebuild of the entire widget
+          },
+        ),
+      ),
+    ).then((selectedIndex) {
+      // Fallback: ensure theme is updated when returning
+      if (selectedIndex != null) {
+        _phraserViewModel.changeThemePosition(selectedIndex);
+        setState(() {}); // Force rebuild
+      } else {
+        _phraserViewModel.changeThemePosition(Preferences.instance.textThemePosition);
+        setState(() {}); // Force rebuild
+      }
     });
   }
 

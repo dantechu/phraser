@@ -8,7 +8,9 @@ import 'package:phraser/consts/theme_images_list.dart';
 import 'package:phraser/util/preferences.dart';
 
 class PhraserThemeListScreen extends StatefulWidget {
-  const PhraserThemeListScreen({Key? key}) : super(key: key);
+  final Function(int)? onThemeSelected;
+  
+  const PhraserThemeListScreen({Key? key, this.onThemeSelected}) : super(key: key);
 
   @override
   State<PhraserThemeListScreen> createState() => _PhraserThemeListScreenState();
@@ -66,7 +68,13 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
                             InkWell(
                               onTap: () {
                                 Preferences.instance.textThemePosition = index;
-                                Navigator.pop(context);
+                                
+                                // Call the callback immediately to update the theme
+                                if (widget.onThemeSelected != null) {
+                                  widget.onThemeSelected!(index);
+                                }
+                                
+                                Navigator.pop(context, index);
                               },
                               child: Image.asset(
                                 ThemeImagesList.themeImagesList[index].themeImage,
