@@ -64,14 +64,14 @@ class MoodSelectionViewModel extends GetxController {
     }
     
     moodFilteredQuotes = allQuotes.where((quote) {
-      // Check if quote has mood tags that match current mood
-      if (quote.moodTagsList.isNotEmpty) {
-        return quote.moodTagsList.any((tag) => 
-          moodTags.contains(tag.toLowerCase())
+      // Check if quote has moods that match current mood
+      if (quote.moods != null && quote.moods!.isNotEmpty) {
+        return quote.moods!.any((mood) => 
+          moodTags.contains(mood.toLowerCase())
         );
       }
       
-      // Enhanced fallback: use traditional tags with broader matching
+      // Fallback: use traditional tags with broader matching
       final quoteTags = quote.tags.toLowerCase().split(',');
       final quoteText = quote.quote.toLowerCase();
       
@@ -106,35 +106,11 @@ class MoodSelectionViewModel extends GetxController {
     if (moodFilteredQuotes.isEmpty && allQuotes.isNotEmpty) {
       moodFilteredQuotes = allQuotes.take(20).toList();
     }
-
-    // Sort by intensity match if available
-    if (currentIntensity != null && moodFilteredQuotes.isNotEmpty) {
-      final targetIntensity = _getIntensityLevel(currentIntensity!);
-      moodFilteredQuotes.sort((a, b) {
-        final aMatch = a.matchesIntensity(targetIntensity);
-        final bMatch = b.matchesIntensity(targetIntensity);
-        if (aMatch && !bMatch) return -1;
-        if (!aMatch && bMatch) return 1;
-        return 0;
-      });
-    }
     
     print('Filtered ${moodFilteredQuotes.length} quotes for mood: ${currentMood?.toString().split('.').last}');
     update();
   }
 
-  int _getIntensityLevel(MoodIntensity intensity) {
-    switch (intensity) {
-      case MoodIntensity.low:
-        return 2;
-      case MoodIntensity.medium:
-        return 3;
-      case MoodIntensity.high:
-        return 4;
-      default:
-        return 3;
-    }
-  }
 
   Future<void> _saveMoodToDatabase(MoodEntry entry) async {
     // TODO: Implement database save
@@ -266,5 +242,24 @@ class MoodSelectionViewModel extends GetxController {
     if (hasFilteredQuotes) {
       DataRepository().updateCurrentPhrasersList(moodFilteredQuotes);
     }
+  }
+
+  // Get quotes for a specific mood directly (simplified API)
+  Future<List<Phraser>> getQuotesForMood(MoodType mood) async {
+    final previousMood = currentMood;
+    currentMood = mood;
+    await _filterQuotesByMood();
+    
+    final result = List<Phraser>.from(moodFilteredQuotes);
+    
+    // Restore previous mood if it was different
+    if (previousMood != mood) {
+      currentMood = previousMood;
+      if (previousMood != null) {
+        await _filterQuotesByMood();
+      }
+    }
+    
+    return result;
   }
 }
