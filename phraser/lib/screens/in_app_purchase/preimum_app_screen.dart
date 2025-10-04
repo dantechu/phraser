@@ -125,19 +125,9 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
               // Header Section
               Container(
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      kPrimaryColor,
-                      kPrimaryColor.withOpacity(0.8),
-                    ],
-                  ),
-                ),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
                         // Close button and header
@@ -147,43 +137,27 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                               onTap: () => Navigator.pop(context),
                               borderRadius: BorderRadius.circular(24),
                               child: Container(
-                                padding: const EdgeInsets.all(8),
+                                padding:  EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: kPrimaryColor.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: const Icon(
+                                child:  Icon(
                                   Icons.arrow_back_ios_new,
                                   size: 20,
-                                  color: Colors.white,
+                                  color: kPrimaryColor,
                                 ),
                               ),
                             ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                'Premium',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
+
                           ],
                         ),
-                        const SizedBox(height: 20),
                         
                         // Crown icon
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
+                            color: kPrimaryColor.withOpacity(0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Image.asset(
@@ -195,23 +169,22 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                         const SizedBox(height: 12),
                         
                         // Title and subtitle
-                        const Text(
+                         Text(
                           'Unlock Premium',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: kPrimaryColor,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                         Text(
                           'Get unlimited access to all features',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white70,
+                            color: kPrimaryColor.withValues(alpha: 0.8),
                           ),
                         ),
-                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
@@ -220,7 +193,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
 
               // Features Section
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
                     // Features Card

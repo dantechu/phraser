@@ -266,7 +266,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark 
-                          ? Theme.of(context).primaryColor.withOpacity(0.9)
+                          ? kPrimaryColor.withOpacity(0.9)
                           : Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
@@ -346,7 +346,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
               icon,
               size: 24,
               color: isSelectedTab 
-                  ? (isDark ? Colors.white : Theme.of(context).primaryColor)
+                  ? (isDark ? Colors.white : kPrimaryColor)
                   : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
@@ -357,7 +357,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
               fontSize: 11,
               fontWeight: FontWeight.w500,
               color: isSelectedTab 
-                  ? (isDark ? Colors.white : Theme.of(context).primaryColor)
+                  ? (isDark ? Colors.white : kPrimaryColor)
                   : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
