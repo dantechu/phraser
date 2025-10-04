@@ -362,67 +362,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Row(
-            children: [
-              // Icon
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: iconColor,
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Content
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  // Icon
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: iconColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.grey[400] : Colors.grey[600],
-                      ),
+                    child: Icon(
+                      icon,
+                      size: 22,
+                      color: iconColor,
                     ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.grey[400] : Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Trailing
+                  if (trailing != null) ...[
+                    trailing,
+                    const SizedBox(width: 8),
                   ],
-                ),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 16,
+                    color: isDark ? Colors.grey[500] : Colors.grey[400],
+                  ),
+                ],
               ),
-              // Trailing
-              if (trailing != null) ...[
-                trailing,
-                const SizedBox(width: 8),
-              ],
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: isDark ? Colors.grey[500] : Colors.grey[400],
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        // Divider
+        if (!isLast)
+          Container(
+            margin: const EdgeInsets.only(left: 68),
+            height: 1,
+            color: isDark 
+                ? Colors.grey[700]?.withOpacity(0.5) 
+                : Colors.grey[200],
+          ),
+      ],
     );
   }
 }
