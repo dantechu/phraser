@@ -236,6 +236,9 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
       return;
     }
 
+    // Shuffle the filtered quotes to randomize the order
+    filteredQuotes.shuffle();
+
     // Update quotes list and navigate back to home
     DataRepository().updateCurrentPhrasersList(filteredQuotes);
     Preferences.instance.currentPhraserPosition = 0;

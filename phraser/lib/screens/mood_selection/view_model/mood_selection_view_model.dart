@@ -117,14 +117,27 @@ class MoodSelectionViewModel extends GetxController {
           quoteText.contains(tag)
         );
       }).toList();
+      
+      // Shuffle the fallback quotes too
+      if (moodFilteredQuotes.isNotEmpty) {
+        moodFilteredQuotes.shuffle();
+      }
     }
 
     // If still no matches, take a larger random sample of quotes
     if (moodFilteredQuotes.isEmpty && allQuotes.isNotEmpty) {
-      moodFilteredQuotes = allQuotes.take(50).toList();
+      // Shuffle all quotes first, then take the sample
+      final shuffledQuotes = List<Phraser>.from(allQuotes);
+      shuffledQuotes.shuffle();
+      moodFilteredQuotes = shuffledQuotes.take(50).toList();
     }
     
-    print('Filtered ${moodFilteredQuotes.length} quotes for mood: ${currentMood?.toString().split('.').last}');
+    // Shuffle the filtered quotes to randomize the order
+    if (moodFilteredQuotes.isNotEmpty) {
+      moodFilteredQuotes.shuffle();
+    }
+    
+    print('Filtered and shuffled ${moodFilteredQuotes.length} quotes for mood: ${currentMood?.toString().split('.').last}');
     
     // Always apply the filtered quotes to the DataRepository
     if (moodFilteredQuotes.isNotEmpty) {
