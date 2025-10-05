@@ -63,7 +63,7 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? Theme.of(context).cardColor : Colors.white,
+              color: isDark ? Colors.grey[850] : Colors.white,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),

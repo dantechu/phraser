@@ -44,23 +44,25 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     if (widget.showAsBottomSheet) {
       return _buildBottomSheet();
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.black),
+          icon: Icon(Icons.close, color: isDark ? Colors.white : Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'How are you feeling?',
           style: TextStyle(
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
@@ -72,10 +74,12 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   }
 
   Widget _buildBottomSheet() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[850] : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -86,7 +90,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
             height: 4,
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: isDark ? Colors.grey[600] : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -99,7 +103,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.black,
+                color: isDark ? Colors.white : Colors.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -115,6 +119,8 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   }
 
   Widget _buildMoodSelection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return GetBuilder<MoodSelectionViewModel>(
       builder: (vm) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -146,13 +152,13 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                               color: isSelected
                                   ? Color(int.parse(mapping!.colorHex
                                       .replaceAll('#', '0xFF')))
-                                  : Colors.white,
+                                  : (isDark ? Colors.grey[800] : Colors.white),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
                                     ? Color(int.parse(mapping!.colorHex
                                         .replaceAll('#', '0xFF')))
-                                    : Colors.grey[300]!,
+                                    : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
                                 width: isSelected ? 2 : 1,
                               ),
                               boxShadow: [
@@ -161,7 +167,9 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                                       ? Color(int.parse(mapping!.colorHex
                                               .replaceAll('#', '0xFF')))
                                           .withOpacity(0.3)
-                                      : Colors.black.withOpacity(0.05),
+                                      : (isDark 
+                                          ? Colors.black.withOpacity(0.3)
+                                          : Colors.black.withOpacity(0.05)),
                                   blurRadius: isSelected ? 12 : 6,
                                   offset: const Offset(0, 4),
                                 ),
@@ -186,7 +194,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                                         : FontWeight.w500,
                                     color: isSelected
                                         ? Colors.white
-                                        : Colors.black,
+                                        : (isDark ? Colors.white : Colors.black),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -226,11 +234,13 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                 child: ElevatedButton(
                   onPressed: _handleContinue,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
+                    backgroundColor: kPrimaryColor,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 2,
                   ),
                   child: const Text(
                     'Get Matching Quotes',
@@ -248,6 +258,8 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   }
 
   Widget _buildIntensitySelector() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -256,7 +268,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Colors.black,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         const SizedBox(height: 12),
@@ -273,12 +285,14 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primaryColor : Colors.white,
+                    color: isSelected 
+                        ? kPrimaryColor 
+                        : (isDark ? Colors.grey[800] : Colors.white),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
-                          ? AppColors.primaryColor
-                          : Colors.grey[300]!,
+                          ? kPrimaryColor
+                          : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
                     ),
                   ),
                   child: Column(
@@ -294,7 +308,9 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
                           fontSize: 11,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.w500,
-                          color: isSelected ? Colors.white : Colors.black,
+                          color: isSelected 
+                              ? Colors.white 
+                              : (isDark ? Colors.white : Colors.black),
                         ),
                       ),
                     ],
