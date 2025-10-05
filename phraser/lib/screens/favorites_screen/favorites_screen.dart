@@ -14,9 +14,12 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ColorfulSafeArea(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Scaffold(
+          backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
           body: Column(
         children: [
           Align(
@@ -31,9 +34,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       onTap: (){
                         Navigator.pop(context);
                       },
-                      child: Icon(Icons.close, size: 27.0,)),
+                      child: Icon(Icons.close, size: 27.0, color: Theme.of(context).iconTheme.color)),
                   SizedBox(width: 15.0),
-                  Text('Favorites', style: TextStyle(fontSize: 25.0,fontWeight: FontWeight.bold ),)
+                  Text('Favorites', style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontSize: 25.0,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineMedium?.color
+                  ))
                 ],
               ),
 
@@ -60,7 +67,31 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   } else {
                       return Container(
                           margin: EdgeInsets.only(top: MediaQuery.of(context).size.height/2.5),
-                          child: Text('No favorite found', style: TextStyle(fontSize: 20.0),));
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.favorite_border,
+                                size: 60.0,
+                                color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                              ),
+                              SizedBox(height: 16.0),
+                              Text(
+                                'No favorites yet',
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  color: Theme.of(context).textTheme.bodyLarge?.color?.withOpacity(0.7),
+                                ),
+                              ),
+                              SizedBox(height: 8.0),
+                              Text(
+                                'Tap the heart icon on quotes to add them here',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ));
 
                   }
                 }
@@ -79,34 +110,103 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Widget getFavoritePhraserCard(Phraser phraser) {
     return Card(
+      elevation: Theme.of(context).brightness == Brightness.dark ? 4 : 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(16),
       ),
-      margin: EdgeInsets.only(left: 10.0, top: 5.0, bottom: 5.0, right: 10.0),
-      child: Column(
-        children: [
-
-          Container(
-            padding: EdgeInsets.only(left: 20.0, top: 20, bottom: 10, right: 20),
-            child: Text('${phraser.quote}', style: TextStyle(fontSize: 16.0),textAlign: TextAlign.start),
+      margin: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).cardColor,
+                    Theme.of(context).cardColor.withOpacity(0.8),
+                  ],
+                )
+              : null,
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 4,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      phraser.quote,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontSize: 16.0,
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (phraser.categoryName.isNotEmpty)
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Theme.of(context).primaryColor.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        phraser.categoryName,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  GestureDetector(
+                    onTap: () {
+                      final database = FloorDB.instance.floorDatabase;
+                      FavoritesDAO dao = database.favoritesDAO;
+                      dao.removeFromFavorites(phraser);
+                      setState(() {});
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          GestureDetector(
-            onTap: () {
-              final database = FloorDB.instance.floorDatabase;
-              FavoritesDAO dao = database.favoritesDAO;
-              dao.removeFromFavorites(phraser);
-              setState(() {
-
-              });
-            },
-            child: Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
-                  child: Icon(Icons.favorite, color: Colors.red),
-                )),
-          ),
-        ],
+        ),
       ),
     );
   }
