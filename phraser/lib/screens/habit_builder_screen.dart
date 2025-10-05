@@ -196,7 +196,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                 if (currentStep == 1) const SizedBox(height: 4),
                 Text(
                   currentStep == 0
-                      ? 'Select categories of habits you want to build. Start with 2-3 for best results.'
+                      ? 'Select categories of habits you want to build.'
                       : 'Review your selected categories and start your journey!',
                   style: TextStyle(
                     fontSize: 14,
@@ -207,7 +207,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
 
           // Content
           Expanded(
@@ -217,7 +217,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
 
           // Bottom Actions
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
+            margin: EdgeInsetsGeometry.only(bottom: 16.0),
             child: Row(
               children: [
                 if (currentStep > 0)
