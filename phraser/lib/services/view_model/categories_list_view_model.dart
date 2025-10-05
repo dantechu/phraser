@@ -164,6 +164,8 @@ class CategoriesListViewModel extends GetxController {
             testPrint('first time current phrasers saved into db');
           });
           DataRepository().currentPhrasersList = listModel;
+          // Also add these quotes to the global collection for mood filtering
+          DataRepository().addToAllQuotes(listModel);
           debugPrint('---> Personal growth category set for first time');
         }
       }

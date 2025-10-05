@@ -17,7 +17,6 @@ import 'package:phraser/util/share_dialog.dart';
 import 'package:phraser/util/utils.dart';
 
 import '../services/view_model/phraser_view_model.dart';
-import 'mood_quotes_screen.dart';
 import 'mood_selection/mood_selection_screen.dart';
 import 'mood_selection/view_model/mood_selection_view_model.dart';
 import 'habit_builder_screen.dart';
@@ -32,9 +31,7 @@ class PhraserViewScreen extends StatefulWidget {
 }
 
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
-  final CarouselController _carouselController = CarouselController();
   final _phraserViewModel = Get.put(PhraserViewModel());
-  final _moodViewModel = Get.put(MoodSelectionViewModel());
   String selectedTab = 'Categories';
 
   @override
@@ -83,10 +80,13 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
 
                 // Main Content - Quotes Carousel
                 CarouselSlider(
+                  key: ValueKey('carousel_${DataRepository().currentPhrasersList.length}'),
                   options: CarouselOptions(
                     onPageChanged: (int index, _) {
                       Preferences.instance.currentPhraserPosition = index;
-                      _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[index]);
+                      if (DataRepository().currentPhrasersList.isNotEmpty && index < DataRepository().currentPhrasersList.length) {
+                        _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[index]);
+                      }
                       if (Preferences.instance.textThemePosition == 0) {
                         Random random = Random();
                         int randomPosition = random.nextInt(ThemeImagesList.themeImagesList.length);
@@ -94,11 +94,12 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                       }
                       testPrint('onPageChanged and new Position is ${vm.themePosition.value}');
                     },
-                    initialPage: Preferences.instance.currentPhraserPosition,
+                    initialPage: 0, // Always start from the first filtered quote
                     height: MediaQuery.of(context).size.height,
                     viewportFraction: 1.0,
                     enlargeCenterPage: false,
                     scrollDirection: Axis.vertical,
+                    enableInfiniteScroll: DataRepository().currentPhrasersList.length > 1,
                   ),
                   items: DataRepository().currentPhrasersList.map((item) {
                     return Stack(
@@ -422,26 +423,25 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     // Save the mood entry and filter quotes
     await moodViewModel.saveMoodEntry(mood, intensity);
     
-    // Apply the filtered quotes to the main view
-    moodViewModel.applyMoodFilterToQuotes();
-    
     // Reset carousel position to start
     Preferences.instance.currentPhraserPosition = 0;
+    
+    // Force rebuild of the entire widget to reflect new filtered quotes
+    setState(() {
+      // This will trigger a complete rebuild of the widget tree
+    });
+    
+    // Update favorites for the first filtered quote
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (DataRepository().currentPhrasersList.isNotEmpty) {
+        _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[0]);
+      }
+    });
     
     // Refresh the phraser view model to update UI
     final phraserViewModel = Get.find<PhraserViewModel>();
     phraserViewModel.update();
     
-    // Show success message
-    Get.snackbar(
-      'Mood Set!',
-      'Showing ${moodViewModel.moodFilteredQuotes.length} quotes for your ${mood.toString().split('.').last} mood',
-      backgroundColor: kPrimaryColor.withOpacity(0.9),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(16),
-      borderRadius: 8,
-    );
   }
 
   void _navigateToHabits() {

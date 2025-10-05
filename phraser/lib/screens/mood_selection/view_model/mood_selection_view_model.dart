@@ -62,8 +62,10 @@ class MoodSelectionViewModel extends GetxController {
     // Get mood-specific tags
     final moodTags = MoodQuoteMapping.getQuoteTagsForMood(currentMood!);
     
-    // Filter quotes from data repository
-    final allQuotes = DataRepository().currentPhrasersList;
+    // Filter quotes from ALL categories, not just the current one
+    final allQuotes = DataRepository().getAllQuotes().isNotEmpty 
+        ? DataRepository().getAllQuotes() 
+        : DataRepository().currentPhrasersList;
     
     if (allQuotes.isEmpty) {
       print('No quotes available to filter');
@@ -73,8 +75,12 @@ class MoodSelectionViewModel extends GetxController {
     moodFilteredQuotes = allQuotes.where((quote) {
       // Check if quote has moods that match current mood
       if (quote.moods != null && quote.moods!.isNotEmpty) {
-        return quote.moods!.any((mood) => 
-          moodTags.contains(mood.toLowerCase())
+        // More flexible mood matching - check if any mood tag contains or is contained by quote moods
+        return quote.moods!.any((quoteMood) => 
+          moodTags.any((moodTag) => 
+            quoteMood.toLowerCase().contains(moodTag.toLowerCase()) ||
+            moodTag.toLowerCase().contains(quoteMood.toLowerCase())
+          )
         );
       }
       
@@ -82,11 +88,15 @@ class MoodSelectionViewModel extends GetxController {
       final quoteTags = quote.tags.toLowerCase().split(',');
       final quoteText = quote.quote.toLowerCase();
       
-      // Check both tags and quote text for mood-related keywords
+      // More inclusive tag matching - partial matches allowed
       final hasTagMatch = quoteTags.any((tag) => 
-        moodTags.contains(tag.trim())
+        moodTags.any((moodTag) =>
+          tag.trim().contains(moodTag.toLowerCase()) ||
+          moodTag.toLowerCase().contains(tag.trim())
+        )
       );
       
+      // More inclusive text matching
       final hasTextMatch = moodTags.any((moodTag) =>
         quoteText.contains(moodTag.toLowerCase())
       );
@@ -96,7 +106,7 @@ class MoodSelectionViewModel extends GetxController {
 
     // If no specific matches found, include quotes with general positive/motivational content
     if (moodFilteredQuotes.isEmpty) {
-      final generalTags = ['motivation', 'inspiration', 'positive', 'hope', 'strength', 'wisdom', 'peace', 'life'];
+      final generalTags = ['motivation', 'inspiration', 'positive', 'hope', 'strength', 'wisdom', 'peace', 'life', 'love', 'success', 'growth', 'change'];
       
       moodFilteredQuotes = allQuotes.where((quote) {
         final quoteTags = quote.tags.toLowerCase().split(',');
@@ -109,12 +119,18 @@ class MoodSelectionViewModel extends GetxController {
       }).toList();
     }
 
-    // If still no matches, take a random sample of quotes
+    // If still no matches, take a larger random sample of quotes
     if (moodFilteredQuotes.isEmpty && allQuotes.isNotEmpty) {
-      moodFilteredQuotes = allQuotes.take(20).toList();
+      moodFilteredQuotes = allQuotes.take(50).toList();
     }
     
     print('Filtered ${moodFilteredQuotes.length} quotes for mood: ${currentMood?.toString().split('.').last}');
+    
+    // Always apply the filtered quotes to the DataRepository
+    if (moodFilteredQuotes.isNotEmpty) {
+      DataRepository().updateCurrentPhrasersList(moodFilteredQuotes);
+    }
+    
     update();
   }
 
@@ -156,7 +172,6 @@ class MoodSelectionViewModel extends GetxController {
         
         // Apply saved mood filter
         await _filterQuotesByMood();
-        applyMoodFilterToQuotes();
         
         print('Loaded saved mood: $savedMood with intensity: $savedIntensity');
       } catch (e) {
@@ -285,8 +300,12 @@ class MoodSelectionViewModel extends GetxController {
 
   // Update quotes list with mood-filtered quotes
   void applyMoodFilterToQuotes() {
-    if (hasFilteredQuotes) {
+    if (moodFilteredQuotes.isNotEmpty) {
       DataRepository().updateCurrentPhrasersList(moodFilteredQuotes);
+      print('Applied ${moodFilteredQuotes.length} mood-filtered quotes to repository');
+    } else if (currentMood != null) {
+      // If no filtered quotes but mood is set, trigger filtering again
+      _filterQuotesByMood();
     }
   }
 

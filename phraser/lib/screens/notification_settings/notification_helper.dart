@@ -992,6 +992,8 @@ class NotificationHelper {
           
           // Update the current category and phraser list
           DataRepository().currentPhrasersList = categoryPhrasers;
+          // Also add these quotes to the global collection for mood filtering
+          DataRepository().addToAllQuotes(categoryPhrasers);
           Preferences.instance.savedCategoryName = categoryName;
           Preferences.instance.currentPhraserPosition = phraserPosition;
           

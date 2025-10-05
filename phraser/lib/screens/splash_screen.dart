@@ -85,7 +85,10 @@ class _SplashScreenState extends State<SplashScreen> {
     final database = FloorDB.instance.floorDatabase;
     CurrentPhrasersDAO phrasersDAO = database.currentPhraserDAO;
     try {
-      DataRepository().currentPhrasersList = await phrasersDAO.getAllCurrentPhrasers();
+      final allQuotes = await phrasersDAO.getAllCurrentPhrasers();
+      DataRepository().currentPhrasersList = allQuotes;
+      // Also add these to the global collection for mood filtering
+      DataRepository().addToAllQuotes(allQuotes);
     } catch (e) {
       debugPrint('---> unable to fetch current phrasers');
     }

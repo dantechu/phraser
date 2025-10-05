@@ -111,6 +111,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                testPrint('current phrasers saved into db');
                              });
                              DataRepository().currentPhrasersList = list;
+                             // Also add these quotes to the global collection for mood filtering
+                             DataRepository().addToAllQuotes(list);
                              Navigator.pop(context);
                              if(AdsHelper.freeTriesInterstitialAd != null){
                                try {
@@ -229,6 +231,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                     testPrint('current phrasers saved into db');
                                   });
                                   DataRepository().currentPhrasersList = list;
+                             // Also add these quotes to the global collection for mood filtering
+                             DataRepository().addToAllQuotes(list);
                                 AdsHelper.freeTriesRewardedAd = null;
                                 //AdsHelper.loadRewardedVideoAd();
                               });

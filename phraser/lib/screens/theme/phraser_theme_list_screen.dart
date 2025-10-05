@@ -193,67 +193,7 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
               ),
             ),
             
-            // Selected Theme Info
-            if (selectedThemeIndex >= 0 && selectedThemeIndex < ThemeImagesList.themeImagesList.length)
-              Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey[850] : Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: kPrimaryColor.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Icon(
-                        selectedThemeIndex == 0 ? Icons.shuffle : Icons.palette,
-                        color: kPrimaryColor,
-                        size: 16,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedThemeIndex == 0 ? 'Random Theme' : 'Theme ${selectedThemeIndex}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            selectedThemeIndex == 0 
-                                ? 'Automatically changes themes' 
-                                : 'Fixed theme selection',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey[400] : Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.check_circle,
-                      color: kPrimaryColor,
-                      size: 20,
-                    ),
-                  ],
-                ),
-              ),
-            
+
             const SizedBox(height: 5.0),
             
             // Ad Banner (Keep as original)
