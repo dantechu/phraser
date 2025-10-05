@@ -80,7 +80,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
         ),
         centerTitle: true,
       ),
-      body: _buildMoodSelection(),
+      body: SafeArea(child: _buildMoodSelection()),
     );
   }
 
@@ -130,35 +130,10 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
   Widget _buildMoodSelection() {
     return GetBuilder<MoodSelectionViewModel>(
       builder: (vm) => Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
-            // Mood selection explanation
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.psychology, color: Colors.blue[600], size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Select your current mood to get personalized quotes that match how you\'re feeling.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.blue[700],
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+
 
             // Mood grid
             Expanded(
