@@ -25,13 +25,19 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withOpacity(0.05),
+        color: isDark 
+            ? kPrimaryColor.withOpacity(0.15)
+            : kPrimaryColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
+          color: isDark 
+              ? kPrimaryColor.withOpacity(0.3)
+              : kPrimaryColor.withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -52,6 +58,7 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
 
   Widget _buildDayCircle(String dayLetter, String dayName, int index, BuildContext context) {
     final isSelected = _selectedDays[index];
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return GestureDetector(
       onTap: () {
@@ -67,18 +74,18 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isSelected 
-              ? Theme.of(context).primaryColor 
+              ? kPrimaryColor 
               : Colors.transparent,
           border: Border.all(
             color: isSelected 
-                ? Theme.of(context).primaryColor 
-                : Theme.of(context).primaryColor.withOpacity(0.25),
+                ? kPrimaryColor 
+                : kPrimaryColor.withOpacity(isDark ? 0.4 : 0.25),
             width: 1.5,
           ),
           boxShadow: isSelected 
               ? [
                   BoxShadow(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    color: kPrimaryColor.withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -91,7 +98,7 @@ class _DaysOfWeekWidgetState extends State<DaysOfWeekWidget> {
             style: TextStyle(
               color: isSelected 
                   ? Colors.white 
-                  : Theme.of(context).primaryColor,
+                  : kPrimaryColor,
               fontWeight: FontWeight.bold,
               fontSize: 12,
             ),

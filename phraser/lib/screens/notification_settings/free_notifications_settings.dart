@@ -243,13 +243,15 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ColorfulSafeArea(
-      color: Theme.of(context).primaryColor,
+      color: isDark ? Colors.grey[850]! : kPrimaryColor,
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: isDark ? Colors.grey[850]! : kPrimaryColor,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
@@ -279,10 +281,14 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    color: isDark 
+                        ? kPrimaryColor.withOpacity(0.15)
+                        : kPrimaryColor.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: isDark 
+                          ? kPrimaryColor.withOpacity(0.3)
+                          : kPrimaryColor.withOpacity(0.1),
                       width: 1,
                     ),
                   ),
@@ -291,7 +297,8 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor.withOpacity(0.1),
+                          color: isDark
+                              ? kPrimaryColor.withOpacity(0.3)                           : kPrimaryColor.withOpacity(0.1),
                           shape: BoxShape.circle,
                         ),
                         child: const Text(
@@ -389,10 +396,14 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor.withOpacity(0.05),
+                            color: isDark
+                                ? kPrimaryColor.withOpacity(0.15)
+                                : kPrimaryColor.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              color: isDark
+                            ? kPrimaryColor.withOpacity(0.3)
+        : kPrimaryColor.withOpacity(0.1),
                               width: 1,
                             ),
                           ),
@@ -411,7 +422,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          'Daily Reminders',
+                                          'Frequency',
                                           style: TextStyle(
                                             fontWeight: FontWeight.w500,
                                             fontSize: 14,
@@ -425,7 +436,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                                           padding: const EdgeInsets.symmetric(
                                               horizontal: 8, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context).primaryColor,
+                                            color: kPrimaryColor,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           child: Text(
@@ -442,12 +453,10 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                                     const SizedBox(height: 8),
                                     SliderTheme(
                                       data: SliderTheme.of(context).copyWith(
-                                        activeTrackColor: Theme.of(context).primaryColor,
-                                        inactiveTrackColor:
-                                            Theme.of(context).primaryColor.withOpacity(0.3),
-                                        thumbColor: Theme.of(context).primaryColor,
-                                        overlayColor:
-                                            Theme.of(context).primaryColor.withOpacity(0.1),
+                                        activeTrackColor: kPrimaryColor,
+                                        inactiveTrackColor: kPrimaryColor.withOpacity(0.3),
+                                        thumbColor: kPrimaryColor,
+                                        overlayColor: kPrimaryColor.withOpacity(0.1),
                                         trackHeight: 3,
                                         thumbShape: const RoundSliderThumbShape(
                                             enabledThumbRadius: 8),
@@ -597,7 +606,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                       await _saveNotificationSettings();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
+                      backgroundColor: kPrimaryColor,
                       foregroundColor: Colors.white,
                       elevation: 2,
                       shape: RoundedRectangleBorder(

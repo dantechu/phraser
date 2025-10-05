@@ -201,20 +201,26 @@ class _SpecificTimeNotificationWidgetState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 1),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.03),
+            blurRadius: isDark ? 8 : 6,
+            offset:  Offset(0, isDark ? 3 : 1),
           ),
         ],
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.08),
+          color: isDark
+              ? kPrimaryColor.withOpacity(0.3)
+              : kPrimaryColor.withOpacity(0.08),
           width: 1,
         ),
       ),
@@ -279,10 +285,14 @@ class _SpecificTimeNotificationWidgetState
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
+                color: isDark
+                    ? kPrimaryColor.withOpacity(0.15)
+                    : kPrimaryColor.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: isDark
+                      ? kPrimaryColor.withOpacity(0.3)
+                      : kPrimaryColor.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -315,7 +325,7 @@ class _SpecificTimeNotificationWidgetState
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColor,
+                                color: kPrimaryColor,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -332,12 +342,10 @@ class _SpecificTimeNotificationWidgetState
                         const SizedBox(height: 8),
                         SliderTheme(
                           data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Theme.of(context).primaryColor,
-                            inactiveTrackColor:
-                                Theme.of(context).primaryColor.withOpacity(0.3),
-                            thumbColor: Theme.of(context).primaryColor,
-                            overlayColor:
-                                Theme.of(context).primaryColor.withOpacity(0.1),
+                            activeTrackColor: kPrimaryColor,
+                            inactiveTrackColor: kPrimaryColor.withOpacity(0.3),
+                            thumbColor: kPrimaryColor,
+                            overlayColor: kPrimaryColor.withOpacity(0.1),
                             trackHeight: 3,
                             thumbShape: const RoundSliderThumbShape(
                                 enabledThumbRadius: 8),
@@ -381,15 +389,21 @@ class _SpecificTimeNotificationWidgetState
     required String emoji,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          color: isDark
+              ? kPrimaryColor.withOpacity(0.15)
+              : kPrimaryColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: isDark
+                ? kPrimaryColor.withOpacity(0.3)
+                : kPrimaryColor.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -431,6 +445,8 @@ class _SpecificTimeNotificationWidgetState
   }
 
   Widget _buildCategoriesCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -471,10 +487,14 @@ class _SpecificTimeNotificationWidgetState
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          color: isDark
+              ? kPrimaryColor.withOpacity(0.15)
+              : kPrimaryColor.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            color: isDark
+                ? kPrimaryColor.withOpacity(0.3)
+                : kPrimaryColor.withOpacity(0.1),
             width: 1,
           ),
         ),

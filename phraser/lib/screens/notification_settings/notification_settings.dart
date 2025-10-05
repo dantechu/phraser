@@ -37,13 +37,15 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return ColorfulSafeArea(
-      color: Theme.of(context).primaryColor,
+      color: isDark ? Colors.grey[850]! : kPrimaryColor,
       child: Scaffold(
         appBar: AppBar(
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: Theme.of(context).primaryColor,
+          backgroundColor: isDark ? Colors.grey[850]! : kPrimaryColor,
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(
@@ -66,8 +68,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
               child: ElevatedButton(
                 onPressed: _savePremiumSettings,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  foregroundColor: Colors.white,
+                  backgroundColor: isDark 
+                      ? kPrimaryColor
+                      : Colors.white.withOpacity(0.2),
+                  foregroundColor: isDark ? Colors.white : Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -97,10 +101,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                   margin: const EdgeInsets.all(16),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    color: isDark 
+                        ? kPrimaryColor.withOpacity(0.15)
+                        : kPrimaryColor.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: isDark 
+                          ? kPrimaryColor.withOpacity(0.3)
+                          : kPrimaryColor.withOpacity(0.1),
                       width: 1,
                     ),
                   ),
@@ -108,7 +116,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Theme.of(context).primaryColor,
+                        color: kPrimaryColor,
                         size: 18,
                       ),
                       const SizedBox(width: 10),

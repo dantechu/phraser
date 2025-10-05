@@ -9,21 +9,30 @@ class NotificationTitleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: const EdgeInsets.only(top: 24.0, bottom: 12.0, left: 16.0, right: 16.0),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Theme.of(context).primaryColor.withOpacity(0.08),
-            Theme.of(context).primaryColor.withOpacity(0.04),
-          ],
+          colors: isDark 
+              ? [
+                  kPrimaryColor.withOpacity(0.25),
+                  kPrimaryColor.withOpacity(0.15),
+                ]
+              : [
+                  kPrimaryColor.withOpacity(0.08),
+                  kPrimaryColor.withOpacity(0.04),
+                ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(0.12),
+          color: isDark 
+              ? kPrimaryColor.withOpacity(0.4)
+              : kPrimaryColor.withOpacity(0.12),
           width: 1,
         ),
       ),
@@ -32,7 +41,9 @@ class NotificationTitleWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: isDark 
+                  ? kPrimaryColor.withOpacity(0.3)
+                  : kPrimaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -69,13 +80,15 @@ class NotificationTitleWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              color: isDark 
+                  ? kPrimaryColor.withOpacity(0.3)
+                  : kPrimaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               'Setup',
               style: TextStyle(
-                color: Theme.of(context).primaryColor,
+                color: isDark ? Colors.white : kPrimaryColor,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
               ),
