@@ -186,7 +186,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                 ),
 
                 // Top Left - Habit Progress Icon (only visible when Habits tab is selected)
-                if (selectedTab == 'Habits')
+                if (selectedTab == 'Habits' && _hasUserHabits())
                   Positioned(
                     top: 50,
                     left: 20,
@@ -510,5 +510,11 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
       context,
       MaterialPageRoute(builder: (context) => const HabitStatsScreen()),
     );
+  }
+
+  // Helper method to check if user has any habits set
+  bool _hasUserHabits() {
+    final savedHabits = Preferences.instance.getStringList('user_habits') ?? [];
+    return savedHabits.isNotEmpty;
   }
 }

@@ -119,6 +119,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    _updateCategoryColorsForTheme(isDark);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -149,7 +150,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? Theme.of(context).cardColor : Colors.white,
+              color: isDark ? Colors.grey[850] : Colors.white,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
@@ -218,7 +219,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
           // Bottom Actions
           Container(
             padding: const EdgeInsets.all(16),
-            margin: EdgeInsetsGeometry.only(bottom: 16.0),
+            margin: const EdgeInsets.only(bottom: 16.0),
             child: Row(
               children: [
                 if (currentStep > 0)
@@ -229,15 +230,17 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.grey.shade300),
+                          side: BorderSide(
+                            color: isDark ? Colors.grey.shade600 : Colors.grey.shade300,
+                          ),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Back',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: isDark ? Colors.white70 : Colors.black87,
                         ),
                       ),
                     ),
@@ -294,7 +297,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? kPrimaryColor.withOpacity(0.15)
-                    : (isDark ? Theme.of(context).cardColor : Colors.white),
+                    : (isDark ? Colors.grey[850] : Colors.white),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
@@ -321,14 +324,13 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isSelected)
-                      Positioned(
-                        top: 8,
-                        right: 8,
+                      Align(
+                        alignment: Alignment.topRight,
                         child: Container(
-                          padding: const EdgeInsets.all(2),
+                          padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: kPrimaryColor,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.check,
@@ -400,7 +402,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? Theme.of(context).cardColor : Colors.white,
+              color: isDark ? Colors.grey[850] : Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -542,6 +544,122 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
     setState(() {
       currentStep = 0;
     });
+  }
+
+  void _updateCategoryColorsForTheme(bool isDark) {
+    // Update colors based on theme
+    for (int i = 0; i < habitCategories.length; i++) {
+      final category = habitCategories[i];
+      if (isDark) {
+        // Dark theme: use darker background with lighter icons
+        habitCategories[i] = CategoryTemplate(
+          category: category.category,
+          name: category.name,
+          description: category.description,
+          icon: category.icon,
+          color: category.iconColor.withOpacity(0.2),
+          iconColor: category.iconColor.withOpacity(0.8),
+        );
+      } else {
+        // Light theme: restore original colors
+        habitCategories[i] = _getOriginalCategoryTemplate(category.category);
+      }
+    }
+  }
+
+  CategoryTemplate _getOriginalCategoryTemplate(HabitCategory category) {
+    switch (category) {
+      case HabitCategory.healthFitness:
+        return CategoryTemplate(
+          category: HabitCategory.healthFitness,
+          name: 'Health & Fitness',
+          description: 'Physical wellness and exercise',
+          icon: Icons.fitness_center,
+          color: Colors.orange.shade100,
+          iconColor: Colors.orange.shade700,
+        );
+      case HabitCategory.mindEmotions:
+        return CategoryTemplate(
+          category: HabitCategory.mindEmotions,
+          name: 'Mind & Emotions',
+          description: 'Mental wellness and emotional health',
+          icon: Icons.psychology,
+          color: Colors.blue.shade100,
+          iconColor: Colors.blue.shade700,
+        );
+      case HabitCategory.learningGrowth:
+        return CategoryTemplate(
+          category: HabitCategory.learningGrowth,
+          name: 'Learning & Growth',
+          description: 'Education and personal development',
+          icon: Icons.school,
+          color: Colors.purple.shade100,
+          iconColor: Colors.purple.shade700,
+        );
+      case HabitCategory.productivityWork:
+        return CategoryTemplate(
+          category: HabitCategory.productivityWork,
+          name: 'Productivity & Work',
+          description: 'Efficiency and professional development',
+          icon: Icons.trending_up,
+          color: Colors.green.shade100,
+          iconColor: Colors.green.shade700,
+        );
+      case HabitCategory.financeMoney:
+        return CategoryTemplate(
+          category: HabitCategory.financeMoney,
+          name: 'Finance & Money',
+          description: 'Financial wellness and management',
+          icon: Icons.attach_money,
+          color: Colors.teal.shade100,
+          iconColor: Colors.teal.shade700,
+        );
+      case HabitCategory.lifestyleRoutine:
+        return CategoryTemplate(
+          category: HabitCategory.lifestyleRoutine,
+          name: 'Lifestyle & Routine',
+          description: 'Daily routines and lifestyle choices',
+          icon: Icons.schedule,
+          color: Colors.pink.shade100,
+          iconColor: Colors.pink.shade700,
+        );
+      case HabitCategory.relationshipsSocial:
+        return CategoryTemplate(
+          category: HabitCategory.relationshipsSocial,
+          name: 'Relationships & Social',
+          description: 'Social connections and relationships',
+          icon: Icons.people,
+          color: Colors.red.shade100,
+          iconColor: Colors.red.shade700,
+        );
+      case HabitCategory.creativityHobbies:
+        return CategoryTemplate(
+          category: HabitCategory.creativityHobbies,
+          name: 'Creativity & Hobbies',
+          description: 'Creative expression and hobbies',
+          icon: Icons.palette,
+          color: Colors.deepOrange.shade100,
+          iconColor: Colors.deepOrange.shade700,
+        );
+      case HabitCategory.contributionImpact:
+        return CategoryTemplate(
+          category: HabitCategory.contributionImpact,
+          name: 'Contribution & Impact',
+          description: 'Making a positive difference',
+          icon: Icons.volunteer_activism,
+          color: Colors.brown.shade100,
+          iconColor: Colors.brown.shade700,
+        );
+      case HabitCategory.spiritualityMindfulness:
+        return CategoryTemplate(
+          category: HabitCategory.spiritualityMindfulness,
+          name: 'Spirituality & Mindfulness',
+          description: 'Spiritual practices and mindfulness',
+          icon: Icons.spa,
+          color: Colors.indigo.shade100,
+          iconColor: Colors.indigo.shade700,
+        );
+    }
   }
 
   void _startHabits() {
