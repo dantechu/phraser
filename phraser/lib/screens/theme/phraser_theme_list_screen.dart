@@ -7,6 +7,7 @@ import 'package:phraser/consts/text_themes.dart';
 import 'package:phraser/consts/theme_images_list.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/colors.dart';
+import 'package:phraser/util/status_bar_helper.dart';
 
 class PhraserThemeListScreen extends StatefulWidget {
   final Function(int)? onThemeSelected;
@@ -30,8 +31,8 @@ class _PhraserThemeListScreenState extends State<PhraserThemeListScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return ColorfulSafeArea(
-      color: Theme.of(context).scaffoldBackgroundColor,
+    return StatusBarHelper.standardSafeArea(
+      context: context,
       child: Scaffold(
         backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
         body: Column(

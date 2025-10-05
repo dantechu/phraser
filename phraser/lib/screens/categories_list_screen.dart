@@ -7,6 +7,7 @@ import 'package:phraser/services/model/category_sections.dart';
 import 'package:phraser/services/model/data_repository.dart';
 import 'package:phraser/services/view_model/categories_list_view_model.dart';
 import 'package:phraser/widgets/section_categories_list.dart';
+import 'package:phraser/util/status_bar_helper.dart';
 
 class CategoriesListScreen extends StatefulWidget {
   const CategoriesListScreen({Key? key}) : super(key: key);
@@ -32,8 +33,8 @@ class _CategoriesListScreenState extends State<CategoriesListScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return ColorfulSafeArea(
-      color: Theme.of(context).scaffoldBackgroundColor,
+    return StatusBarHelper.standardSafeArea(
+      context: context,
       child: Scaffold(
         backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
         body: GetBuilder<CategoriesListViewModel>(

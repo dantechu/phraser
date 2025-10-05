@@ -19,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
+import 'package:phraser/util/status_bar_helper.dart';
 
 import '../../widgets/simple_widgets.dart';
 
@@ -97,8 +98,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return ColorfulSafeArea(
-      color: Theme.of(context).scaffoldBackgroundColor,
+    return StatusBarHelper.standardSafeArea(
+      context: context,
       child: Scaffold(
         backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
         body: SingleChildScrollView(

@@ -11,6 +11,7 @@ import 'package:phraser/payments/view_model/in_app_purchase_view_model.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/terms_and_policy_text_widget.dart';
+import 'package:phraser/util/status_bar_helper.dart';
 
 class PremiumAppScreen extends StatefulWidget {
   const PremiumAppScreen({Key? key}) : super(key: key);
@@ -115,8 +116,8 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return ColorfulSafeArea(
-      color: Theme.of(context).scaffoldBackgroundColor,
+    return StatusBarHelper.standardSafeArea(
+      context: context,
       child: Scaffold(
         backgroundColor: isDark ? Colors.grey[900] : Colors.grey[50],
         body: SingleChildScrollView(
