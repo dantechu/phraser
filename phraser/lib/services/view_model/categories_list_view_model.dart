@@ -69,7 +69,16 @@ class CategoriesListViewModel extends GetxController {
 
   void getCategories() async{
     try{
-      var response = await Dio().get(ConstantURls.kGetCategories);
+      // Get the selected region from preferences
+      String? selectedRegion = Preferences.instance.selectedRegion;
+      String regionParam = '';
+      
+      // If region is selected and not empty, add it to the URL
+      if (selectedRegion != null && selectedRegion.isNotEmpty) {
+        regionParam = '&region=$selectedRegion';
+      }
+      
+      var response = await Dio().get(ConstantURls.kGetCategories + regionParam);
       if (response.statusCode == 200) {
         CategoriesListModel categoriesListModel = CategoriesListModel.fromJson(response.data);
         testPrint('categories length: ${categoriesListModel.categories.length}');
@@ -88,7 +97,16 @@ class CategoriesListViewModel extends GetxController {
   }
   void getSectionsList() async{
     try{
-      var response = await Dio().get(ConstantURls.kGetSections);
+      // Get the selected region from preferences
+      String? selectedRegion = Preferences.instance.selectedRegion;
+      String regionParam = '';
+      
+      // If region is selected and not empty, add it to the URL
+      if (selectedRegion != null && selectedRegion.isNotEmpty) {
+        regionParam = '&region=$selectedRegion';
+      }
+      
+      var response = await Dio().get(ConstantURls.kGetSections + regionParam);
       if (response.statusCode == 200) {
         SectionList sectionList = SectionList.fromJson(response.data);
         testPrint('Sections length: ${sectionList.categorySections.length}');
@@ -105,7 +123,16 @@ class CategoriesListViewModel extends GetxController {
 
   void getPhrasersByCategory(String id) async{
     try{
-      var response = await Dio().get(ConstantURls.kGetPhrasersByCategory+'$id&region=Eastern');
+      // Get the selected region from preferences
+      String? selectedRegion = Preferences.instance.selectedRegion;
+      String regionParam = '';
+      
+      // If region is selected and not empty, add it to the URL
+      if (selectedRegion != null && selectedRegion.isNotEmpty) {
+        regionParam = '&region=$selectedRegion';
+      }
+      
+      var response = await Dio().get(ConstantURls.kGetPhrasersByCategory+'$id$regionParam');
       if (response.statusCode == 200) {
         print('single category list quotes: ${response.statusCode}');
         PhrasersListModel listModel = PhrasersListModel.fromJson(response.data);

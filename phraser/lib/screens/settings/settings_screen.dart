@@ -8,6 +8,8 @@ import 'package:phraser/consts/const_strings.dart';
 import 'package:phraser/helper/navigation_helper.dart';
 import 'package:phraser/screens/favorites_screen/favorites_screen.dart';
 import 'package:phraser/screens/in_app_purchase/preimum_app_screen.dart';
+import 'package:phraser/widgets/region_selection_dialog.dart';
+import 'package:phraser/util/preferences_util.dart';
 import 'package:phraser/screens/notification_settings/free_notifications_settings.dart';
 import 'package:phraser/screens/notification_settings/notification_settings.dart';
 import 'package:phraser/screens/theme/AppThemeScreen.dart';
@@ -33,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String title = '';
   String timeZone = '';
   String themeTitle = '';
+  String regionTitle = '';
   int selectedIndex = 0;
   late RateMyApp rateMyApp;
 
@@ -65,6 +68,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     
     // Load current theme from ThemeController
     final currentTheme = ThemeController().themeMode;
+    
+    // Load current region
+    final currentRegion = PreferencesUtil.getSelectedRegion();
+    
     setState(() {
       switch (currentTheme) {
         case ThemeMode.light:
@@ -76,6 +83,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         case ThemeMode.system:
           themeTitle = 'System';
           break;
+      }
+      
+      // Set region title
+      if (currentRegion == null || currentRegion.isEmpty) {
+        regionTitle = 'All Regions';
+      } else {
+        regionTitle = currentRegion;
       }
     });
   }
@@ -211,6 +225,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Favorites',
                     subtitle: 'Your saved phrasers',
                     onTap: () => NavigationHelper.pushRoute(context, const FavoritesScreen()),
+                  ),
+                  _buildSettingTile(
+                    context,
+                    icon: Icons.public,
+                    iconColor: Colors.blue,
+                    title: 'Region',
+                    subtitle: 'Filter phrasers by region',
+                    trailing: Text(
+                      regionTitle,
+                      style: TextStyle(
+                        color: isDark ? Colors.grey[400] : Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                    onTap: () => _showRegionDialog(context),
                     isLast: true,
                   ),
                 ],
@@ -335,6 +364,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _navigateToThemes() {
     Get.toNamed(RouteHelper.phraserThemeListScreen);
+  }
+
+  void _showRegionDialog(BuildContext context) {
+    final currentRegion = PreferencesUtil.getSelectedRegion();
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return RegionSelectionDialog(
+          currentRegion: currentRegion,
+          onRegionSelected: (selectedRegion) {
+            setState(() {
+              if (selectedRegion == null || selectedRegion.isEmpty) {
+                regionTitle = 'All Regions';
+              } else {
+                regionTitle = selectedRegion;
+              }
+            });
+          },
+        );
+      },
+    );
   }
 
   void _showThemeDialog(BuildContext context) {
