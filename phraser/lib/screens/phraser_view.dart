@@ -139,8 +139,10 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                         vm.isFavorite = false;
                                         dao.removeFromFavorites(item);
                                       }
-                                    } catch (e) {
-                                      // Handle error
+                                      // Trigger UI update immediately
+                                      vm.update();
+                                    } catch (e,s) {
+                                      print('Error saving favorite: $e | $s');
                                     }
                                   },
                                   child: Icon(

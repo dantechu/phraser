@@ -10,7 +10,7 @@ abstract class FavoritesDAO {
 
 
   @Query('SELECT * FROM ${ConstantStrings.kFavoritesTableName} WHERE id = :id')
-  Stream<Phraser?> getFavoriteById(int id);
+  Stream<Phraser?> getFavoriteById(String phraserId);
 
   @insert
   Future<void> addPhraserToFavorite(Phraser phraser);

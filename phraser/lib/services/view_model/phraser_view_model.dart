@@ -37,10 +37,14 @@ class PhraserViewModel extends GetxController {
       FavoritesDAO dao = database.favoritesDAO;
       
       // Use a one-time check instead of stream listener to avoid memory leaks
-      final favoriteItem = await dao.getFavoriteById(int.parse(phraser.phraserId)).first;
+      final favoriteItem = await dao.getFavoriteById(phraser.phraserId).first;
       isFavorite = favoriteItem != null;
+      
+      // Trigger UI update
+      update();
     } catch (e) {
       isFavorite = false;
+      update();
     }
   }
 

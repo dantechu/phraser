@@ -6,21 +6,32 @@ part of 'database.dart';
 // FloorGenerator
 // **************************************************************************
 
+abstract class $AppDatabaseBuilderContract {
+  /// Adds migrations to the builder.
+  $AppDatabaseBuilderContract addMigrations(List<Migration> migrations);
+
+  /// Adds a database [Callback] to the builder.
+  $AppDatabaseBuilderContract addCallback(Callback callback);
+
+  /// Creates the database and initializes it.
+  Future<AppDatabase> build();
+}
+
 // ignore: avoid_classes_with_only_static_members
 class $FloorAppDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder databaseBuilder(String name) =>
+  static $AppDatabaseBuilderContract databaseBuilder(String name) =>
       _$AppDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static _$AppDatabaseBuilder inMemoryDatabaseBuilder() =>
+  static $AppDatabaseBuilderContract inMemoryDatabaseBuilder() =>
       _$AppDatabaseBuilder(null);
 }
 
-class _$AppDatabaseBuilder {
+class _$AppDatabaseBuilder implements $AppDatabaseBuilderContract {
   _$AppDatabaseBuilder(this.name);
 
   final String? name;
@@ -29,19 +40,19 @@ class _$AppDatabaseBuilder {
 
   Callback? _callback;
 
-  /// Adds migrations to the builder.
-  _$AppDatabaseBuilder addMigrations(List<Migration> migrations) {
+  @override
+  $AppDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
-  /// Adds a database [Callback] to the builder.
-  _$AppDatabaseBuilder addCallback(Callback callback) {
+  @override
+  $AppDatabaseBuilderContract addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
-  /// Creates the database and initializes it.
+  @override
   Future<AppDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
@@ -93,15 +104,15 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `categories` (`categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `categoryImage` TEXT NOT NULL, `totalPhraser` TEXT NOT NULL, PRIMARY KEY (`categoryId`))');
+            'CREATE TABLE IF NOT EXISTS `categories` (`categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `categoryImage` TEXT NOT NULL, `totalPhraser` TEXT NOT NULL, `isSelected` INTEGER, PRIMARY KEY (`categoryId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `sections` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, PRIMARY KEY (`phraserId`))');
+            'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `currentphrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, PRIMARY KEY (`phraserId`))');
+            'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `favorites` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, PRIMARY KEY (`phraserId`))');
+            'CREATE TABLE IF NOT EXISTS `favorites` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -150,7 +161,10 @@ class _$CategoriesDAO extends CategoriesDAO {
                   'categorySection': item.categorySection,
                   'categoryType': item.categoryType,
                   'categoryImage': item.categoryImage,
-                  'totalPhraser': item.totalPhraser
+                  'totalPhraser': item.totalPhraser,
+                  'isSelected': item.isSelected == null
+                      ? null
+                      : (item.isSelected! ? 1 : 0)
                 });
 
   final sqflite.DatabaseExecutor database;
@@ -170,7 +184,10 @@ class _$CategoriesDAO extends CategoriesDAO {
             categorySection: row['categorySection'] as String,
             categoryType: row['categoryType'] as String,
             categoryImage: row['categoryImage'] as String,
-            totalPhraser: row['totalPhraser'] as String));
+            totalPhraser: row['totalPhraser'] as String,
+            isSelected: row['isSelected'] == null
+                ? null
+                : (row['isSelected'] as int) != 0));
   }
 
   @override
@@ -234,7 +251,9 @@ class _$PhrasersDAO extends PhrasersDAO {
                   'categoryName': item.categoryName,
                   'categorySection': item.categorySection,
                   'categoryType': item.categoryType,
-                  'lastUpdate': item.lastUpdate
+                  'lastUpdate': item.lastUpdate,
+                  'moodsString': item.moodsString,
+                  'regionsString': item.regionsString
                 },
             changeListener);
 
@@ -258,8 +277,26 @@ class _$PhrasersDAO extends PhrasersDAO {
             categoryName: row['categoryName'] as String,
             categorySection: row['categorySection'] as String,
             categoryType: row['categoryType'] as String,
-            lastUpdate: row['lastUpdate'] as String),
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?),
         arguments: [name]);
+  }
+
+  @override
+  Future<List<Phraser>> getAllQuotesFromAllCategories() async {
+    return _queryAdapter.queryList('SELECT * FROM  phrasers',
+        mapper: (Map<String, Object?> row) => Phraser(
+            phraserId: row['phraserId'] as String,
+            tags: row['tags'] as String,
+            quote: row['quote'] as String,
+            categoryId: row['categoryId'] as String,
+            categoryName: row['categoryName'] as String,
+            categorySection: row['categorySection'] as String,
+            categoryType: row['categoryType'] as String,
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?));
   }
 
   @override
@@ -276,7 +313,7 @@ class _$CurrentPhrasersDAO extends CurrentPhrasersDAO {
   )   : _queryAdapter = QueryAdapter(database),
         _phraserInsertionAdapter = InsertionAdapter(
             database,
-            'currentphrasers',
+            'phrasers',
             (Phraser item) => <String, Object?>{
                   'phraserId': item.phraserId,
                   'tags': item.tags,
@@ -285,7 +322,9 @@ class _$CurrentPhrasersDAO extends CurrentPhrasersDAO {
                   'categoryName': item.categoryName,
                   'categorySection': item.categorySection,
                   'categoryType': item.categoryType,
-                  'lastUpdate': item.lastUpdate
+                  'lastUpdate': item.lastUpdate,
+                  'moodsString': item.moodsString,
+                  'regionsString': item.regionsString
                 },
             changeListener);
 
@@ -308,7 +347,9 @@ class _$CurrentPhrasersDAO extends CurrentPhrasersDAO {
             categoryName: row['categoryName'] as String,
             categorySection: row['categorySection'] as String,
             categoryType: row['categoryType'] as String,
-            lastUpdate: row['lastUpdate'] as String));
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?));
   }
 
   @override
@@ -339,7 +380,9 @@ class _$FavoritesDAO extends FavoritesDAO {
                   'categoryName': item.categoryName,
                   'categorySection': item.categorySection,
                   'categoryType': item.categoryType,
-                  'lastUpdate': item.lastUpdate
+                  'lastUpdate': item.lastUpdate,
+                  'moodsString': item.moodsString,
+                  'regionsString': item.regionsString
                 },
             changeListener),
         _phraserDeletionAdapter = DeletionAdapter(
@@ -354,7 +397,9 @@ class _$FavoritesDAO extends FavoritesDAO {
                   'categoryName': item.categoryName,
                   'categorySection': item.categorySection,
                   'categoryType': item.categoryType,
-                  'lastUpdate': item.lastUpdate
+                  'lastUpdate': item.lastUpdate,
+                  'moodsString': item.moodsString,
+                  'regionsString': item.regionsString
                 },
             changeListener);
 
@@ -379,11 +424,13 @@ class _$FavoritesDAO extends FavoritesDAO {
             categoryName: row['categoryName'] as String,
             categorySection: row['categorySection'] as String,
             categoryType: row['categoryType'] as String,
-            lastUpdate: row['lastUpdate'] as String));
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?));
   }
 
   @override
-  Stream<Phraser?> getFavoriteById(int id) {
+  Stream<Phraser?> getFavoriteById(String id) {
     return _queryAdapter.queryStream('SELECT * FROM favorites WHERE phraserId = ?1',
         mapper: (Map<String, Object?> row) => Phraser(
             phraserId: row['phraserId'] as String,
@@ -393,7 +440,9 @@ class _$FavoritesDAO extends FavoritesDAO {
             categoryName: row['categoryName'] as String,
             categorySection: row['categorySection'] as String,
             categoryType: row['categoryType'] as String,
-            lastUpdate: row['lastUpdate'] as String),
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?),
         arguments: [id],
         queryableName: 'favorites',
         isView: false);

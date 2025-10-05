@@ -46,8 +46,8 @@ class Phraser {
     required this.categorySection,
     required this.categoryType,
     required this.lastUpdate,
-    this.moods,
-    this.regions,
+    this.moodsString,
+    this.regionsString,
   });
 
   @primaryKey
@@ -61,8 +61,9 @@ class Phraser {
   late final String lastUpdate;
   
   // New parameters for enhanced quote categorization
-  late final List<String>? moods; // List of mood-related strings (happy, sad, calm, motivated, etc.)
-  late final List<String>? regions; // List of regional classification strings
+  // Stored as comma-separated strings in database, converted to List<String> when needed
+  late final String? moodsString; // Comma-separated mood strings (happy,sad,calm,motivated,etc.)
+  late final String? regionsString; // Comma-separated regional strings
 
   Phraser.fromJson(Map<String, dynamic> json){
     phraserId = json['phraser_id'];
@@ -73,8 +74,27 @@ class Phraser {
     categorySection = json['category_section'];
     categoryType = json['category_type'];
     lastUpdate = json['last_update'];
-    moods = json['moods'] != null ? List<String>.from(json['moods']) : null;
-    regions = json['regions'] != null ? List<String>.from(json['regions']) : null;
+    
+    // Handle both list and string formats for backward compatibility
+    if (json['moods'] != null && (json['moods'] as List).isNotEmpty) {
+      if (json['moods'] is List) {
+        moodsString = (json['moods'] as List).join(',');
+      } else {
+        moodsString = json['moods'];
+      }
+    } else {
+      moodsString = null;
+    }
+    
+    if (json['regions'] != null && (json['regions'] as List).isNotEmpty) {
+      if (json['regions'] is List) {
+        regionsString = (json['regions'] as List).join(',');
+      } else {
+        regionsString = json['regions'];
+      }
+    } else {
+      regionsString = null;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -87,9 +107,20 @@ class Phraser {
     _data['category_section'] = categorySection;
     _data['category_type'] = categoryType;
     _data['last_update'] = lastUpdate;
-    _data['moods'] = moods;
-    _data['regions'] = regions;
+    _data['moods'] = moodsString;
+    _data['regions'] = regionsString;
     return _data;
+  }
+
+  // Helper methods to get lists from comma-separated strings
+  List<String>? get moods {
+    if (moodsString == null || moodsString!.isEmpty) return null;
+    return moodsString!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  }
+  
+  List<String>? get regions {
+    if (regionsString == null || regionsString!.isEmpty) return null;
+    return regionsString!.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
   }
 
   // Helper methods for enhanced quote filtering

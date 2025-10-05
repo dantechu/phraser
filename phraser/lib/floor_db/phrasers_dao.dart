@@ -11,6 +11,9 @@ abstract class PhrasersDAO {
   @Query('SELECT * FROM  ${ConstantStrings.kPhrasersTableName} WHERE categoryName = :name')
   Future<List<Phraser>> getAllPhrasers(String  name);
 
+  @Query('SELECT * FROM  ${ConstantStrings.kPhrasersTableName}')
+  Future<List<Phraser>> getAllQuotesFromAllCategories();
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAllPhrasers(List<Phraser> phrasersList);
 
