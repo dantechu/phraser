@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../../../services/model/mood_model.dart';
 import '../../../services/model/phreasers_list_model.dart';
 import '../../../services/model/data_repository.dart';
+import '../../../util/preferences.dart';
 
 class MoodSelectionViewModel extends GetxController {
   // Current mood state
@@ -19,6 +20,7 @@ class MoodSelectionViewModel extends GetxController {
   void onInit() {
     super.onInit();
     _loadMoodHistory();
+    _loadSavedMood();
   }
 
   Future<void> saveMoodEntry(MoodType mood, MoodIntensity intensity) async {
@@ -36,6 +38,11 @@ class MoodSelectionViewModel extends GetxController {
     // Update current state
     currentMood = mood;
     currentIntensity = intensity;
+    
+    // Save to preferences for persistence
+    Preferences.instance.currentMood = mood.toString().split('.').last;
+    Preferences.instance.currentMoodIntensity = intensity.toString().split('.').last;
+    Preferences.instance.isMoodFilterEnabled = true;
     
     // Add to history
     moodHistory.insert(0, entry);
@@ -128,14 +135,36 @@ class MoodSelectionViewModel extends GetxController {
     // TODO: Implement database load
     // Load mood history from database
     // moodHistory = await database.moodEntriesDAO.getAllMoodEntries();
-    // 
-    // If we have recent mood data, set current mood
-    // if (moodHistory.isNotEmpty) {
-    //   final recent = moodHistory.first;
-    //   currentMood = recent.moodEnum;
-    //   currentIntensity = recent.intensityEnum;
-    //   await _filterQuotesByMood();
-    // }
+    
+    update();
+  }
+
+  Future<void> _loadSavedMood() async {
+    final savedMood = Preferences.instance.currentMood;
+    final savedIntensity = Preferences.instance.currentMoodIntensity;
+    final isMoodFilterEnabled = Preferences.instance.isMoodFilterEnabled;
+    
+    if (savedMood != null && savedIntensity != null && isMoodFilterEnabled) {
+      // Convert string back to enum
+      try {
+        currentMood = MoodType.values.firstWhere(
+          (e) => e.toString().split('.').last == savedMood,
+        );
+        currentIntensity = MoodIntensity.values.firstWhere(
+          (e) => e.toString().split('.').last == savedIntensity,
+        );
+        
+        // Apply saved mood filter
+        await _filterQuotesByMood();
+        applyMoodFilterToQuotes();
+        
+        print('Loaded saved mood: $savedMood with intensity: $savedIntensity');
+      } catch (e) {
+        print('Error loading saved mood: $e');
+        // Clear invalid mood data
+        clearMoodSelection();
+      }
+    }
     
     update();
   }
@@ -219,6 +248,18 @@ class MoodSelectionViewModel extends GetxController {
     return mapping?.description ?? currentMood.toString().split('.').last;
   }
 
+  String getCurrentMoodName() {
+    if (currentMood == null) return 'Mood';
+    final moodName = currentMood.toString().split('.').last;
+    return moodName[0].toUpperCase() + moodName.substring(1);
+  }
+
+  String getCurrentMoodEmoji() {
+    if (currentMood == null) return '';
+    final mapping = MoodQuoteMapping.getMappingForMood(currentMood!);
+    return mapping?.emoji ?? '';
+  }
+
   List<String> getCurrentMoodTags() {
     if (currentMood == null) return [];
     return MoodQuoteMapping.getQuoteTagsForMood(currentMood!);
@@ -229,6 +270,11 @@ class MoodSelectionViewModel extends GetxController {
     currentMood = null;
     currentIntensity = null;
     moodFilteredQuotes.clear();
+    
+    // Clear from preferences
+    Preferences.instance.currentMood = null;
+    Preferences.instance.currentMoodIntensity = null;
+    Preferences.instance.isMoodFilterEnabled = false;
     
     // Reset to original quotes
     DataRepository().resetToOriginalPhrasersList();

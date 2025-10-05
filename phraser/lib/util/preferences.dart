@@ -22,6 +22,9 @@ class Preferences {
   final String _customNotificationsKey = 'custom_notifications';
   final String _selectedRegionKey = 'selected_region';
   final String _selectedNavigationTabKey = 'selected_navigation_tab';
+  final String _currentMoodKey = 'current_mood';
+  final String _currentMoodIntensityKey = 'current_mood_intensity';
+  final String _moodFilterEnabledKey = 'mood_filter_enabled';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -67,6 +70,26 @@ class Preferences {
     _preferences!.setString(_selectedNavigationTabKey, tabName);
   }
 
+  set currentMood(String? mood) {
+    if (mood != null) {
+      _preferences!.setString(_currentMoodKey, mood);
+    } else {
+      _preferences!.remove(_currentMoodKey);
+    }
+  }
+
+  set currentMoodIntensity(String? intensity) {
+    if (intensity != null) {
+      _preferences!.setString(_currentMoodIntensityKey, intensity);
+    } else {
+      _preferences!.remove(_currentMoodIntensityKey);
+    }
+  }
+
+  set isMoodFilterEnabled(bool enabled) {
+    _preferences!.setBool(_moodFilterEnabledKey, enabled);
+  }
+
   void setStringList(String key, List<String> value) {
     _preferences!.setStringList(key, value);
   }
@@ -105,6 +128,18 @@ class Preferences {
 
   String get selectedNavigationTab {
     return _preferences!.getString(_selectedNavigationTabKey) ?? 'Categories';
+  }
+
+  String? get currentMood {
+    return _preferences!.getString(_currentMoodKey);
+  }
+
+  String? get currentMoodIntensity {
+    return _preferences!.getString(_currentMoodIntensityKey);
+  }
+
+  bool get isMoodFilterEnabled {
+    return _preferences!.getBool(_moodFilterEnabledKey) ?? false;
   }
 
   List<String> getStringList(String key) {

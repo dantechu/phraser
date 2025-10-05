@@ -43,6 +43,10 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
       curve: Curves.elasticOut,
     ));
     _animationController.forward();
+    
+    // Initialize with current mood selection if available
+    selectedMood = _viewModel.currentMood;
+    selectedIntensity = _viewModel.currentIntensity ?? MoodIntensity.medium;
   }
 
   @override

@@ -18,6 +18,8 @@ import 'package:phraser/util/utils.dart';
 
 import '../services/view_model/phraser_view_model.dart';
 import 'mood_quotes_screen.dart';
+import 'mood_selection/mood_selection_screen.dart';
+import 'mood_selection/view_model/mood_selection_view_model.dart';
 import 'habit_builder_screen.dart';
 import 'settings/settings_screen.dart';
 import 'theme/phraser_theme_list_screen.dart';
@@ -32,6 +34,7 @@ class PhraserViewScreen extends StatefulWidget {
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
   final CarouselController _carouselController = CarouselController();
   final _phraserViewModel = Get.put(PhraserViewModel());
+  final _moodViewModel = Get.put(MoodSelectionViewModel());
   String selectedTab = 'Categories';
 
   @override
@@ -386,11 +389,58 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     });
   }
 
-  void _navigateToMoodQuotes() {
+  void _navigateToMoodQuotes() async {
     _selectTab('Mood');
-    Navigator.push(
+    
+    // Navigate to the advanced mood selection screen
+    final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const MoodQuotesScreen()),
+      MaterialPageRoute(
+        builder: (context) => MoodSelectionScreen(
+          onMoodSelected: (mood, intensity) async {
+            // Handle mood selection and apply filters
+            await _handleMoodSelection(mood, intensity);
+          },
+        ),
+      ),
+    );
+    
+    // If mood was selected via navigation result, handle it
+    if (result != null && result is Map<String, dynamic>) {
+      final mood = result['mood'];
+      final intensity = result['intensity'];
+      if (mood != null) {
+        await _handleMoodSelection(mood, intensity);
+      }
+    }
+  }
+  
+  Future<void> _handleMoodSelection(dynamic mood, dynamic intensity) async {
+    // Get the mood selection view model
+    final moodViewModel = Get.put(MoodSelectionViewModel());
+    
+    // Save the mood entry and filter quotes
+    await moodViewModel.saveMoodEntry(mood, intensity);
+    
+    // Apply the filtered quotes to the main view
+    moodViewModel.applyMoodFilterToQuotes();
+    
+    // Reset carousel position to start
+    Preferences.instance.currentPhraserPosition = 0;
+    
+    // Refresh the phraser view model to update UI
+    final phraserViewModel = Get.find<PhraserViewModel>();
+    phraserViewModel.update();
+    
+    // Show success message
+    Get.snackbar(
+      'Mood Set!',
+      'Showing ${moodViewModel.moodFilteredQuotes.length} quotes for your ${mood.toString().split('.').last} mood',
+      backgroundColor: kPrimaryColor.withOpacity(0.9),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 3),
+      margin: const EdgeInsets.all(16),
+      borderRadius: 8,
     );
   }
 
