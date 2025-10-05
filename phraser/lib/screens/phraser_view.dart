@@ -17,6 +17,7 @@ import 'package:phraser/util/share_dialog.dart';
 import 'package:phraser/util/utils.dart';
 
 import '../services/view_model/phraser_view_model.dart';
+import '../services/view_model/viewing_mode_view_model.dart';
 import 'mood_selection/mood_selection_screen.dart';
 import 'mood_selection/view_model/mood_selection_view_model.dart';
 import 'habit_builder_screen.dart';
@@ -32,6 +33,7 @@ class PhraserViewScreen extends StatefulWidget {
 
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
   final _phraserViewModel = Get.put(PhraserViewModel());
+  final _viewingModeViewModel = Get.put(ViewingModeViewModel());
   String selectedTab = 'Categories';
 
   @override
@@ -289,21 +291,27 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         // Categories
                         _buildNavButton(
                           icon: Icons.category_outlined,
-                          label: 'Categories',
+                          label: _viewingModeViewModel.isCurrentMode(ViewingMode.categories)
+                              ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
+                              : 'Categories',
                           onTap: () => _navigateToCategories(),
                         ),
                         
                         // Mood Quotes (NEW)
                         _buildNavButton(
                           icon: Icons.psychology_outlined,
-                          label: 'Mood',
+                          label: _viewingModeViewModel.isCurrentMode(ViewingMode.mood)
+                              ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
+                              : 'Mood',
                           onTap: () => _navigateToMoodQuotes(),
                         ),
                         
                         // Habit Builder (NEW)
                         _buildNavButton(
                           icon: Icons.track_changes_outlined,
-                          label: 'Habits',
+                          label: _viewingModeViewModel.isCurrentMode(ViewingMode.habits)
+                              ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
+                              : 'Habits',
                           onTap: () => _navigateToHabits(),
                         ),
                         
@@ -311,7 +319,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                         _buildNavButton(
                           icon: Icons.chat_outlined,
                           label: 'AI Chat',
-                          onTap: () => Get.toNamed(RouteHelper.chatScreen),
+                          onTap: () => _navigateToAIChat(),
                         ),
                       ],
                     ),
@@ -331,7 +339,8 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     required VoidCallback onTap,
     bool isSelected = false,
   }) {
-    final bool isSelectedTab = selectedTab == label;
+    // Use ViewingModeViewModel to determine selection state based on current mode
+    final bool isSelectedTab = _getIsSelectedTab(label) || isSelected;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return GestureDetector(
@@ -379,8 +388,25 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     Preferences.instance.selectedNavigationTab = tabName;
   }
 
+  // Helper method to check if tab is selected
+  bool _getIsSelectedTab(String label) {
+    switch (label) {
+      case 'Categories':
+        return _viewingModeViewModel.isCurrentMode(ViewingMode.categories);
+      case 'Mood':
+        return _viewingModeViewModel.isCurrentMode(ViewingMode.mood);
+      case 'Habits':
+        return _viewingModeViewModel.isCurrentMode(ViewingMode.habits);
+      case 'AI Chat':
+        return _viewingModeViewModel.isCurrentMode(ViewingMode.aiChat);
+      default:
+        return false;
+    }
+  }
+  
   // Navigation Methods
   void _navigateToCategories() {
+    _viewingModeViewModel.switchToCategories();
     _selectTab('Categories');
     Navigator.push(
       context,
@@ -393,6 +419,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   }
 
   void _navigateToMoodQuotes() async {
+    _viewingModeViewModel.switchToMood();
     _selectTab('Mood');
     
     // Navigate to the advanced mood selection screen
@@ -425,6 +452,9 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     // Save the mood entry and filter quotes
     await moodViewModel.saveMoodEntry(mood, intensity);
     
+    // Update viewing mode with selected mood
+    _viewingModeViewModel.updateMoodName(mood.toString().split('.').last);
+    
     // Reset carousel position to start
     Preferences.instance.currentPhraserPosition = 0;
     
@@ -447,11 +477,18 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
   }
 
   void _navigateToHabits() {
+    _viewingModeViewModel.switchToHabits();
     _selectTab('Habits');
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const HabitBuilderScreen()),
     );
+  }
+  
+  void _navigateToAIChat() {
+    _viewingModeViewModel.switchToAIChat();
+    _selectTab('AI Chat');
+    Get.toNamed(RouteHelper.chatScreen);
   }
 
   void _navigateToThemes() {

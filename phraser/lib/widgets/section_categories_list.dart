@@ -22,6 +22,7 @@ import 'package:phraser/util/utils.dart';
 import '../floor_db/database.dart';
 import '../util/constant_strings.dart';
 import '../util/data_preloader.dart';
+import '../services/view_model/viewing_mode_view_model.dart';
 
 class SectionCategoriesList extends StatefulWidget {
   const SectionCategoriesList({Key? key, required this.categoriesList, required this.sectionName}) : super(key: key);
@@ -97,6 +98,13 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                              if (switchedLocally) {
                                // Successfully switched using local data
                                testPrint('Switched to $categoryName using local data with ${DataRepository().currentPhrasersList.length} quotes');
+                               // Update viewing mode with selected category
+                               try {
+                                 final viewingModeVM = Get.find<ViewingModeViewModel>();
+                                 viewingModeVM.updateCategoryName(categoryName);
+                               } catch (e) {
+                                 debugPrint('ViewingModeViewModel not found: $e');
+                               }
                                Navigator.pop(context);
                                // Show ads and exit
                                if(AdsHelper.freeTriesInterstitialAd != null){
@@ -116,7 +124,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                return;
                              }
                              
-                             // Fallback to original network loading logic                             Preferences.instance.currentPhraserPosition = 0;
+                             // Fallback to original network loading logic
+                             Preferences.instance.currentPhraserPosition = 0;
                              Preferences.instance.savedCategoryName =
                                  updatedList[index].categoryName;
                              final database = FloorDB.instance.floorDatabase;

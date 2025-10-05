@@ -87,7 +87,8 @@ class _RegionSelectionDialogState extends State<RegionSelectionDialog> {
         ),
         TextButton(
           onPressed: () {
-            // Optimize: Don't await the preference save to avoid UI delay\n            PreferencesUtil.setSelectedRegion(selectedRegion ?? '');
+            // Optimize: Don't await the preference save to avoid UI delay
+            PreferencesUtil.setSelectedRegion(selectedRegion ?? '');
             widget.onRegionSelected(selectedRegion);
             Navigator.of(context).pop();
           },
