@@ -274,7 +274,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark 
-                          ? kPrimaryColor.withOpacity(0.9)
+                          ? Colors.grey[850]!.withOpacity(0.95)
                           : Colors.white.withOpacity(0.95),
                       borderRadius: BorderRadius.circular(25),
                       boxShadow: [
@@ -290,29 +290,38 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                       children: [
                         // Categories
                         _buildNavButton(
-                          icon: Icons.category_outlined,
+                          icon: _viewingModeViewModel.isCurrentMode(ViewingMode.categories)
+                              ? _viewingModeViewModel.getCurrentModeIcon()
+                              : Icons.category_outlined,
                           label: _viewingModeViewModel.isCurrentMode(ViewingMode.categories)
                               ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
                               : 'Categories',
                           onTap: () => _navigateToCategories(),
+                          isSelected: _viewingModeViewModel.isCurrentMode(ViewingMode.categories),
                         ),
                         
                         // Mood Quotes (NEW)
                         _buildNavButton(
-                          icon: Icons.psychology_outlined,
+                          icon: _viewingModeViewModel.isCurrentMode(ViewingMode.mood)
+                              ? _viewingModeViewModel.getCurrentModeIcon()
+                              : Icons.psychology_outlined,
                           label: _viewingModeViewModel.isCurrentMode(ViewingMode.mood)
                               ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
                               : 'Mood',
                           onTap: () => _navigateToMoodQuotes(),
+                          isSelected: _viewingModeViewModel.isCurrentMode(ViewingMode.mood),
                         ),
                         
                         // Habit Builder (NEW)
                         _buildNavButton(
-                          icon: Icons.track_changes_outlined,
+                          icon: _viewingModeViewModel.isCurrentMode(ViewingMode.habits)
+                              ? _viewingModeViewModel.getCurrentModeIcon()
+                              : Icons.track_changes_outlined,
                           label: _viewingModeViewModel.isCurrentMode(ViewingMode.habits)
                               ? _viewingModeViewModel.getCurrentModeDisplayTextEllipsed(maxLength: 10)
                               : 'Habits',
                           onTap: () => _navigateToHabits(),
+                          isSelected: _viewingModeViewModel.isCurrentMode(ViewingMode.habits),
                         ),
                         
                         // AI Chat
@@ -320,6 +329,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                           icon: Icons.chat_outlined,
                           label: 'AI Chat',
                           onTap: () => _navigateToAIChat(),
+                          isSelected: _viewingModeViewModel.isCurrentMode(ViewingMode.aiChat),
                         ),
                       ],
                     ),
@@ -339,8 +349,6 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     required VoidCallback onTap,
     bool isSelected = false,
   }) {
-    // Use ViewingModeViewModel to determine selection state based on current mode
-    final bool isSelectedTab = _getIsSelectedTab(label) || isSelected;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return GestureDetector(
@@ -351,16 +359,16 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isSelectedTab 
-                  ? Theme.of(context).primaryColor.withOpacity(0.1) 
+              color: isSelected 
+                  ? kPrimaryColor.withOpacity(0.15)
                   : (isDark ? Colors.grey[700]!.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               icon,
               size: 24,
-              color: isSelectedTab 
-                  ? (isDark ? Colors.white : kPrimaryColor)
+              color: isSelected 
+                  ? kPrimaryColor
                   : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
@@ -370,8 +378,8 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isSelectedTab 
-                  ? (isDark ? Colors.white : kPrimaryColor)
+              color: isSelected 
+                  ? kPrimaryColor
                   : (isDark ? Colors.white70 : Colors.black87),
             ),
           ),
@@ -388,21 +396,6 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     Preferences.instance.selectedNavigationTab = tabName;
   }
 
-  // Helper method to check if tab is selected
-  bool _getIsSelectedTab(String label) {
-    switch (label) {
-      case 'Categories':
-        return _viewingModeViewModel.isCurrentMode(ViewingMode.categories);
-      case 'Mood':
-        return _viewingModeViewModel.isCurrentMode(ViewingMode.mood);
-      case 'Habits':
-        return _viewingModeViewModel.isCurrentMode(ViewingMode.habits);
-      case 'AI Chat':
-        return _viewingModeViewModel.isCurrentMode(ViewingMode.aiChat);
-      default:
-        return false;
-    }
-  }
   
   // Navigation Methods
   void _navigateToCategories() {
