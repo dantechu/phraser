@@ -289,8 +289,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
 
           return GestureDetector(
             onTap: () => _toggleCategory(category.category),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+            child: Container(
               decoration: BoxDecoration(
                 color: isSelected
                     ? kPrimaryColor.withOpacity(0.15)

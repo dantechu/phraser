@@ -19,11 +19,8 @@ class MoodSelectionScreen extends StatefulWidget {
   State<MoodSelectionScreen> createState() => _MoodSelectionScreenState();
 }
 
-class _MoodSelectionScreenState extends State<MoodSelectionScreen>
-    with TickerProviderStateMixin {
+class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   final MoodSelectionViewModel _viewModel = Get.put(MoodSelectionViewModel());
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
 
   MoodType? selectedMood;
   MoodIntensity selectedIntensity = MoodIntensity.medium;
@@ -31,28 +28,10 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
-    _animationController.forward();
     
     // Initialize with current mood selection if available
     selectedMood = _viewModel.currentMood;
     selectedIntensity = _viewModel.currentIntensity ?? MoodIntensity.medium;
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -137,12 +116,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
 
             // Mood grid
             Expanded(
-              child: AnimatedBuilder(
-                animation: _scaleAnimation,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: GridView.builder(
+              child: GridView.builder(
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 3,
@@ -159,8 +133,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
 
                         return GestureDetector(
                           onTap: () => _selectMood(mood),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
+                          child: Container(
                             decoration: BoxDecoration(
                               color: isSelected
                                   ? Color(int.parse(mapping!.colorHex
@@ -227,11 +200,8 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
                           ),
                         );
                       },
-                    ),
-                  );
-                },
-              ),
-            ),
+                      ),
+                ),
 
             // Intensity selector (shown when mood is selected)
             if (selectedMood != null) ...[
@@ -289,8 +259,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
             return Expanded(
               child: GestureDetector(
                 onTap: () => _selectIntensity(intensity),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                child: Container(
                   margin: EdgeInsets.only(
                     right: intensity != MoodIntensity.values.last ? 8 : 0,
                   ),
@@ -335,10 +304,6 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen>
     setState(() {
       selectedMood = mood;
     });
-
-    // Animate selection
-    _animationController.reset();
-    _animationController.forward();
   }
 
   void _selectIntensity(MoodIntensity intensity) {

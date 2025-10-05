@@ -22,6 +22,9 @@ class DataRepository {
   
   // Store ALL quotes from ALL categories for global mood filtering
   List<Phraser> _allQuotesFromAllCategories = [];
+  
+  // Use a Set to track existing IDs for fast duplicate checking
+  Set<String> _existingQuoteIds = {};
 
   void updateCurrentPhrasersList(List<Phraser> newList) {
     // Save original list if not already saved
@@ -44,10 +47,11 @@ class DataRepository {
   
   // Method to store all quotes from all categories
   void addToAllQuotes(List<Phraser> quotes) {
-    // Add unique quotes only (avoid duplicates)
+    // Add unique quotes only (avoid duplicates) using fast Set lookup
     for (final quote in quotes) {
-      if (!_allQuotesFromAllCategories.any((existing) => existing.phraserId == quote.phraserId)) {
+      if (!_existingQuoteIds.contains(quote.phraserId)) {
         _allQuotesFromAllCategories.add(quote);
+        _existingQuoteIds.add(quote.phraserId);
       }
     }
   }
@@ -60,6 +64,7 @@ class DataRepository {
   // Clear all stored quotes (useful for app refresh)
   void clearAllQuotes() {
     _allQuotesFromAllCategories.clear();
+    _existingQuoteIds.clear();
   }
 
 

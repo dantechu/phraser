@@ -8,6 +8,7 @@ class PhraserViewModel extends GetxController {
 
   var themePosition = 0.obs;
   bool? _isFavorite;
+  String? _currentPhraserId; // Track current phraser to avoid unnecessary DB calls
 
 
   void changeThemePosition(int newPosition) {
@@ -25,19 +26,22 @@ class PhraserViewModel extends GetxController {
 
 
   void isFavorites(Phraser phraser) async {
+    // Avoid unnecessary database calls if checking the same phraser
+    if (_currentPhraserId == phraser.phraserId) return;
+    
     try {
+      _currentPhraserId = phraser.phraserId;
       isFavorite = false;
+      
       final database = FloorDB.instance.floorDatabase;
       FavoritesDAO dao = database.favoritesDAO;
-      final data = dao.getFavoriteById(int.parse(phraser.phraserId));
-      data.listen((event) {
-        event == null ? isFavorite = false : isFavorite = true;
-      });
+      
+      // Use a one-time check instead of stream listener to avoid memory leaks
+      final favoriteItem = await dao.getFavoriteById(int.parse(phraser.phraserId)).first;
+      isFavorite = favoriteItem != null;
     } catch (e) {
       isFavorite = false;
     }
-
-
   }
 
 

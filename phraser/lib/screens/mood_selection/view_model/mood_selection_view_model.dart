@@ -72,36 +72,27 @@ class MoodSelectionViewModel extends GetxController {
       return;
     }
     
+    // Pre-convert mood tags to lowercase for efficiency
+    final lowerMoodTags = moodTags.map((tag) => tag.toLowerCase()).toList();
+    
     moodFilteredQuotes = allQuotes.where((quote) {
       // Check if quote has moods that match current mood
       if (quote.moods != null && quote.moods!.isNotEmpty) {
-        // More flexible mood matching - check if any mood tag contains or is contained by quote moods
-        return quote.moods!.any((quoteMood) => 
-          moodTags.any((moodTag) => 
-            quoteMood.toLowerCase().contains(moodTag.toLowerCase()) ||
-            moodTag.toLowerCase().contains(quoteMood.toLowerCase())
-          )
+        // Simple exact matching to avoid expensive nested operations
+        final lowerQuoteMoods = quote.moods!.map((m) => m.toLowerCase()).toList();
+        return lowerQuoteMoods.any((quoteMood) => 
+          lowerMoodTags.any((moodTag) => quoteMood == moodTag)
         );
       }
       
-      // Fallback: use traditional tags with broader matching
-      final quoteTags = quote.tags.toLowerCase().split(',');
+      // Fallback: simplified tag and text matching
+      final quoteTags = quote.tags.toLowerCase();
       final quoteText = quote.quote.toLowerCase();
       
-      // More inclusive tag matching - partial matches allowed
-      final hasTagMatch = quoteTags.any((tag) => 
-        moodTags.any((moodTag) =>
-          tag.trim().contains(moodTag.toLowerCase()) ||
-          moodTag.toLowerCase().contains(tag.trim())
-        )
+      // Simple contains matching instead of nested operations
+      return lowerMoodTags.any((moodTag) =>
+        quoteTags.contains(moodTag) || quoteText.contains(moodTag)
       );
-      
-      // More inclusive text matching
-      final hasTextMatch = moodTags.any((moodTag) =>
-        quoteText.contains(moodTag.toLowerCase())
-      );
-      
-      return hasTagMatch || hasTextMatch;
     }).toList();
 
     // If no specific matches found, include quotes with general positive/motivational content
@@ -109,12 +100,12 @@ class MoodSelectionViewModel extends GetxController {
       final generalTags = ['motivation', 'inspiration', 'positive', 'hope', 'strength', 'wisdom', 'peace', 'life', 'love', 'success', 'growth', 'change'];
       
       moodFilteredQuotes = allQuotes.where((quote) {
-        final quoteTags = quote.tags.toLowerCase().split(',');
+        final quoteTags = quote.tags.toLowerCase();
         final quoteText = quote.quote.toLowerCase();
         
+        // Simplified matching to avoid performance issues
         return generalTags.any((tag) =>
-          quoteTags.any((quoteTag) => quoteTag.trim().contains(tag)) ||
-          quoteText.contains(tag)
+          quoteTags.contains(tag) || quoteText.contains(tag)
         );
       }).toList();
       
