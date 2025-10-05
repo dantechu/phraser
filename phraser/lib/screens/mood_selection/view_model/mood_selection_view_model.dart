@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
+import 'dart:math' as math;
 import '../../../services/model/mood_model.dart';
 import '../../../services/model/phreasers_list_model.dart';
 import '../../../services/model/data_repository.dart';
@@ -19,8 +20,23 @@ class MoodSelectionViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadMoodHistory();
-    _loadSavedMood();
+    // Load these asynchronously to avoid blocking UI
+    _loadMoodHistoryAsync();
+    _loadSavedMoodAsync();
+  }
+  
+  // Non-blocking version of mood history loading
+  void _loadMoodHistoryAsync() {
+    Future.microtask(() async {
+      await _loadMoodHistory();
+    });
+  }
+  
+  // Non-blocking version of saved mood loading
+  void _loadSavedMoodAsync() {
+    Future.microtask(() async {
+      await _loadSavedMood();
+    });
   }
 
   Future<void> saveMoodEntry(MoodType mood, MoodIntensity intensity) async {
@@ -72,42 +88,17 @@ class MoodSelectionViewModel extends GetxController {
       return;
     }
     
-    // Pre-convert mood tags to lowercase for efficiency
+    // Optimize: Pre-convert mood tags to lowercase for efficiency and limit processing
     final lowerMoodTags = moodTags.map((tag) => tag.toLowerCase()).toList();
     
-    moodFilteredQuotes = allQuotes.where((quote) {
-      // Check if quote has moods that match current mood
-      if (quote.moods != null && quote.moods!.isNotEmpty) {
-        // Simple exact matching to avoid expensive nested operations
-        final lowerQuoteMoods = quote.moods!.map((m) => m.toLowerCase()).toList();
-        return lowerQuoteMoods.any((quoteMood) => 
-          lowerMoodTags.any((moodTag) => quoteMood == moodTag)
-        );
-      }
-      
-      // Fallback: simplified tag and text matching
-      final quoteTags = quote.tags.toLowerCase();
-      final quoteText = quote.quote.toLowerCase();
-      
-      // Simple contains matching instead of nested operations
-      return lowerMoodTags.any((moodTag) =>
-        quoteTags.contains(moodTag) || quoteText.contains(moodTag)
-      );
-    }).toList();
+    // Optimize: Process quotes in chunks to avoid blocking UI
+    moodFilteredQuotes = await _processQuotesInChunks(allQuotes, lowerMoodTags);
 
     // If no specific matches found, include quotes with general positive/motivational content
     if (moodFilteredQuotes.isEmpty) {
       final generalTags = ['motivation', 'inspiration', 'positive', 'hope', 'strength', 'wisdom', 'peace', 'life', 'love', 'success', 'growth', 'change'];
       
-      moodFilteredQuotes = allQuotes.where((quote) {
-        final quoteTags = quote.tags.toLowerCase();
-        final quoteText = quote.quote.toLowerCase();
-        
-        // Simplified matching to avoid performance issues
-        return generalTags.any((tag) =>
-          quoteTags.contains(tag) || quoteText.contains(tag)
-        );
-      }).toList();
+      moodFilteredQuotes = await _processQuotesInChunks(allQuotes, generalTags);
       
       // Shuffle the fallback quotes too
       if (moodFilteredQuotes.isNotEmpty) {
@@ -117,10 +108,16 @@ class MoodSelectionViewModel extends GetxController {
 
     // If still no matches, take a larger random sample of quotes
     if (moodFilteredQuotes.isEmpty && allQuotes.isNotEmpty) {
-      // Shuffle all quotes first, then take the sample
-      final shuffledQuotes = List<Phraser>.from(allQuotes);
-      shuffledQuotes.shuffle();
-      moodFilteredQuotes = shuffledQuotes.take(50).toList();
+      // Optimize: Don't shuffle all quotes, just take random indices
+      final maxQuotes = math.min(50, allQuotes.length);
+      final random = math.Random();
+      final selectedIndices = <int>{};
+      
+      while (selectedIndices.length < maxQuotes) {
+        selectedIndices.add(random.nextInt(allQuotes.length));
+      }
+      
+      moodFilteredQuotes = selectedIndices.map((index) => allQuotes[index]).toList();
     }
     
     // Shuffle the filtered quotes to randomize the order
@@ -136,6 +133,43 @@ class MoodSelectionViewModel extends GetxController {
     }
     
     update();
+  }
+  
+  // Process quotes in chunks to avoid blocking UI thread
+  Future<List<Phraser>> _processQuotesInChunks(List<Phraser> allQuotes, List<String> searchTags) async {
+    const chunkSize = 100; // Process 100 quotes at a time
+    final filteredQuotes = <Phraser>[];
+    
+    for (int i = 0; i < allQuotes.length; i += chunkSize) {
+      final end = math.min(i + chunkSize, allQuotes.length);
+      final chunk = allQuotes.sublist(i, end);
+      
+      // Process chunk
+      final chunkFiltered = chunk.where((quote) {
+        // Check if quote has moods that match search tags
+        if (quote.moods != null && quote.moods!.isNotEmpty) {
+          final lowerQuoteMoods = quote.moods!.map((m) => m.toLowerCase()).toList();
+          return lowerQuoteMoods.any((quoteMood) => 
+            searchTags.any((tag) => quoteMood.contains(tag))
+          );
+        }
+        
+        // Fallback: simplified tag and text matching
+        final quoteTags = quote.tags.toLowerCase();
+        final quoteText = quote.quote.toLowerCase();
+        
+        return searchTags.any((tag) =>
+          quoteTags.contains(tag) || quoteText.contains(tag)
+        );
+      }).toList();
+      
+      filteredQuotes.addAll(chunkFiltered);
+      
+      // Yield control back to the UI thread between chunks
+      await Future.delayed(const Duration(microseconds: 100));
+    }
+    
+    return filteredQuotes;
   }
 
 
@@ -174,8 +208,17 @@ class MoodSelectionViewModel extends GetxController {
           (e) => e.toString().split('.').last == savedIntensity,
         );
         
-        // Apply saved mood filter
-        await _filterQuotesByMood();
+        // Optimize: Only apply mood filter if we have quotes available
+        // This prevents expensive operations during initialization
+        final hasQuotes = DataRepository().getAllQuotes().isNotEmpty || 
+                         DataRepository().currentPhrasersList.isNotEmpty;
+        
+        if (hasQuotes) {
+          // Apply saved mood filter in background
+          Future.microtask(() async {
+            await _filterQuotesByMood();
+          });
+        }
         
         print('Loaded saved mood: $savedMood with intensity: $savedIntensity');
       } catch (e) {

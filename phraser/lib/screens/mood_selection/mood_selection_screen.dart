@@ -20,7 +20,8 @@ class MoodSelectionScreen extends StatefulWidget {
 }
 
 class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
-  final MoodSelectionViewModel _viewModel = Get.put(MoodSelectionViewModel());
+  // Optimize: Use Get.find to avoid recreating if already exists
+  late final MoodSelectionViewModel _viewModel;
 
   MoodType? selectedMood;
   MoodIntensity selectedIntensity = MoodIntensity.medium;
@@ -28,6 +29,13 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Optimize: Initialize view model efficiently
+    try {
+      _viewModel = Get.find<MoodSelectionViewModel>();
+    } catch (e) {
+      _viewModel = Get.put(MoodSelectionViewModel());
+    }
     
     // Initialize with current mood selection if available
     selectedMood = _viewModel.currentMood;

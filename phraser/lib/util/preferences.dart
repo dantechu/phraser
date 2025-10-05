@@ -25,6 +25,7 @@ class Preferences {
   final String _currentMoodKey = 'current_mood';
   final String _currentMoodIntensityKey = 'current_mood_intensity';
   final String _moodFilterEnabledKey = 'mood_filter_enabled';
+  final String _allQuotesPreloadedKey = 'all_quotes_preloaded';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -90,6 +91,10 @@ class Preferences {
     _preferences!.setBool(_moodFilterEnabledKey, enabled);
   }
 
+  set isAllQuotesPreloaded(bool value) {
+    _preferences!.setBool(_allQuotesPreloadedKey, value);
+  }
+
   void setStringList(String key, List<String> value) {
     _preferences!.setStringList(key, value);
   }
@@ -140,6 +145,10 @@ class Preferences {
 
   bool get isMoodFilterEnabled {
     return _preferences!.getBool(_moodFilterEnabledKey) ?? false;
+  }
+
+  bool get isAllQuotesPreloaded {
+    return _preferences!.getBool(_allQuotesPreloadedKey) ?? false;
   }
 
   List<String> getStringList(String key) {

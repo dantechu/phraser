@@ -27,7 +27,7 @@ class _RegionSelectionDialogState extends State<RegionSelectionDialog> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AlertDialog(
       backgroundColor: isDark ? Colors.grey[850] : Colors.white,
       shape: RoundedRectangleBorder(
@@ -86,8 +86,8 @@ class _RegionSelectionDialogState extends State<RegionSelectionDialog> {
           ),
         ),
         TextButton(
-          onPressed: () async {
-            await PreferencesUtil.setSelectedRegion(selectedRegion ?? '');
+          onPressed: () {
+            // Optimize: Don't await the preference save to avoid UI delay\n            PreferencesUtil.setSelectedRegion(selectedRegion ?? '');
             widget.onRegionSelected(selectedRegion);
             Navigator.of(context).pop();
           },
@@ -119,7 +119,7 @@ class _RegionSelectionDialogState extends State<RegionSelectionDialog> {
     VoidCallback onTap,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -128,11 +128,11 @@ class _RegionSelectionDialogState extends State<RegionSelectionDialog> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected 
+            color: isSelected
                 ? (isDark ? Colors.grey[700] : Colors.grey[100])
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            border: isSelected 
+            border: isSelected
                 ? Border.all(
                     color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
                     width: 1,

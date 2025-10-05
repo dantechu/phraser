@@ -21,6 +21,7 @@ import 'package:phraser/util/utils.dart';
 
 import '../floor_db/database.dart';
 import '../util/constant_strings.dart';
+import '../util/data_preloader.dart';
 
 class SectionCategoriesList extends StatefulWidget {
   const SectionCategoriesList({Key? key, required this.categoriesList, required this.sectionName}) : super(key: key);
@@ -87,7 +88,35 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                NavigationHelper.pushRoute(context, const PremiumAppScreen());
                              }
                            }else {
-                             Preferences.instance.currentPhraserPosition = 0;
+                             // Use smart category switching with DataPreloader
+                             final categoryName = updatedList[index].categoryName;
+                             
+                             // Try smart switching first (checks local data)
+                             final switchedLocally = await DataPreloader.instance.switchToCategory(categoryName);
+                             
+                             if (switchedLocally) {
+                               // Successfully switched using local data
+                               testPrint('Switched to $categoryName using local data with ${DataRepository().currentPhrasersList.length} quotes');
+                               Navigator.pop(context);
+                               // Show ads and exit
+                               if(AdsHelper.freeTriesInterstitialAd != null){
+                                 try {
+                                   AdsHelper.freeTriesInterstitialAd!.show();
+                                   AdsHelper.freeTriesInterstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+                                     onAdImpression: (impression) {
+                                       AdsHelper.freeTriesInterstitialAd = null;
+                                     }
+                                   );
+                                 } catch(e) {
+                                   debugPrint('Error in displaying ad: $e');
+                                 }
+                               } else {
+                                 AdsHelper.loadAdmobInterstitialAd();
+                               }
+                               return;
+                             }
+                             
+                             // Fallback to original network loading logic                             Preferences.instance.currentPhraserPosition = 0;
                              Preferences.instance.savedCategoryName =
                                  updatedList[index].categoryName;
                              final database = FloorDB.instance.floorDatabase;

@@ -9,6 +9,7 @@ import 'package:phraser/util/Floor_db.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/utils.dart';
+import 'package:phraser/util/data_preloader.dart';
 import 'package:phraser/main.dart' as app_main;
 
 import '../services/view_model/categories_list_view_model.dart';
@@ -41,23 +42,23 @@ class _SplashScreenState extends State<SplashScreen> {
           if(availableCoins <= 0) {
             _coinsUseCase.addCoins(10);
           }
+          // Use DataPreloader for first-time setup
+          await DataPreloader.instance.preloadAllData();
           loadPhrasersData();
           Get.offAllNamed(RouteHelper.introductionScreen);
         }else {
+          // Use DataPreloader for comprehensive data management
+          await DataPreloader.instance.preloadAllData();
+          
+          // Update data in background (non-blocking)
           updateData();
-          loadPhrasersData();
-
 
           ///  Loads ads here
-
           AdsHelper.loadRewardedVideoAd();
           AdsHelper.loadAdmobInterstitialAd();
 
-
-
-          await getCurrentPhrasersList();
           testPrint('current phrasersList size is: ${DataRepository().currentPhrasersList.length}');
-          await Future.delayed(Duration(seconds: 3));
+          await Future.delayed(Duration(seconds: 1)); // Reduced delay since data is preloaded
           
           // Check if app was launched from a notification (cold start)
           await _handleColdStartNotification();
