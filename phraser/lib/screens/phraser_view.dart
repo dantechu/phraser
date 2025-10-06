@@ -129,30 +129,31 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 // Favorite Button
-                                GestureDetector(
-                                  onTap: () {
-                                    try {
-                                      final database = FloorDB.instance.floorDatabase;
-                                      FavoritesDAO dao = database.favoritesDAO;
-                                      if (!vm.isFavorite) {
-                                        vm.isFavorite = true;
-                                        dao.addPhraserToFavorite(item);
-                                      } else {
-                                        vm.isFavorite = false;
-                                        dao.removeFromFavorites(item);
+                                GetBuilder<PhraserViewModel>(
+                                  builder: (vm) => GestureDetector(
+                                    onTap: () async {
+                                      try { 
+                                        final database = FloorDB.instance.floorDatabase;
+                                        FavoritesDAO dao = database.favoritesDAO;
+                                        if (!vm.isFavorite) {
+                                          await dao.addPhraserToFavorite(item);
+                                        } else {
+                                          await dao.removeFromFavorites(item);
+                                        }
+                                        // Clear cache and force refresh of favorite state
+                                        vm.clearCachedPhraserId();
+                                        await vm.isFavorites(item);
+                                      } catch (e,s) {
+                                        print('Error saving favorite: $e | $s');
                                       }
-                                      // Trigger UI update immediately
-                                      vm.update();
-                                    } catch (e,s) {
-                                      print('Error saving favorite: $e | $s');
-                                    }
-                                  },
-                                  child: Icon(
-                                    vm.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                    size: 30.0,
-                                    color: vm.isFavorite
-                                        ? Colors.red
-                                        : ThemeImagesList.themeImagesList[vm.themePosition.value].textColor,
+                                    },
+                                    child: Icon(
+                                      vm.isFavorite ? Icons.favorite : Icons.favorite_border,
+                                      size: 30.0,
+                                      color: vm.isFavorite
+                                          ? Colors.red
+                                          : ThemeImagesList.themeImagesList[_phraserViewModel.themePosition.value].textColor,
+                                    ),
                                   ),
                                 ),
                                 
