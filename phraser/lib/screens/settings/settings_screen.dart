@@ -8,6 +8,7 @@ import 'package:phraser/consts/const_strings.dart';
 import 'package:phraser/helper/navigation_helper.dart';
 import 'package:phraser/screens/favorites_screen/favorites_screen.dart';
 import 'package:phraser/screens/in_app_purchase/preimum_app_screen.dart';
+import 'package:phraser/screens/statistics/statistics_screen.dart';
 import 'package:phraser/widgets/region_selection_dialog.dart';
 import 'package:phraser/util/preferences_util.dart';
 import 'package:phraser/screens/notification_settings/free_notifications_settings.dart';
@@ -226,6 +227,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: 'Favorites',
                     subtitle: 'Your saved phrasers',
                     onTap: () => NavigationHelper.pushRoute(context, const FavoritesScreen()),
+                  ),
+                  _buildSettingTile(
+                    context,
+                    icon: Icons.bar_chart_rounded,
+                    iconColor: Colors.green,
+                    title: 'Statistics',
+                    subtitle: 'View your moods & habits progress',
+                    onTap: () => NavigationHelper.pushRoute(context, const StatisticsScreen()),
                   ),
                   _buildSettingTile(
                     context,
