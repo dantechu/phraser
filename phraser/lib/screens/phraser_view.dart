@@ -84,7 +84,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                 CarouselSlider(
                   key: ValueKey('carousel_${DataRepository().currentPhrasersList.length}'),
                   options: CarouselOptions(
-                    onPageChanged: (int index, _) {
+                    onPageChanged: (int index, _) async {
                       Preferences.instance.currentPhraserPosition = index;
                       if (DataRepository().currentPhrasersList.isNotEmpty && index < DataRepository().currentPhrasersList.length) {
                         _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[index]);

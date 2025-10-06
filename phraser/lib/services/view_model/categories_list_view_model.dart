@@ -46,9 +46,17 @@ class CategoriesListViewModel extends GetxController {
         updateLoadingState(false);
       });
     }else {
-      getCategories();
-      testPrint('Categories data not present in internal database');
-
+      // Check phraser count before calling getCategories
+      final database = FloorDB.instance.floorDatabase;
+      PhrasersDAO phrasersDAO = database.phraserDAO;
+      final allPhrasers = await phrasersDAO.getAllQuotesFromAllCategories();
+      if (allPhrasers.length <= 5000) {
+        getCategories();
+        testPrint('Categories data not present - calling API (phraser count: ${allPhrasers.length})');
+      } else {
+        testPrint('Skipping getCategories - phraser count exceeds 5000 (current: ${allPhrasers.length})');
+        updateLoadingState(false);
+      }
     }
 
     if(Preferences.instance.isCategoriesPresent){

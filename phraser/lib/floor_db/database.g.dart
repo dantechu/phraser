@@ -431,7 +431,8 @@ class _$FavoritesDAO extends FavoritesDAO {
 
   @override
   Stream<Phraser?> getFavoriteById(String id) {
-    return _queryAdapter.queryStream('SELECT * FROM favorites WHERE phraserId = ?1',
+    return _queryAdapter.queryStream(
+        'SELECT * FROM favorites WHERE phraserId = ?1',
         mapper: (Map<String, Object?> row) => Phraser(
             phraserId: row['phraserId'] as String,
             tags: row['tags'] as String,

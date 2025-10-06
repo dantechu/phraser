@@ -42,7 +42,7 @@ class PhraserViewModel extends GetxController {
       
       // Trigger UI update
       update();
-    } catch (e) {
+    } catch (e,s) {
       isFavorite = false;
       update();
     }
