@@ -167,17 +167,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey[800]
+                            : Theme.of(context).primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Theme.of(context).primaryColor.withOpacity(0.3),
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[600]!
+                              : Theme.of(context).primaryColor.withOpacity(0.3),
                           width: 1,
                         ),
                       ),
                       child: Text(
                         phraser.categoryName,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey[300]
+                              : Theme.of(context).primaryColor,
                           fontWeight: FontWeight.w500,
                           fontSize: 12,
                         ),
