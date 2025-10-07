@@ -36,9 +36,10 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         NotificationHelper.instance.checkPendingNotifications();
       Future.delayed(const Duration(seconds: 1), () async  {
-        // Check if initial data has been loaded
-        if (!Preferences.instance.isInitialDataLoaded) {
-          // Navigate to initial data loading screen
+        // Check if data needs to be reloaded (first time or 7+ days old)
+        if (Preferences.instance.shouldReloadData) {
+          // Clear old data and reload
+          await _clearExistingData();
           Get.offAllNamed(RouteHelper.initialDataLoadingScreen);
           return;
         }
@@ -57,15 +58,11 @@ class _SplashScreenState extends State<SplashScreen> {
           // Use DataPreloader for comprehensive data management
           await DataPreloader.instance.preloadAllData();
 
-          // Update data in background (non-blocking)
-          updateData();
-
           ///  Loads ads here
           AdsHelper.loadRewardedVideoAd();
           AdsHelper.loadAdmobInterstitialAd();
 
           testPrint('current phrasersList size is: ${DataRepository().currentPhrasersList.length}');
-          await Future.delayed(Duration(seconds: 1)); // Reduced delay since data is preloaded
 
           // Check if app was launched from a notification (cold start)
           await _handleColdStartNotification();
@@ -81,6 +78,26 @@ class _SplashScreenState extends State<SplashScreen> {
       _categoriesListViewModel.getSectionsList();
     } catch (e) {
       debugPrint('---> Internet not avaialable');
+    }
+  }
+
+  Future<void> _clearExistingData() async {
+    try {
+      final database = FloorDB.instance.floorDatabase;
+
+      // Clear all tables
+      //await database.phraserDAO.deleteAllPhrasers();
+      await database.categoriesDAO.deleteAllCategories();
+     // await database.sectionDAO.deleteAllSections();
+    //  await database.currentPhraserDAO.deleteAllCurrentPhrasers();
+
+      // Reset preferences
+      Preferences.instance.isInitialDataLoaded = false;
+      Preferences.instance.isCategoriesPresent = false;
+
+      testPrint('Existing data cleared for fresh reload');
+    } catch (e) {
+      debugPrint('Error clearing existing data: $e');
     }
   }
 

@@ -32,27 +32,21 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
         _loadingStatus = 'Fetching categories...';
       });
 
-      // Fetch categories first
-      await _fetchCategories();
+      // Fetch categories and sections in parallel
+      await Future.wait([
+        _fetchCategories(),
+        _fetchSections(),
+      ]);
 
-      setState(() {
-        _loadingStatus = 'Fetching sections...';
-      });
-
-      // Fetch sections
-      await _fetchSections();
-
-      // Mark data as loaded
+      // Mark data as loaded with current timestamp
       Preferences.instance.isInitialDataLoaded = true;
+      Preferences.instance.lastDataLoadTimestamp = DateTime.now().millisecondsSinceEpoch;
 
       setState(() {
         _loadingStatus = 'Data loaded successfully!';
       });
 
-      // Wait a bit to show success message
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Navigate to the next screen based on first open status
+      // Navigate immediately
       if (Preferences.instance.isFirstOpen) {
         Get.offAllNamed(RouteHelper.introductionScreen);
       } else {
@@ -64,40 +58,21 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
         _loadingStatus = 'Error loading data. Please check your connection.';
       });
 
-      // Show retry option after a delay
-      await Future.delayed(const Duration(seconds: 2));
       _showRetryDialog();
     }
   }
 
   Future<void> _fetchCategories() async {
-    await _categoriesListViewModel.getCategories();
-
-    // Wait for categories to be inserted into DB
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    // Get total categories count
-    final database = FloorDB.instance.floorDatabase;
-    final categoriesDAO = database.categoriesDAO;
-    final categories = await categoriesDAO.getAllCategories();
-
-    setState(() {
-      _totalCategories = categories.length;
+    // Fetch categories with progress callback
+    await _categoriesListViewModel.getCategoriesWithPhrasers((categoryName, current, total) {
+      if (mounted) {
+        setState(() {
+          _loadingStatus = 'Loading $categoryName... ($current/$total)';
+          _loadedCategories = current;
+          _totalCategories = total;
+        });
+      }
     });
-
-    // Fetch phrasers for each category
-    for (int i = 0; i < categories.length; i++) {
-      final category = categories[i];
-      setState(() {
-        _loadingStatus = 'Loading ${category.categoryName}... (${i + 1}/$_totalCategories)';
-        _loadedCategories = i + 1;
-      });
-
-      await _categoriesListViewModel.getPhrasersByCategory(category.categoryId.toString());
-
-      // Small delay to allow UI update
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
   }
 
   Future<void> _fetchSections() async {

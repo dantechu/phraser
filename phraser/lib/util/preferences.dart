@@ -27,6 +27,7 @@ class Preferences {
   final String _moodFilterEnabledKey = 'mood_filter_enabled';
   final String _allQuotesPreloadedKey = 'all_quotes_preloaded';
   final String _initialDataLoadedKey = 'initial_data_loaded';
+  final String _lastDataLoadTimestampKey = 'last_data_load_timestamp';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -100,6 +101,10 @@ class Preferences {
     _preferences!.setBool(_initialDataLoadedKey, value);
   }
 
+  set lastDataLoadTimestamp(int timestamp) {
+    _preferences!.setInt(_lastDataLoadTimestampKey, timestamp);
+  }
+
   void setStringList(String key, List<String> value) {
     _preferences!.setStringList(key, value);
   }
@@ -158,6 +163,23 @@ class Preferences {
 
   bool get isInitialDataLoaded {
     return _preferences!.getBool(_initialDataLoadedKey) ?? false;
+  }
+
+  int get lastDataLoadTimestamp {
+    return _preferences!.getInt(_lastDataLoadTimestampKey) ?? 0;
+  }
+
+  // Check if data needs to be reloaded (7 days = 604800000 milliseconds)
+  bool get shouldReloadData {
+    if (!isInitialDataLoaded) return true;
+
+    final lastLoad = lastDataLoadTimestamp;
+    if (lastLoad == 0) return true;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final daysSinceLoad = (now - lastLoad) / (1000 * 60 * 60 * 24);
+
+    return daysSinceLoad >= 7;
   }
 
   List<String> getStringList(String key) {

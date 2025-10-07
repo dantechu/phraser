@@ -80,12 +80,12 @@ class CategoriesListViewModel extends GetxController {
       // Get the selected region from preferences
       String? selectedRegion = Preferences.instance.selectedRegion;
       String regionParam = '';
-      
+
       // If region is selected and not empty, add it to the URL
       if (selectedRegion != null && selectedRegion.isNotEmpty) {
         regionParam = '&region=$selectedRegion';
       }
-      
+
       var response = await Dio().get(ConstantURls.kGetCategories + regionParam);
       if (response.statusCode == 200) {
         CategoriesListModel categoriesListModel = CategoriesListModel.fromJson(response.data);
@@ -101,6 +101,114 @@ class CategoriesListViewModel extends GetxController {
       }
     } catch(e){
       testPrint('getCategories Exception: $e');
+    }
+  }
+
+  // Optimized method for initial loading with progress callback
+  Future<void> getCategoriesWithPhrasers(Function(String categoryName, int current, int total) onProgress) async{
+    try{
+      // Get the selected region from preferences
+      String? selectedRegion = Preferences.instance.selectedRegion;
+      String regionParam = '';
+
+      // If region is selected and not empty, add it to the URL
+      if (selectedRegion != null && selectedRegion.isNotEmpty) {
+        regionParam = '&region=$selectedRegion';
+      }
+
+      var response = await Dio().get(ConstantURls.kGetCategories + regionParam);
+      if (response.statusCode == 200) {
+        CategoriesListModel categoriesListModel = CategoriesListModel.fromJson(response.data);
+        testPrint('categories length: ${categoriesListModel.categories.length}');
+
+        // Insert categories to DB immediately
+        await insertCategoriesToFloorDBAsync(categoriesListModel.categories);
+
+        final totalCategories = categoriesListModel.categories.length;
+
+        // Fetch phrasers for each category with progress updates
+        for(int i = 0; i < categoriesListModel.categories.length; i++) {
+          final category = categoriesListModel.categories[i];
+          onProgress(category.categoryName, i + 1, totalCategories);
+          await getPhrasersByCategoryAsync(category.categoryId.toString());
+        }
+
+      } else {
+        throw Exception('Failed to load getCategories() data!');
+      }
+    } catch(e){
+      testPrint('getCategories Exception: $e');
+      rethrow;
+    }
+  }
+
+  // Async version of getPhrasersByCategory for faster loading
+  Future<void> getPhrasersByCategoryAsync(String id) async{
+    try{
+      // Get the selected region from preferences
+      String? selectedRegion = Preferences.instance.selectedRegion;
+      String regionParam = '';
+
+      // If region is selected and not empty, add it to the URL
+      if (selectedRegion != null && selectedRegion.isNotEmpty) {
+        regionParam = '&region=$selectedRegion';
+      }
+
+      var response = await Dio().get(ConstantURls.kGetPhrasersByCategory+'$id$regionParam');
+      if (response.statusCode == 200) {
+        PhrasersListModel listModel = PhrasersListModel.fromJson(response.data);
+        await insertPhrasersToFloorDBAsync(listModel.phraser);
+        print('single category list quotes: ${listModel.phraser.length} for id: $id');
+      } else {
+        throw Exception('Failed to load getPhrasersByCategory() data!');
+      }
+    } catch(e){
+      testPrint('getPhrasersByCategory() Exception: $e');
+      rethrow;
+    }
+  }
+
+  // Async version for insertPhrasersToFloorDB
+  Future<void> insertPhrasersToFloorDBAsync(List<Phraser> listModel) async {
+    try{
+      final database = FloorDB.instance.floorDatabase;
+      PhrasersDAO phrasersDAO = database.phraserDAO;
+      await phrasersDAO.insertAllPhrasers(listModel);
+      testPrint('${listModel[0].categoryName} wit id ${listModel[0].categoryId} list data inserted to floor db ');
+
+      if(listModel[0].categoryName.toLowerCase().contains('self respect')) {
+        if(Preferences.instance.isFirstOpen) {
+          final database = FloorDB.instance.floorDatabase;
+          CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
+          await currentPhraserDAO.insertAllCurrentPhrasers(listModel);
+          testPrint('first time current phrasers saved into db');
+          DataRepository().currentPhrasersList = listModel;
+          DataRepository().addToAllQuotes(listModel);
+          debugPrint('---> Personal growth category set for first time');
+        }
+      }
+      Preferences.instance.isCategoriesPresent = true;
+    }catch(e) {
+      throw Exception('Exception in insertPhrasersToFloorDB() : $e');
+    }
+  }
+
+  // Async version for insertCategoriesToFloorDB
+  Future<void> insertCategoriesToFloorDBAsync(List<Categories> categoriesList) async {
+    try{
+      final database = FloorDB.instance.floorDatabase;
+      CategoriesDAO categoriesDAO = database.categoriesDAO;
+      await categoriesDAO.insertAllCategories(categoriesList);
+      testPrint('categories list data inserted to floor db');
+      Preferences.instance.isCategoriesPresent = true;
+
+      final savedCategories = await categoriesDAO.getAllCategories();
+      DataRepository().categoriesList = savedCategories;
+      currentCategoriesList = savedCategories;
+      update();
+      testPrint('Total categories in floor db: ${savedCategories.length}');
+    }catch(e) {
+      throw Exception('Exception in insertCategoriesToFloorDB() : $e');
     }
   }
   Future<void> getSectionsList() async{
