@@ -11,6 +11,7 @@ import 'package:phraser/screens/settings/settings_screen.dart';
 import 'package:phraser/screens/theme/phraser_theme_list_screen.dart';
 
 import '../../screens/splash_screen.dart';
+import '../../screens/initial_data_loading_screen.dart';
 
 class RouteHelper {
 
@@ -22,6 +23,7 @@ class RouteHelper {
   static const String phraserThemeListScreen = '/phraser_theme_list_screen';
   static const String splashScreen = '/';
   static const String chatScreen = '/chatScreen';
+  static const String initialDataLoadingScreen = '/initial_data_loading_screen';
 
 
   static String categoriesListRoute () => categoriesListScreen;
@@ -31,6 +33,7 @@ class RouteHelper {
   static String splashRoute () => splashScreen;
   static String phraserThemeListRoute () => phraserThemeListScreen;
   static String chatScreenRoute () => chatScreen;
+  static String initialDataLoadingRoute () => initialDataLoadingScreen;
 
   static List<GetPage> routes = [
     GetPage(name: categoriesListScreen, page: () => const CategoriesListScreen()),
@@ -40,5 +43,6 @@ class RouteHelper {
     GetPage(name: splashScreen, page: () => const SplashScreen()),
     GetPage(name: settingsScreen, page: () => const SettingsScreen()),
     GetPage(name: chatScreen, page: () =>  ChatScreen()),
+    GetPage(name: initialDataLoadingScreen, page: () => const InitialDataLoadingScreen()),
   ];
 }

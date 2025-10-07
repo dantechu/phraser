@@ -75,7 +75,7 @@ class CategoriesListViewModel extends GetxController {
 
   }
 
-  void getCategories() async{
+  Future<void> getCategories() async{
     try{
       // Get the selected region from preferences
       String? selectedRegion = Preferences.instance.selectedRegion;
@@ -103,7 +103,7 @@ class CategoriesListViewModel extends GetxController {
       testPrint('getCategories Exception: $e');
     }
   }
-  void getSectionsList() async{
+  Future<void> getSectionsList() async{
     try{
       // Get the selected region from preferences
       String? selectedRegion = Preferences.instance.selectedRegion;
@@ -129,7 +129,7 @@ class CategoriesListViewModel extends GetxController {
   }
 
 
-  void getPhrasersByCategory(String id) async{
+  Future<void> getPhrasersByCategory(String id) async{
     try{
       // Get the selected region from preferences
       String? selectedRegion = Preferences.instance.selectedRegion;
@@ -142,10 +142,11 @@ class CategoriesListViewModel extends GetxController {
       
       var response = await Dio().get(ConstantURls.kGetPhrasersByCategory+'$id$regionParam');
       if (response.statusCode == 200) {
-        print('single category list quotes: ${response.statusCode}');
         PhrasersListModel listModel = PhrasersListModel.fromJson(response.data);
 
         insertPhrasersToFloorDB(listModel.phraser);
+         print('single category list quotes: ${listModel.phraser.length} for id: $id');
+       
 
       } else {
         throw Exception('Failed to load getPhrasersByCategory() data!');

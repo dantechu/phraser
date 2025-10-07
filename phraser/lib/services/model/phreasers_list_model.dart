@@ -20,6 +20,7 @@ class PhrasersListModel {
     status = json['status'];
     count = json['count'];
     countTotal = json['count_total'];
+    print('**** phrasers count total: $countTotal');
     pages = json['pages'];
     phraser = List.from(json['posts']).map((e)=>Phraser.fromJson(e)).toList();
   }

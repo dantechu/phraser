@@ -36,6 +36,13 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         NotificationHelper.instance.checkPendingNotifications();
       Future.delayed(const Duration(seconds: 1), () async  {
+        // Check if initial data has been loaded
+        if (!Preferences.instance.isInitialDataLoaded) {
+          // Navigate to initial data loading screen
+          Get.offAllNamed(RouteHelper.initialDataLoadingScreen);
+          return;
+        }
+
         if(Preferences.instance.isFirstOpen) {
           final CoinsUseCases _coinsUseCase = Get.find<CoinsUseCases>();
           final availableCoins = await _coinsUseCase.getAvailableCoins();
@@ -49,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
         }else {
           // Use DataPreloader for comprehensive data management
           await DataPreloader.instance.preloadAllData();
-          
+
           // Update data in background (non-blocking)
           updateData();
 
@@ -59,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
           testPrint('current phrasersList size is: ${DataRepository().currentPhrasersList.length}');
           await Future.delayed(Duration(seconds: 1)); // Reduced delay since data is preloaded
-          
+
           // Check if app was launched from a notification (cold start)
           await _handleColdStartNotification();
          }
