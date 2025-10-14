@@ -82,6 +82,8 @@ class _$AppDatabase extends AppDatabase {
 
   FavoritesDAO? _favoritesDAOInstance;
 
+  MoodsDAO? _moodsDAOInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -113,6 +115,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `favorites` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `moods` (`moodId` TEXT NOT NULL, `moodTitle` TEXT NOT NULL, `moodIcon` TEXT NOT NULL, `totalPhrasers` TEXT NOT NULL, PRIMARY KEY (`moodId`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -144,6 +148,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   FavoritesDAO get favoritesDAO {
     return _favoritesDAOInstance ??= _$FavoritesDAO(database, changeListener);
+  }
+
+  @override
+  MoodsDAO get moodsDAO {
+    return _moodsDAOInstance ??= _$MoodsDAO(database, changeListener);
   }
 }
 
@@ -457,5 +466,56 @@ class _$FavoritesDAO extends FavoritesDAO {
   @override
   Future<void> removeFromFavorites(Phraser phraser) async {
     await _phraserDeletionAdapter.delete(phraser);
+  }
+}
+
+class _$MoodsDAO extends MoodsDAO {
+  _$MoodsDAO(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _moodEntityInsertionAdapter = InsertionAdapter(
+            database,
+            'moods',
+            (MoodEntity item) => <String, Object?>{
+                  'moodId': item.moodId,
+                  'moodTitle': item.moodTitle,
+                  'moodIcon': item.moodIcon,
+                  'totalPhrasers': item.totalPhrasers
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<MoodEntity> _moodEntityInsertionAdapter;
+
+  @override
+  Future<List<MoodEntity>> getAllMoods() async {
+    return _queryAdapter.queryList('SELECT * FROM moods',
+        mapper: (Map<String, Object?> row) => MoodEntity(
+            moodId: row['moodId'] as String,
+            moodTitle: row['moodTitle'] as String,
+            moodIcon: row['moodIcon'] as String,
+            totalPhrasers: row['totalPhrasers'] as String));
+  }
+
+  @override
+  Future<void> deleteAllMoods() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM moods');
+  }
+
+  @override
+  Future<int?> getMoodsCount() async {
+    return _queryAdapter.query('SELECT COUNT(*) FROM moods',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<void> insertAllMoods(List<MoodEntity> moods) async {
+    await _moodEntityInsertionAdapter.insertList(
+        moods, OnConflictStrategy.replace);
   }
 }

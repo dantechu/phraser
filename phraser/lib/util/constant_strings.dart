@@ -7,6 +7,7 @@ class ConstantStrings {
   static const String kCurrentPhrasersTableName = 'currentphrasers';
   static const String kSectionTableName = 'sections';
   static const String kFavoritesTableName = 'favorites';
+  static const String kMoodsTableName = 'moods';
 
   // New tables for habit tracking and mood features
   static const String kHabitsTableName = 'habits';
