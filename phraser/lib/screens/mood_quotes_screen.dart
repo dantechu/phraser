@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/consts/colors.dart';
 import 'package:phraser/services/model/data_repository.dart';
+import 'package:phraser/services/view_model/mood_list_view_model.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart';
-import '../util/utils.dart';
+import '../services/model/mood_api_model.dart';
 
 class MoodQuotesScreen extends StatefulWidget {
   const MoodQuotesScreen({super.key});
@@ -14,21 +15,15 @@ class MoodQuotesScreen extends StatefulWidget {
 }
 
 class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
-  String? selectedMood;
-  List<MoodOption> moodOptions = [
-    MoodOption('😊', 'Happy', 'Joyful and optimistic quotes', Colors.yellow.shade100),
-    MoodOption('😢', 'Sad', 'Comforting and healing quotes', Colors.blue.shade100),
-    MoodOption('😡', 'Angry', 'Calming and peaceful quotes', Colors.red.shade100),
-    MoodOption('😰', 'Anxious', 'Reassuring and grounding quotes', Colors.purple.shade100),
-    MoodOption('💪', 'Motivated', 'Inspiring and energizing quotes', Colors.green.shade100),
-    MoodOption('😴', 'Tired', 'Restoring and peaceful quotes', Colors.grey.shade100),
-    MoodOption('🤔', 'Thoughtful', 'Deep and reflective quotes', Colors.indigo.shade100),
-    MoodOption('❤️', 'Loving', 'Warm and affectionate quotes', Colors.pink.shade100),
-    MoodOption('😌', 'Peaceful', 'Serene and mindful quotes', Colors.teal.shade100),
-    MoodOption('🔥', 'Energetic', 'Dynamic and powerful quotes', Colors.orange.shade100),
-    MoodOption('🌱', 'Growing', 'Personal development quotes', Colors.lightGreen.shade100),
-    MoodOption('🎯', 'Focused', 'Goal-oriented and clarity quotes', Colors.cyan.shade100),
-  ];
+  final _moodViewModel = Get.put(MoodListViewModel());
+  String? selectedMoodId;
+  String? selectedMoodTitle;
+
+  @override
+  void initState() {
+    super.initState();
+    _moodViewModel.getMoods();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,100 +83,153 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
 
           // Mood Selection Grid
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
-                ),
-                itemCount: moodOptions.length,
-                itemBuilder: (context, index) {
-                  final mood = moodOptions[index];
-                  final isSelected = selectedMood == mood.name;
-                  
-                  return GestureDetector(
-                    onTap: () => _selectMood(mood),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        color: isSelected 
-                            ? kPrimaryColor.withOpacity(0.15) 
-                            : (isDark ? Theme.of(context).cardColor : Colors.white),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected 
-                              ? kPrimaryColor 
-                              : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-                          width: isSelected ? 2 : 1,
+            child: GetBuilder<MoodListViewModel>(
+              builder: (vm) {
+                if (vm.isMoodsLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: kPrimaryColor,
+                    ),
+                  );
+                }
+
+                if (vm.errorMessage != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.red.shade300,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isSelected 
-                                ? kPrimaryColor.withOpacity(0.2)
-                                : (isDark 
-                                    ? Colors.black.withOpacity(0.2) 
-                                    : Colors.black.withOpacity(0.05)),
-                            blurRadius: isSelected ? 12 : 8,
-                            offset: const Offset(0, 4),
+                        const SizedBox(height: 16),
+                        Text(
+                          vm.errorMessage!,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black87,
                           ),
-                        ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              mood.emoji,
-                              style: TextStyle(
-                                fontSize: isSelected ? 28 : 24,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Flexible(
-                              child: Text(
-                                mood.name,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                  color: isSelected 
-                                      ? kPrimaryColor 
-                                      : Theme.of(context).primaryColorDark,
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Flexible(
-                              child: Text(
-                                mood.description,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: Theme.of(context).primaryColorDark.withOpacity(0.6),
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
                         ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => vm.getMoods(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor,
+                          ),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (vm.currentMoodsList.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'No moods available',
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   );
-                },
-              ),
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.2,
+                    ),
+                    itemCount: vm.currentMoodsList.length,
+                    itemBuilder: (context, index) {
+                      final mood = vm.currentMoodsList[index];
+                      final isSelected = selectedMoodId == mood.moodId;
+
+                      return GestureDetector(
+                        onTap: () => _selectMood(mood),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? kPrimaryColor.withOpacity(0.15)
+                                : (isDark ? Theme.of(context).cardColor : Colors.white),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isSelected
+                                  ? kPrimaryColor
+                                  : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isSelected
+                                    ? kPrimaryColor.withOpacity(0.2)
+                                    : (isDark
+                                        ? Colors.black.withOpacity(0.2)
+                                        : Colors.black.withOpacity(0.05)),
+                                blurRadius: isSelected ? 12 : 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  mood.moodIcon,
+                                  style: TextStyle(
+                                    fontSize: isSelected ? 28 : 24,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Flexible(
+                                  child: Text(
+                                    mood.moodTitle,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected
+                                          ? kPrimaryColor
+                                          : Theme.of(context).primaryColorDark,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Flexible(
+                                  child: Text(
+                                    '${mood.totalPhrasers} quotes',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Theme.of(context).primaryColorDark.withOpacity(0.6),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           ),
 
           // Continue Button
-          if (selectedMood != null)
+          if (selectedMoodId != null)
             Container(
               padding: const EdgeInsets.all(20),
               child: SizedBox(
@@ -212,19 +260,25 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
     );
   }
 
-  void _selectMood(MoodOption mood) {
+  void _selectMood(MoodItem mood) {
     setState(() {
-      selectedMood = selectedMood == mood.name ? null : mood.name;
+      if (selectedMoodId == mood.moodId) {
+        selectedMoodId = null;
+        selectedMoodTitle = null;
+      } else {
+        selectedMoodId = mood.moodId;
+        selectedMoodTitle = mood.moodTitle;
+      }
     });
   }
 
   void _showMoodQuotes() {
-    if (selectedMood == null) return;
+    if (selectedMoodTitle == null) return;
 
     // Filter quotes based on mood (simplified filtering logic)
     final allQuotes = DataRepository().currentPhrasersList;
-    final moodKeywords = _getMoodKeywords(selectedMood!);
-    
+    final moodKeywords = _getMoodKeywords(selectedMoodTitle!);
+
     final filteredQuotes = allQuotes.where((quote) {
       final lowerQuote = quote.quote.toLowerCase();
       return moodKeywords.any((keyword) => lowerQuote.contains(keyword));
@@ -246,7 +300,7 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
     // Show success message
     Get.snackbar(
       'Mood Set!',
-      'Showing ${filteredQuotes.length} quotes for your $selectedMood mood',
+      'Showing ${filteredQuotes.length} quotes for your $selectedMoodTitle mood',
       backgroundColor: kPrimaryColor.withOpacity(0.9),
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
@@ -296,7 +350,7 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('No Specific Quotes Found'),
         content: Text(
-          'We don\'t have specific quotes for your $selectedMood mood right now, but all our quotes can inspire you in different ways!',
+          'We don\'t have specific quotes for your $selectedMoodTitle mood right now, but all our quotes can inspire you in different ways!',
         ),
         actions: [
           TextButton(
@@ -317,13 +371,4 @@ class _MoodQuotesScreenState extends State<MoodQuotesScreen> {
       ),
     );
   }
-}
-
-class MoodOption {
-  final String emoji;
-  final String name;
-  final String description;
-  final Color color;
-
-  MoodOption(this.emoji, this.name, this.description, this.color);
 }

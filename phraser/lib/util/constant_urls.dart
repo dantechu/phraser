@@ -8,4 +8,5 @@ class ConstantURls {
   static const String kGetCategories = '${kBaseURL}api/v1/api.php?get_categories';
   static const String kGetSections = '${kBaseURL}api/v1/api.php?get_category_sections';
   static const String kGetPhrasersByCategory = '${kBaseURL}api/v1/api.php?get_category_details&id=';
+  static const String kGetMoods = '${kBaseURL}api/v1/api.php?get_moods';
 }

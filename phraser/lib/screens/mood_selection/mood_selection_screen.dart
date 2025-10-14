@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phraser/consts/colors.dart';
+import '../../services/model/mood_api_model.dart';
 import '../../services/model/mood_model.dart';
+import '../../services/view_model/mood_list_view_model.dart';
 import '../../util/colors.dart';
 import 'view_model/mood_selection_view_model.dart';
 
@@ -22,21 +24,34 @@ class MoodSelectionScreen extends StatefulWidget {
 class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   // Optimize: Use Get.find to avoid recreating if already exists
   late final MoodSelectionViewModel _viewModel;
+  late final MoodListViewModel _moodListViewModel;
 
   MoodType? selectedMood;
+  String? selectedMoodId;
+  String? selectedMoodTitle;
   MoodIntensity selectedIntensity = MoodIntensity.medium;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Optimize: Initialize view model efficiently
     try {
       _viewModel = Get.find<MoodSelectionViewModel>();
     } catch (e) {
       _viewModel = Get.put(MoodSelectionViewModel());
     }
-    
+
+    // Initialize mood list view model
+    try {
+      _moodListViewModel = Get.find<MoodListViewModel>();
+    } catch (e) {
+      _moodListViewModel = Get.put(MoodListViewModel());
+    }
+
+    // Load moods from API
+    _moodListViewModel.getMoods();
+
     // Initialize with current mood selection if available
     selectedMood = _viewModel.currentMood;
     selectedIntensity = _viewModel.currentIntensity ?? MoodIntensity.medium;
@@ -130,97 +145,152 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
 
             // Mood grid
             Expanded(
-              child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        childAspectRatio: 0.85,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
+              child: GetBuilder<MoodListViewModel>(
+                builder: (moodListVm) {
+                  // Show loading state
+                  if (moodListVm.isMoodsLoading) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: kPrimaryColor,
                       ),
-                      itemCount: MoodType.values.length,
-                      itemBuilder: (context, index) {
-                        final mood = MoodType.values[index];
-                        final mapping =
-                            MoodQuoteMapping.getMappingForMood(mood);
-                        final isSelected = selectedMood == mood;
+                    );
+                  }
 
-                        return GestureDetector(
-                          onTap: () => _selectMood(mood),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Color(int.parse(mapping!.colorHex
-                                      .replaceAll('#', '0xFF')))
-                                  : (isDark ? Colors.grey[800] : Colors.white),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Color(int.parse(mapping!.colorHex
-                                        .replaceAll('#', '0xFF')))
-                                    : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
-                                width: isSelected ? 2 : 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isSelected
-                                      ? Color(int.parse(mapping!.colorHex
-                                              .replaceAll('#', '0xFF')))
-                                          .withOpacity(0.3)
-                                      : (isDark 
-                                          ? Colors.black.withOpacity(0.3)
-                                          : Colors.black.withOpacity(0.05)),
-                                  blurRadius: isSelected ? 12 : 6,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                  // Show error state
+                  if (moodListVm.errorMessage != null) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: Colors.red.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            moodListVm.errorMessage!,
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black87,
                             ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  mapping?.emoji ?? '😊',
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => moodListVm.getMoods(),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kPrimaryColor,
+                            ),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Show empty state
+                  if (moodListVm.currentMoodsList.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No moods available',
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Show moods grid from API
+                  return GridView.builder(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.85,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                    ),
+                    itemCount: moodListVm.currentMoodsList.length,
+                    itemBuilder: (context, index) {
+                      final mood = moodListVm.currentMoodsList[index];
+                      final isSelected = selectedMoodId == mood.moodId;
+
+                      return GestureDetector(
+                        onTap: () => _selectMoodFromApi(mood),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? kPrimaryColor
+                                : (isDark ? Colors.grey[800] : Colors.white),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected
+                                  ? kPrimaryColor
+                                  : (isDark ? Colors.grey[600]! : Colors.grey[300]!),
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isSelected
+                                    ? kPrimaryColor.withOpacity(0.3)
+                                    : (isDark
+                                        ? Colors.black.withOpacity(0.3)
+                                        : Colors.black.withOpacity(0.05)),
+                                blurRadius: isSelected ? 12 : 6,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                height: isSelected ? 40 : 36,
+                                alignment: Alignment.center,
+                                child: Text(
+                                  mood.moodIcon.isNotEmpty ? mood.moodIcon : '😊',
                                   style: TextStyle(
                                     fontSize: isSelected ? 32 : 28,
                                   ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _getMoodName(mood),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : (isDark ? Colors.white : Colors.black),
-                                  ),
                                   textAlign: TextAlign.center,
                                 ),
-                                if (isSelected) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    mapping?.description ?? '',
-                                    style: TextStyle(
-                                      fontSize: 8,
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                mood.moodTitle,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : (isDark ? Colors.white : Colors.black),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (isSelected) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${mood.totalPhrasers} quotes',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    color: Colors.white.withOpacity(0.9),
                                   ),
-                                ],
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
-                            ),
+                            ],
                           ),
-                        );
-                      },
-                      ),
-                ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
 
             // Intensity selector (shown when mood is selected)
-            if (selectedMood != null) ...[
+            if (selectedMoodId != null) ...[
               const SizedBox(height: 24),
               _buildIntensitySelector(),
             ],
@@ -228,7 +298,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
             const SizedBox(height: 24),
 
             // Continue button
-            if (selectedMood != null)
+            if (selectedMoodId != null)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -324,9 +394,19 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
     );
   }
 
-  void _selectMood(MoodType mood) {
+  void _selectMoodFromApi(MoodItem mood) {
     setState(() {
-      selectedMood = mood;
+      selectedMoodId = mood.moodId;
+      selectedMoodTitle = mood.moodTitle;
+      // Try to map to enum for backward compatibility
+      try {
+        selectedMood = MoodType.values.firstWhere(
+          (e) => e.toString().split('.').last.toLowerCase() == mood.moodTitle.toLowerCase(),
+          orElse: () => MoodType.happy,
+        );
+      } catch (e) {
+        selectedMood = MoodType.happy; // fallback
+      }
     });
   }
 
@@ -337,7 +417,7 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
   }
 
   void _handleContinue() {
-    if (selectedMood != null) {
+    if (selectedMood != null && selectedMoodTitle != null) {
       // Save mood entry
       _viewModel.saveMoodEntry(selectedMood!, selectedIntensity);
 
@@ -350,12 +430,9 @@ class _MoodSelectionScreenState extends State<MoodSelectionScreen> {
       Navigator.pop(context, {
         'mood': selectedMood,
         'intensity': selectedIntensity,
+        'moodTitle': selectedMoodTitle,
       });
     }
-  }
-
-  String _getMoodName(MoodType mood) {
-    return mood.toString().split('.').last.capitalize!;
   }
 
   String _getIntensityName(MoodIntensity intensity) {
