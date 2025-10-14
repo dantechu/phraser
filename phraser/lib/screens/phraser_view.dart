@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:get/get.dart';
 import 'package:phraser/ads/consts/ads_helper.dart';
 import 'package:phraser/consts/text_themes.dart';
@@ -34,7 +35,9 @@ class PhraserViewScreen extends StatefulWidget {
 class _PhraserViewScreenState extends State<PhraserViewScreen> {
   final _phraserViewModel = Get.put(PhraserViewModel());
   final _viewingModeViewModel = Get.put(ViewingModeViewModel());
+  final FlutterTts _flutterTts = FlutterTts();
   String selectedTab = 'Categories';
+  bool _isSpeaking = false;
 
   @override
   void initState() {
@@ -42,11 +45,31 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     _phraserViewModel.themePosition.value = Preferences.instance.textThemePosition;
     selectedTab = Preferences.instance.selectedNavigationTab;
     AdsHelper.loadAdmobBannerAd();
-    
+    _initializeTts();
+
     // Restore the last selected tab content after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restoreSelectedTabContent();
     });
+  }
+
+  void _initializeTts() async {
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setSpeechRate(0.5);
+    await _flutterTts.setVolume(1.0);
+    await _flutterTts.setPitch(1.0);
+
+    _flutterTts.setCompletionHandler(() {
+      setState(() {
+        _isSpeaking = false;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
   }
 
   void _restoreSelectedTabContent() {
@@ -156,9 +179,33 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                                     ),
                                   ),
                                 ),
-                                
+
                                 const SizedBox(width: 30.0),
-                                
+
+                                // Text-to-Speech Button
+                                GestureDetector(
+                                  onTap: () async {
+                                    if (_isSpeaking) {
+                                      await _flutterTts.stop();
+                                      setState(() {
+                                        _isSpeaking = false;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        _isSpeaking = true;
+                                      });
+                                      await _flutterTts.speak(item.quote);
+                                    }
+                                  },
+                                  child: Icon(
+                                    _isSpeaking ? Icons.stop_circle_outlined : Icons.volume_up,
+                                    size: 30.0,
+                                    color: ThemeImagesList.themeImagesList[vm.themePosition.value].textColor,
+                                  ),
+                                ),
+
+                                const SizedBox(width: 30.0),
+
                                 // Share Button
                                 GestureDetector(
                                   onTap: () async {

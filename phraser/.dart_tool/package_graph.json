@@ -24,6 +24,7 @@
         "flutter_email_sender",
         "flutter_local_notifications",
         "flutter_secure_storage",
+        "flutter_tts",
         "fluttertoast",
         "font_awesome_flutter",
         "get",
@@ -2297,6 +2298,14 @@
         "ffi",
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "flutter_tts",
+      "version": "4.2.3",
+      "dependencies": [
+        "flutter",
+        "flutter_web_plugins"
       ]
     }
   ],
