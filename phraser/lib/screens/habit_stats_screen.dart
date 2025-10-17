@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:phraser/screens/habit_builder_screen.dart';
 import 'package:phraser/util/colors.dart';
-import 'package:phraser/util/preferences.dart';
+import 'package:phraser/util/Floor_db.dart';
+import 'package:phraser/services/habit_tracking_service.dart';
 
 class HabitStatsScreen extends StatefulWidget {
   const HabitStatsScreen({super.key});
@@ -13,6 +13,7 @@ class HabitStatsScreen extends StatefulWidget {
 
 class _HabitStatsScreenState extends State<HabitStatsScreen> {
   List<HabitData> userHabits = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -20,167 +21,76 @@ class _HabitStatsScreenState extends State<HabitStatsScreen> {
     _loadUserHabits();
   }
 
-  void _loadUserHabits() {
-    final savedHabits = Preferences.instance.getStringList('user_habits') ?? [];
-    final allHabitTemplates = _getAllHabitTemplates();
-    
+  Future<void> _loadUserHabits() async {
     setState(() {
-      userHabits = savedHabits.map((habitName) {
-        final template = allHabitTemplates.firstWhere(
-          (template) => template.name == habitName,
-          orElse: () => _getDefaultHabitTemplate(habitName),
-        );
-        
-        return HabitData(
-          emoji: template.emoji,
-          name: template.name,
-          description: template.description,
-          currentStreak: _getHabitStreak(habitName),
-          longestStreak: _getHabitLongestStreak(habitName),
-          completionRate: _getHabitCompletionRate(habitName),
-          totalCompleted: _getHabitTotalCompleted(habitName),
-          quotes: _getHabitQuotes(habitName),
-        );
-      }).toList();
+      isLoading = true;
     });
+
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final habitsDAO = database.habitsDAO;
+      final trackingService = HabitTrackingService();
+
+      // Get all active habits from database
+      final activeHabits = await habitsDAO.getAllActiveHabits();
+
+      final habitDataList = <HabitData>[];
+      for (final habit in activeHabits) {
+        // Get real statistics from tracking service
+        final stats = await trackingService.getHabitStats(habit.habitId);
+
+        habitDataList.add(HabitData(
+          emoji: _getEmojiForCategory(habit.category),
+          name: habit.name,
+          description: habit.description,
+          currentStreak: stats.currentStreak,
+          longestStreak: stats.longestStreak,
+          completionRate: stats.completionRate.toInt(),
+          totalCompleted: stats.totalCompletions,
+          quotes: [], // Can be populated if needed
+        ));
+      }
+
+      setState(() {
+        userHabits = habitDataList;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading habits: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
-  List<HabitTemplate> _getAllHabitTemplates() {
-    return [
-      // Health & Fitness
-      HabitTemplate('💧', 'Drink Water', 'Stay hydrated throughout the day', Colors.blue.shade100),
-      HabitTemplate('🏃', 'Exercise', 'Stay active and healthy', Colors.green.shade100),
-      HabitTemplate('🥗', 'Eat Healthy', 'Choose nutritious meals', Colors.lime.shade100),
-      HabitTemplate('💤', 'Sleep Well', 'Get 7-8 hours of quality sleep', Colors.indigo.shade100),
-      
-      // Mind & Emotions
-      HabitTemplate('📝', 'Journal', 'Write down your thoughts', Colors.yellow.shade100),
-      HabitTemplate('🙏', 'Practice Gratitude', 'Count your daily blessings', Colors.teal.shade100),
-      
-      // Learning & Growth
-      HabitTemplate('📖', 'Read Daily', 'Read for at least 15 minutes', Colors.orange.shade100),
-      
-      // Productivity & Work
-      HabitTemplate('📱', 'Digital Detox', 'Limit screen time', Colors.red.shade100),
-      
-      // Finance & Money
-      HabitTemplate('💰', 'Track Expenses', 'Monitor daily spending', Colors.green.shade100),
-      
-      // Lifestyle & Routine
-      HabitTemplate('🌅', 'Early Rise', 'Wake up early to start fresh', Colors.pink.shade100),
-      
-      // Relationships & Social
-      HabitTemplate('🤝', 'Connect', 'Reach out to friends/family', Colors.deepOrange.shade100),
-      
-      // Creativity & Hobbies
-      HabitTemplate('🎨', 'Creative Time', 'Engage in creative activities', Colors.cyan.shade100),
-      
-      // Contribution & Impact
-      HabitTemplate('🤲', 'Volunteer', 'Help others in your community', Colors.brown.shade100),
-      
-      // Spirituality & Mindfulness
-      HabitTemplate('🧘', 'Meditate', 'Practice mindfulness daily', Colors.purple.shade100),
-    ];
+  String _getEmojiForCategory(String category) {
+    switch (category) {
+      case 'healthFitness':
+        return '🏃';
+      case 'mindEmotions':
+        return '🧠';
+      case 'learningGrowth':
+        return '📚';
+      case 'productivityWork':
+        return '💼';
+      case 'financeMoney':
+        return '💰';
+      case 'lifestyleRoutine':
+        return '🌅';
+      case 'relationshipsSocial':
+        return '🤝';
+      case 'creativityHobbies':
+        return '🎨';
+      case 'contributionImpact':
+        return '🤲';
+      case 'spiritualityMindfulness':
+        return '🧘';
+      default:
+        return '⭐';
+    }
   }
 
-  HabitTemplate _getDefaultHabitTemplate(String name) {
-    return HabitTemplate('⭐', name, 'Custom habit', Colors.grey.shade100);
-  }
-
-  int _getHabitStreak(String habitName) {
-    // Simulate different streaks for demo
-    final random = habitName.hashCode % 20;
-    return random;
-  }
-
-  int _getHabitLongestStreak(String habitName) {
-    return _getHabitStreak(habitName) + (habitName.hashCode % 10);
-  }
-
-  int _getHabitCompletionRate(String habitName) {
-    final random = (habitName.hashCode % 30) + 60;
-    return random > 100 ? 100 : random;
-  }
-
-  int _getHabitTotalCompleted(String habitName) {
-    return (habitName.hashCode % 200) + 50;
-  }
-
-  List<String> _getHabitQuotes(String habitName) {
-    final habitQuotes = {
-      'Drink Water': [
-        'Water is life. Drink up and feel alive!',
-        'Every sip of water is a step towards better health.',
-        'Hydration is the foundation of vitality.',
-      ],
-      'Read Daily': [
-        'Reading is to the mind what exercise is to the body.',
-        'Books are a uniquely portable magic.',
-        'The more that you read, the more you will know.',
-      ],
-      'Meditate': [
-        'Peace comes from within. Do not seek it without.',
-        'Meditation is not a way of making your mind quiet. It is finding the quiet that is already there.',
-        'The present moment is the only time over which we have dominion.',
-      ],
-      'Exercise': [
-        'Take care of your body. It\'s the only place you have to live.',
-        'Every workout is progress.',
-        'Strong body, strong mind.',
-      ],
-      'Journal': [
-        'Writing is thinking on paper.',
-        'Your thoughts are worth capturing.',
-        'Reflection leads to growth.',
-      ],
-      'Practice Gratitude': [
-        'Gratitude turns what we have into enough.',
-        'A grateful heart is a magnet for miracles.',
-        'Appreciation is the highest form of prayer.',
-      ],
-      'Sleep Well': [
-        'Sleep is the best meditation.',
-        'A good night\'s sleep is a gift to yourself.',
-        'Rest is not idleness, it is essential.',
-      ],
-      'Digital Detox': [
-        'Disconnect to reconnect with yourself.',
-        'Your attention is your most valuable resource.',
-        'Less screen time, more life time.',
-      ],
-      'Track Expenses': [
-        'Every penny saved is a penny earned.',
-        'Financial wellness starts with awareness.',
-        'Budget like your future depends on it.',
-      ],
-      'Early Rise': [
-        'The early bird catches the worm.',
-        'Morning is the foundation of a great day.',
-        'Rise with the sun, shine all day.',
-      ],
-      'Connect': [
-        'Relationships are the foundation of happiness.',
-        'A friend is one of the greatest gifts.',
-        'Connection creates community.',
-      ],
-      'Creative Time': [
-        'Creativity takes courage.',
-        'Art washes away the dust of everyday life.',
-        'Imagination is more important than knowledge.',
-      ],
-      'Volunteer': [
-        'Service to others is the rent you pay for your room here on earth.',
-        'The best way to find yourself is to lose yourself in service.',
-        'Kindness is a language everyone understands.',
-      ],
-    };
-    
-    return habitQuotes[habitName] ?? [
-      'Every day is a new opportunity to grow.',
-      'Small steps lead to big changes.',
-      'Consistency is key to success.',
-    ];
-  }
+  // Old dummy data methods removed - now using real database data from HabitTrackingService
 
   @override
   Widget build(BuildContext context) {
