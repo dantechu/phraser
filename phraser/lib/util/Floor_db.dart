@@ -29,6 +29,20 @@ class FloorDB {
                categoryName TEXT NOT NULL
              )
            ''');
+
+           // Create mood_entries table on database creation
+           await database.execute('''
+             CREATE TABLE IF NOT EXISTS mood_entries (
+               moodId TEXT PRIMARY KEY NOT NULL,
+               mood TEXT NOT NULL,
+               intensity TEXT NOT NULL,
+               date TEXT NOT NULL,
+               timestamp TEXT NOT NULL,
+               notes TEXT,
+               triggers TEXT,
+               activities TEXT
+             )
+           ''');
          },
        ))
        .build();

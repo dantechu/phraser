@@ -8,9 +8,11 @@ import 'package:phraser/floor_db/section_dao.dart';
 import 'package:phraser/floor_db/habits_dao.dart';
 import 'package:phraser/floor_db/habit_progress_dao.dart';
 import 'package:phraser/floor_db/habit_streak_dao.dart';
+import 'package:phraser/floor_db/mood_tracking_dao.dart';
 import 'package:phraser/services/model/categories.dart';
 import 'package:phraser/services/model/category_sections.dart';
 import 'package:phraser/services/model/mood_entity.dart';
+import 'package:phraser/services/model/mood_model.dart';
 import 'package:phraser/services/model/phreasers_list_model.dart';
 import 'package:phraser/services/model/habit_model.dart';
 import 'package:phraser/services/model/habit_progress_model.dart';
@@ -18,7 +20,7 @@ import 'package:sqflite/sqflite.dart' as sqflite;
 import 'current_phraser_dao.dart';
 part 'database.g.dart';
 
-@Database(version: 5, entities:[Categories, CategorySections, Phraser,Phraser,Phraser, MoodEntity, Habit, HabitProgress, HabitStreak])
+@Database(version: 5, entities:[Categories, CategorySections, Phraser,Phraser, Phraser, MoodEntity, MoodEntry, Habit, HabitProgress, HabitStreak])
 abstract class AppDatabase extends FloorDatabase {
 
   CategoriesDAO get categoriesDAO;
@@ -27,6 +29,7 @@ abstract class AppDatabase extends FloorDatabase {
   CurrentPhrasersDAO get currentPhraserDAO;
   FavoritesDAO get favoritesDAO;
   MoodsDAO get moodsDAO;
+  MoodTrackingDAO get moodTrackingDAO;
   HabitsDAO get habitsDAO;
   HabitProgressDAO get habitProgressDAO;
   HabitStreakDAO get habitStreakDAO;

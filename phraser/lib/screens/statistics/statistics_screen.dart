@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:phraser/util/status_bar_helper.dart';
 import 'package:phraser/util/colors.dart';
+import 'package:phraser/services/mood_tracking_service.dart';
+import 'package:phraser/services/habit_tracking_service.dart';
+import 'package:phraser/services/model/mood_model.dart';
+import 'package:phraser/util/Floor_db.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({Key? key}) : super(key: key);
@@ -12,17 +16,141 @@ class StatisticsScreen extends StatefulWidget {
 class _StatisticsScreenState extends State<StatisticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool isLoadingMoods = true;
+  bool isLoadingHabits = true;
+
+  // Mood statistics
+  MoodStatistics? moodStats;
+  List<DailyMoodSummary> weeklyTrend = [];
+  Map<MoodType, MoodDistributionData> moodDistribution = {};
+
+  // Habit statistics
+  int activeHabitsCount = 0;
+  int completedTodayCount = 0;
+  int longestHabitStreak = 0;
+  double weeklyCompletionRate = 0;
+  double monthlyCompletionRate = 0;
+  double allTimeCompletionRate = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadMoodStatistics();
+    _loadHabitStatistics();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMoodStatistics() async {
+    setState(() {
+      isLoadingMoods = true;
+    });
+
+    try {
+      final moodService = MoodTrackingService();
+
+      // Get overall statistics
+      final stats = await moodService.getMoodStatistics();
+
+      // Get weekly trend
+      final trend = await moodService.getWeeklyTrend();
+
+      // Get mood distribution
+      final distribution = await moodService.getMoodDistribution();
+
+      setState(() {
+        moodStats = stats;
+        weeklyTrend = trend;
+        moodDistribution = distribution;
+        isLoadingMoods = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading mood statistics: $e');
+      setState(() {
+        isLoadingMoods = false;
+      });
+    }
+  }
+
+  Future<void> _loadHabitStatistics() async {
+    setState(() {
+      isLoadingHabits = true;
+    });
+
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final habitsDAO = database.habitsDAO;
+      final habitService = HabitTrackingService();
+
+      // Get active habits count
+      final count = await habitsDAO.getActiveHabitsCount();
+      activeHabitsCount = count ?? 0;
+
+      // Get overall statistics
+      final overallStats = await habitService.getOverallStatistics();
+
+      // Get habits and calculate longest streak
+      final activeHabits = await habitsDAO.getAllActiveHabits();
+      int maxStreak = 0;
+      for (final habit in activeHabits) {
+        final stats = await habitService.getHabitStats(habit.habitId);
+        if (stats.longestStreak > maxStreak) {
+          maxStreak = stats.longestStreak;
+        }
+      }
+
+      setState(() {
+        completedTodayCount = overallStats['completedToday'] ?? 0;
+        longestHabitStreak = maxStreak;
+        weeklyCompletionRate = (overallStats['weeklyCompletionRate'] ?? 0).toDouble();
+        monthlyCompletionRate = (overallStats['monthlyCompletionRate'] ?? 0).toDouble();
+        allTimeCompletionRate = (overallStats['allTimeCompletionRate'] ?? 0).toDouble();
+        isLoadingHabits = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading habit statistics: $e');
+      setState(() {
+        isLoadingHabits = false;
+      });
+    }
+  }
+
+  String _getMoodEmoji(MoodType mood) {
+    final mapping = MoodQuoteMapping.getMappingForMood(mood);
+    return mapping?.emoji ?? '😊';
+  }
+
+  String _formatMoodName(MoodType mood) {
+    final name = mood.toString().split('.').last;
+    return name[0].toUpperCase() + name.substring(1);
+  }
+
+  Color _getMoodColor(MoodType mood) {
+    switch (mood) {
+      case MoodType.happy:
+        return Colors.green;
+      case MoodType.sad:
+        return Colors.blue;
+      case MoodType.anxious:
+        return Colors.orange;
+      case MoodType.calm:
+        return Colors.teal;
+      case MoodType.motivated:
+        return Colors.deepOrange;
+      case MoodType.stressed:
+        return Colors.red;
+      case MoodType.confident:
+        return Colors.purple;
+      case MoodType.grateful:
+        return Colors.amber;
+      default:
+        return kPrimaryColor;
+    }
   }
 
   @override
@@ -132,7 +260,42 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   }
 
   Widget _buildMoodsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isLoadingMoods) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (moodStats == null || moodStats!.totalEntries == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.psychology_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No mood data yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start tracking your moods to see statistics',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Get top 4 moods for distribution
+    final sortedMoods = moodDistribution.entries.toList()
+      ..sort((a, b) => b.value.percentage.compareTo(a.value.percentage));
+    final topMoods = sortedMoods.take(4).toList();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -145,11 +308,33 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             title: 'Mood Overview',
             child: Column(
               children: [
-                _buildStatRow(context, 'Total Mood Entries', '127', Icons.psychology),
+                _buildStatRow(
+                  context,
+                  'Total Mood Entries',
+                  '${moodStats!.totalEntries}',
+                  Icons.psychology,
+                ),
                 const SizedBox(height: 12),
-                _buildStatRow(context, 'This Week', '12', Icons.calendar_today),
+                _buildStatRow(
+                  context,
+                  'This Week',
+                  '${moodStats!.thisWeekEntries}',
+                  Icons.calendar_today,
+                ),
                 const SizedBox(height: 12),
-                _buildStatRow(context, 'Current Streak', '7 days', Icons.local_fire_department),
+                _buildStatRow(
+                  context,
+                  'Current Streak',
+                  '${moodStats!.currentStreak} days',
+                  Icons.local_fire_department,
+                ),
+                const SizedBox(height: 12),
+                _buildStatRow(
+                  context,
+                  'Wellness Score',
+                  '${moodStats!.wellnessScore.toInt()}/100',
+                  Icons.favorite,
+                ),
               ],
             ),
           ),
@@ -161,15 +346,25 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             context,
             title: 'Mood Distribution',
             child: Column(
-              children: [
-                _buildProgressBar(context, 'Happy', 0.45, Colors.green),
-                const SizedBox(height: 12),
-                _buildProgressBar(context, 'Calm', 0.30, Colors.blue),
-                const SizedBox(height: 12),
-                _buildProgressBar(context, 'Anxious', 0.15, Colors.orange),
-                const SizedBox(height: 12),
-                _buildProgressBar(context, 'Sad', 0.10, Colors.red),
-              ],
+              children: topMoods.asMap().entries.map((entry) {
+                final index = entry.key;
+                final moodEntry = entry.value;
+                final mood = moodEntry.key;
+                final data = moodEntry.value;
+                final color = _getMoodColor(mood);
+
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 12),
+                    _buildProgressBar(
+                      context,
+                      _formatMoodName(mood),
+                      data.percentage / 100,
+                      color,
+                    ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
 
@@ -180,47 +375,99 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             context,
             title: 'Weekly Trend',
             child: Column(
-              children: [
-                _buildTrendItem(context, 'Monday', 'Happy', Colors.green, '85%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Tuesday', 'Calm', Colors.blue, '70%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Wednesday', 'Happy', Colors.green, '90%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Thursday', 'Anxious', Colors.orange, '60%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Friday', 'Happy', Colors.green, '88%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Saturday', 'Calm', Colors.blue, '75%'),
-                const SizedBox(height: 8),
-                _buildTrendItem(context, 'Sunday', 'Happy', Colors.green, '92%'),
-              ],
+              children: weeklyTrend.asMap().entries.map((entry) {
+                final index = entry.key;
+                final summary = entry.value;
+                final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                final dayName = dayNames[summary.date.weekday - 1];
+
+                final moodName = summary.dominantMood != null
+                    ? _formatMoodName(summary.dominantMood!)
+                    : 'No data';
+                final color = summary.dominantMood != null
+                    ? _getMoodColor(summary.dominantMood!)
+                    : Colors.grey;
+                final score = summary.entryCount > 0
+                    ? '${(summary.averageIntensity * 33).toInt()}%'
+                    : '-';
+
+                return Column(
+                  children: [
+                    if (index > 0) const SizedBox(height: 8),
+                    _buildTrendItem(context, dayName, moodName, color, score),
+                  ],
+                );
+              }).toList(),
             ),
           ),
 
-          const SizedBox(height: 16),
-
-          // Most Used Quotes
-          _buildStatCard(
-            context,
-            title: 'Most Used Mood Quotes',
-            child: Column(
-              children: [
-                _buildQuoteItem(context, 'Motivation', '45 times'),
-                const SizedBox(height: 8),
-                _buildQuoteItem(context, 'Relaxation', '32 times'),
-                const SizedBox(height: 8),
-                _buildQuoteItem(context, 'Confidence', '28 times'),
-              ],
+          if (moodStats!.entriesWithNotes > 0) ...[
+            const SizedBox(height: 16),
+            _buildStatCard(
+              context,
+              title: 'Insights',
+              child: Column(
+                children: [
+                  _buildQuoteItem(
+                    context,
+                    'Entries with notes',
+                    '${moodStats!.entriesWithNotes}',
+                  ),
+                  if (moodStats!.entriesWithTriggers > 0) ...[
+                    const SizedBox(height: 8),
+                    _buildQuoteItem(
+                      context,
+                      'Entries with triggers',
+                      '${moodStats!.entriesWithTriggers}',
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  _buildQuoteItem(
+                    context,
+                    'Longest streak',
+                    '${moodStats!.longestStreak} days',
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildHabitsTab(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isLoadingHabits) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (activeHabitsCount == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.track_changes_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'No habit data yet',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Start building habits to see statistics',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -233,11 +480,26 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             title: 'Habit Overview',
             child: Column(
               children: [
-                _buildStatRow(context, 'Active Habits', '8', Icons.track_changes),
+                _buildStatRow(
+                  context,
+                  'Active Habits',
+                  '$activeHabitsCount',
+                  Icons.track_changes,
+                ),
                 const SizedBox(height: 12),
-                _buildStatRow(context, 'Completed Today', '6', Icons.check_circle),
+                _buildStatRow(
+                  context,
+                  'Completed Today',
+                  '$completedTodayCount',
+                  Icons.check_circle,
+                ),
                 const SizedBox(height: 12),
-                _buildStatRow(context, 'Longest Streak', '21 days', Icons.local_fire_department),
+                _buildStatRow(
+                  context,
+                  'Longest Streak',
+                  '$longestHabitStreak days',
+                  Icons.local_fire_department,
+                ),
               ],
             ),
           ),
@@ -250,53 +512,26 @@ class _StatisticsScreenState extends State<StatisticsScreen>
             title: 'Completion Rate',
             child: Column(
               children: [
-                _buildProgressBar(context, 'This Week', 0.85, Colors.green),
+                _buildProgressBar(
+                  context,
+                  'This Week',
+                  weeklyCompletionRate / 100,
+                  Colors.green,
+                ),
                 const SizedBox(height: 12),
-                _buildProgressBar(context, 'This Month', 0.72, Colors.blue),
+                _buildProgressBar(
+                  context,
+                  'This Month',
+                  monthlyCompletionRate / 100,
+                  Colors.blue,
+                ),
                 const SizedBox(height: 12),
-                _buildProgressBar(context, 'All Time', 0.68, kPrimaryColor),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Top Performing Habits
-          _buildStatCard(
-            context,
-            title: 'Top Performing Habits',
-            child: Column(
-              children: [
-                _buildHabitItem(context, 'Morning Meditation', '95%', 18, Colors.purple),
-                const SizedBox(height: 12),
-                _buildHabitItem(context, 'Daily Exercise', '88%', 15, Colors.orange),
-                const SizedBox(height: 12),
-                _buildHabitItem(context, 'Read 30 Minutes', '82%', 12, Colors.blue),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Weekly Progress
-          _buildStatCard(
-            context,
-            title: 'Weekly Progress',
-            child: Column(
-              children: [
-                _buildWeeklyProgress(context, 'Mon', 0.75),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Tue', 0.88),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Wed', 0.63),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Thu', 0.90),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Fri', 0.85),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Sat', 0.70),
-                const SizedBox(height: 8),
-                _buildWeeklyProgress(context, 'Sun', 0.95),
+                _buildProgressBar(
+                  context,
+                  'All Time',
+                  allTimeCompletionRate / 100,
+                  kPrimaryColor,
+                ),
               ],
             ),
           ),

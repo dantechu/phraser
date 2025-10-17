@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:math' as math;
@@ -5,6 +6,7 @@ import '../../../services/model/mood_model.dart';
 import '../../../services/model/phreasers_list_model.dart';
 import '../../../services/model/data_repository.dart';
 import '../../../util/preferences.dart';
+import '../../../util/Floor_db.dart';
 
 class MoodSelectionViewModel extends GetxController {
   // Current mood state
@@ -174,22 +176,27 @@ class MoodSelectionViewModel extends GetxController {
 
 
   Future<void> _saveMoodToDatabase(MoodEntry entry) async {
-    // TODO: Implement database save
-    // This would typically use Floor database or your preferred database solution
-    // Example:
-    // final database = FloorDB.instance.floorDatabase;
-    // final moodDAO = database.moodEntriesDAO;
-    // await moodDAO.insertMoodEntry(entry);
-    
-    // For now, we'll just simulate a delay
-    await Future.delayed(const Duration(milliseconds: 300));
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final moodTrackingDAO = database.moodTrackingDAO;
+      await moodTrackingDAO.insertMoodEntry(entry);
+      debugPrint('✅ Mood entry saved to database: ${entry.mood} (${entry.intensity})');
+    } catch (e) {
+      debugPrint('❌ Error saving mood entry to database: $e');
+    }
   }
 
   Future<void> _loadMoodHistory() async {
-    // TODO: Implement database load
-    // Load mood history from database
-    // moodHistory = await database.moodEntriesDAO.getAllMoodEntries();
-    
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final moodTrackingDAO = database.moodTrackingDAO;
+      final entries = await moodTrackingDAO.getRecentMoodEntries(20);
+      moodHistory = entries;
+      debugPrint('✅ Loaded ${entries.length} mood entries from database');
+    } catch (e) {
+      debugPrint('❌ Error loading mood history: $e');
+    }
+
     update();
   }
 

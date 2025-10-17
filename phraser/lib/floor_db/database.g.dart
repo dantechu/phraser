@@ -84,6 +84,8 @@ class _$AppDatabase extends AppDatabase {
 
   MoodsDAO? _moodsDAOInstance;
 
+  MoodTrackingDAO? _moodTrackingDAOInstance;
+
   HabitsDAO? _habitsDAOInstance;
 
   HabitProgressDAO? _habitProgressDAOInstance;
@@ -96,7 +98,7 @@ class _$AppDatabase extends AppDatabase {
     Callback? callback,
   ]) async {
     final databaseOptions = sqflite.OpenDatabaseOptions(
-      version: 1,
+      version: 5,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
         await callback?.onConfigure?.call(database);
@@ -123,6 +125,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `favorites` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `moods` (`moodId` TEXT NOT NULL, `moodTitle` TEXT NOT NULL, `moodIcon` TEXT NOT NULL, `totalPhrasers` TEXT NOT NULL, PRIMARY KEY (`moodId`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `mood_entries` (`moodId` TEXT NOT NULL, `mood` TEXT NOT NULL, `intensity` TEXT NOT NULL, `date` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `notes` TEXT, `triggers` TEXT, `activities` TEXT, PRIMARY KEY (`moodId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `habits` (`habitId` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `category` TEXT NOT NULL, `frequency` TEXT NOT NULL, `difficulty` TEXT NOT NULL, `targetValue` INTEGER NOT NULL, `unit` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `iconPath` TEXT, `colorHex` TEXT, `motivationalQuote` TEXT, `tags` TEXT, PRIMARY KEY (`habitId`))');
         await database.execute(
@@ -165,6 +169,12 @@ class _$AppDatabase extends AppDatabase {
   @override
   MoodsDAO get moodsDAO {
     return _moodsDAOInstance ??= _$MoodsDAO(database, changeListener);
+  }
+
+  @override
+  MoodTrackingDAO get moodTrackingDAO {
+    return _moodTrackingDAOInstance ??=
+        _$MoodTrackingDAO(database, changeListener);
   }
 
   @override
@@ -573,6 +583,329 @@ class _$MoodsDAO extends MoodsDAO {
   Future<void> insertAllMoods(List<MoodEntity> moods) async {
     await _moodEntityInsertionAdapter.insertList(
         moods, OnConflictStrategy.replace);
+  }
+}
+
+class _$MoodTrackingDAO extends MoodTrackingDAO {
+  _$MoodTrackingDAO(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _moodEntryInsertionAdapter = InsertionAdapter(
+            database,
+            'mood_entries',
+            (MoodEntry item) => <String, Object?>{
+                  'moodId': item.moodId,
+                  'mood': item.mood,
+                  'intensity': item.intensity,
+                  'date': item.date,
+                  'timestamp': item.timestamp,
+                  'notes': item.notes,
+                  'triggers': item.triggers,
+                  'activities': item.activities
+                }),
+        _moodEntryUpdateAdapter = UpdateAdapter(
+            database,
+            'mood_entries',
+            ['moodId'],
+            (MoodEntry item) => <String, Object?>{
+                  'moodId': item.moodId,
+                  'mood': item.mood,
+                  'intensity': item.intensity,
+                  'date': item.date,
+                  'timestamp': item.timestamp,
+                  'notes': item.notes,
+                  'triggers': item.triggers,
+                  'activities': item.activities
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<MoodEntry> _moodEntryInsertionAdapter;
+
+  final UpdateAdapter<MoodEntry> _moodEntryUpdateAdapter;
+
+  @override
+  Future<List<MoodEntry>> getAllMoodEntries() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?));
+  }
+
+  @override
+  Future<MoodEntry?> getMoodEntryById(String moodId) async {
+    return _queryAdapter.query('SELECT * FROM mood_entries WHERE moodId = ?1',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?),
+        arguments: [moodId]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesByDate(String date) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE date = ?1 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?),
+        arguments: [date]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesInDateRange(
+    String startDate,
+    String endDate,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE date BETWEEN ?1 AND ?2 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(moodId: row['moodId'] as String, mood: row['mood'] as String, intensity: row['intensity'] as String, date: row['date'] as String, timestamp: row['timestamp'] as String, notes: row['notes'] as String?, triggers: row['triggers'] as String?, activities: row['activities'] as String?),
+        arguments: [startDate, endDate]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesSinceDate(String startDate) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE date >= ?1 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?),
+        arguments: [startDate]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesByType(String mood) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE mood = ?1 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?),
+        arguments: [mood]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesByTypeInRange(
+    String mood,
+    String startDate,
+    String endDate,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE mood = ?1 AND date BETWEEN ?2 AND ?3 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(moodId: row['moodId'] as String, mood: row['mood'] as String, intensity: row['intensity'] as String, date: row['date'] as String, timestamp: row['timestamp'] as String, notes: row['notes'] as String?, triggers: row['triggers'] as String?, activities: row['activities'] as String?),
+        arguments: [mood, startDate, endDate]);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesByIntensity(String intensity) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE intensity = ?1 ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(moodId: row['moodId'] as String, mood: row['mood'] as String, intensity: row['intensity'] as String, date: row['date'] as String, timestamp: row['timestamp'] as String, notes: row['notes'] as String?, triggers: row['triggers'] as String?, activities: row['activities'] as String?),
+        arguments: [intensity]);
+  }
+
+  @override
+  Future<int?> getTotalMoodEntriesCount() async {
+    return _queryAdapter.query('SELECT COUNT(*) FROM mood_entries',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<int?> getMoodEntriesCountInRange(
+    String startDate,
+    String endDate,
+  ) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM mood_entries WHERE date BETWEEN ?1 AND ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [startDate, endDate]);
+  }
+
+  @override
+  Future<int?> getMoodTypeCount(String mood) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM mood_entries WHERE mood = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [mood]);
+  }
+
+  @override
+  Future<int?> getMoodTypeCountInRange(
+    String mood,
+    String startDate,
+    String endDate,
+  ) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM mood_entries WHERE mood = ?1 AND date BETWEEN ?2 AND ?3',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [mood, startDate, endDate]);
+  }
+
+  @override
+  Future<int?> getMoodEntriesCountForDate(String date) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM mood_entries WHERE date = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [date]);
+  }
+
+  @override
+  Future<MoodEntry?> getLatestMoodEntry() async {
+    return _queryAdapter.query(
+        'SELECT * FROM mood_entries ORDER BY timestamp DESC LIMIT 1',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?));
+  }
+
+  @override
+  Future<MoodEntry?> getLatestMoodEntryForDate(String date) async {
+    return _queryAdapter.query(
+        'SELECT * FROM mood_entries WHERE date = ?1 ORDER BY timestamp DESC LIMIT 1',
+        mapper: (Map<String, Object?> row) => MoodEntry(moodId: row['moodId'] as String, mood: row['mood'] as String, intensity: row['intensity'] as String, date: row['date'] as String, timestamp: row['timestamp'] as String, notes: row['notes'] as String?, triggers: row['triggers'] as String?, activities: row['activities'] as String?),
+        arguments: [date]);
+  }
+
+  @override
+  Future<List<String>> getDistinctMoodTypes() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT mood FROM mood_entries ORDER BY mood',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<String>> getDistinctDates() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT date FROM mood_entries ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesWithNotes() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE notes IS NOT NULL AND notes != \"\" ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?));
+  }
+
+  @override
+  Future<List<MoodEntry>> getMoodEntriesWithTriggers() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries WHERE triggers IS NOT NULL AND triggers != \"\" ORDER BY timestamp DESC',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?));
+  }
+
+  @override
+  Future<void> deleteMoodEntry(String moodId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM mood_entries WHERE moodId = ?1',
+        arguments: [moodId]);
+  }
+
+  @override
+  Future<void> deleteMoodEntriesBeforeDate(String date) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM mood_entries WHERE date < ?1',
+        arguments: [date]);
+  }
+
+  @override
+  Future<void> deleteAllMoodEntries() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM mood_entries');
+  }
+
+  @override
+  Future<List<MoodEntry>> getRecentMoodEntries(int limit) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM mood_entries ORDER BY timestamp DESC LIMIT ?1',
+        mapper: (Map<String, Object?> row) => MoodEntry(
+            moodId: row['moodId'] as String,
+            mood: row['mood'] as String,
+            intensity: row['intensity'] as String,
+            date: row['date'] as String,
+            timestamp: row['timestamp'] as String,
+            notes: row['notes'] as String?,
+            triggers: row['triggers'] as String?,
+            activities: row['activities'] as String?),
+        arguments: [limit]);
+  }
+
+  @override
+  Future<List<String>> getAllDatesWithEntries() async {
+    return _queryAdapter.queryList(
+        'SELECT DISTINCT date FROM mood_entries ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => row.values.first as String);
+  }
+
+  @override
+  Future<void> insertMoodEntry(MoodEntry entry) async {
+    await _moodEntryInsertionAdapter.insert(entry, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertMoodEntries(List<MoodEntry> entries) async {
+    await _moodEntryInsertionAdapter.insertList(
+        entries, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> updateMoodEntry(MoodEntry entry) async {
+    await _moodEntryUpdateAdapter.update(entry, OnConflictStrategy.abort);
   }
 }
 
