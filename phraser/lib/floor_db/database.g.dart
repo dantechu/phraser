@@ -84,6 +84,12 @@ class _$AppDatabase extends AppDatabase {
 
   MoodsDAO? _moodsDAOInstance;
 
+  HabitsDAO? _habitsDAOInstance;
+
+  HabitProgressDAO? _habitProgressDAOInstance;
+
+  HabitStreakDAO? _habitStreakDAOInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -112,11 +118,17 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `phrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
+            'CREATE TABLE IF NOT EXISTS `currentphrasers` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `favorites` (`phraserId` TEXT NOT NULL, `tags` TEXT NOT NULL, `quote` TEXT NOT NULL, `categoryId` TEXT NOT NULL, `categoryName` TEXT NOT NULL, `categorySection` TEXT NOT NULL, `categoryType` TEXT NOT NULL, `lastUpdate` TEXT NOT NULL, `moodsString` TEXT, `regionsString` TEXT, PRIMARY KEY (`phraserId`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `moods` (`moodId` TEXT NOT NULL, `moodTitle` TEXT NOT NULL, `moodIcon` TEXT NOT NULL, `totalPhrasers` TEXT NOT NULL, PRIMARY KEY (`moodId`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `habits` (`habitId` TEXT NOT NULL, `name` TEXT NOT NULL, `description` TEXT NOT NULL, `category` TEXT NOT NULL, `frequency` TEXT NOT NULL, `difficulty` TEXT NOT NULL, `targetValue` INTEGER NOT NULL, `unit` TEXT NOT NULL, `isActive` INTEGER NOT NULL, `createdAt` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, `iconPath` TEXT, `colorHex` TEXT, `motivationalQuote` TEXT, `tags` TEXT, PRIMARY KEY (`habitId`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `habit_progress` (`progressId` TEXT NOT NULL, `habitId` TEXT NOT NULL, `date` TEXT NOT NULL, `completedValue` INTEGER NOT NULL, `isCompleted` INTEGER NOT NULL, `notes` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `mood` TEXT, `energyLevel` INTEGER, `difficultyRating` INTEGER, PRIMARY KEY (`progressId`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `habit_streaks` (`streakId` TEXT NOT NULL, `habitId` TEXT NOT NULL, `currentStreak` INTEGER NOT NULL, `longestStreak` INTEGER NOT NULL, `lastCompletedDate` TEXT NOT NULL, `streakStartDate` TEXT NOT NULL, `updatedAt` TEXT NOT NULL, PRIMARY KEY (`streakId`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -153,6 +165,23 @@ class _$AppDatabase extends AppDatabase {
   @override
   MoodsDAO get moodsDAO {
     return _moodsDAOInstance ??= _$MoodsDAO(database, changeListener);
+  }
+
+  @override
+  HabitsDAO get habitsDAO {
+    return _habitsDAOInstance ??= _$HabitsDAO(database, changeListener);
+  }
+
+  @override
+  HabitProgressDAO get habitProgressDAO {
+    return _habitProgressDAOInstance ??=
+        _$HabitProgressDAO(database, changeListener);
+  }
+
+  @override
+  HabitStreakDAO get habitStreakDAO {
+    return _habitStreakDAOInstance ??=
+        _$HabitStreakDAO(database, changeListener);
   }
 }
 
@@ -348,7 +377,7 @@ class _$CurrentPhrasersDAO extends CurrentPhrasersDAO {
   )   : _queryAdapter = QueryAdapter(database),
         _phraserInsertionAdapter = InsertionAdapter(
             database,
-            'phrasers',
+            'currentphrasers',
             (Phraser item) => <String, Object?>{
                   'phraserId': item.phraserId,
                   'tags': item.tags,
@@ -373,7 +402,8 @@ class _$CurrentPhrasersDAO extends CurrentPhrasersDAO {
 
   @override
   Future<List<Phraser>> getAllCurrentPhrasers() async {
-    return _queryAdapter.queryList('SELECT * FROM  currentphrasers',
+    return _queryAdapter.queryList(
+        'SELECT * FROM  currentphrasers ORDER BY ROWID',
         mapper: (Map<String, Object?> row) => Phraser(
             phraserId: row['phraserId'] as String,
             tags: row['tags'] as String,
@@ -543,5 +573,497 @@ class _$MoodsDAO extends MoodsDAO {
   Future<void> insertAllMoods(List<MoodEntity> moods) async {
     await _moodEntityInsertionAdapter.insertList(
         moods, OnConflictStrategy.replace);
+  }
+}
+
+class _$HabitsDAO extends HabitsDAO {
+  _$HabitsDAO(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _habitInsertionAdapter = InsertionAdapter(
+            database,
+            'habits',
+            (Habit item) => <String, Object?>{
+                  'habitId': item.habitId,
+                  'name': item.name,
+                  'description': item.description,
+                  'category': item.category,
+                  'frequency': item.frequency,
+                  'difficulty': item.difficulty,
+                  'targetValue': item.targetValue,
+                  'unit': item.unit,
+                  'isActive': item.isActive ? 1 : 0,
+                  'createdAt': item.createdAt,
+                  'updatedAt': item.updatedAt,
+                  'iconPath': item.iconPath,
+                  'colorHex': item.colorHex,
+                  'motivationalQuote': item.motivationalQuote,
+                  'tags': item.tags
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Habit> _habitInsertionAdapter;
+
+  @override
+  Future<Habit?> getHabitById(String habitId) async {
+    return _queryAdapter.query('SELECT * FROM habits WHERE habitId = ?1',
+        mapper: (Map<String, Object?> row) => Habit(
+            habitId: row['habitId'] as String,
+            name: row['name'] as String,
+            description: row['description'] as String,
+            category: row['category'] as String,
+            frequency: row['frequency'] as String,
+            difficulty: row['difficulty'] as String,
+            targetValue: row['targetValue'] as int,
+            unit: row['unit'] as String,
+            isActive: (row['isActive'] as int) != 0,
+            createdAt: row['createdAt'] as String,
+            updatedAt: row['updatedAt'] as String,
+            iconPath: row['iconPath'] as String?,
+            colorHex: row['colorHex'] as String?,
+            motivationalQuote: row['motivationalQuote'] as String?,
+            tags: row['tags'] as String?),
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<List<Habit>> getAllActiveHabits() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habits WHERE isActive = 1 ORDER BY createdAt DESC',
+        mapper: (Map<String, Object?> row) => Habit(
+            habitId: row['habitId'] as String,
+            name: row['name'] as String,
+            description: row['description'] as String,
+            category: row['category'] as String,
+            frequency: row['frequency'] as String,
+            difficulty: row['difficulty'] as String,
+            targetValue: row['targetValue'] as int,
+            unit: row['unit'] as String,
+            isActive: (row['isActive'] as int) != 0,
+            createdAt: row['createdAt'] as String,
+            updatedAt: row['updatedAt'] as String,
+            iconPath: row['iconPath'] as String?,
+            colorHex: row['colorHex'] as String?,
+            motivationalQuote: row['motivationalQuote'] as String?,
+            tags: row['tags'] as String?));
+  }
+
+  @override
+  Future<List<Habit>> getAllHabits() async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habits ORDER BY createdAt DESC',
+        mapper: (Map<String, Object?> row) => Habit(
+            habitId: row['habitId'] as String,
+            name: row['name'] as String,
+            description: row['description'] as String,
+            category: row['category'] as String,
+            frequency: row['frequency'] as String,
+            difficulty: row['difficulty'] as String,
+            targetValue: row['targetValue'] as int,
+            unit: row['unit'] as String,
+            isActive: (row['isActive'] as int) != 0,
+            createdAt: row['createdAt'] as String,
+            updatedAt: row['updatedAt'] as String,
+            iconPath: row['iconPath'] as String?,
+            colorHex: row['colorHex'] as String?,
+            motivationalQuote: row['motivationalQuote'] as String?,
+            tags: row['tags'] as String?));
+  }
+
+  @override
+  Future<List<Habit>> getHabitsByCategory(String category) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habits WHERE category = ?1 AND isActive = 1',
+        mapper: (Map<String, Object?> row) => Habit(
+            habitId: row['habitId'] as String,
+            name: row['name'] as String,
+            description: row['description'] as String,
+            category: row['category'] as String,
+            frequency: row['frequency'] as String,
+            difficulty: row['difficulty'] as String,
+            targetValue: row['targetValue'] as int,
+            unit: row['unit'] as String,
+            isActive: (row['isActive'] as int) != 0,
+            createdAt: row['createdAt'] as String,
+            updatedAt: row['updatedAt'] as String,
+            iconPath: row['iconPath'] as String?,
+            colorHex: row['colorHex'] as String?,
+            motivationalQuote: row['motivationalQuote'] as String?,
+            tags: row['tags'] as String?),
+        arguments: [category]);
+  }
+
+  @override
+  Future<int?> getActiveHabitsCount() async {
+    return _queryAdapter.query('SELECT COUNT(*) FROM habits WHERE isActive = 1',
+        mapper: (Map<String, Object?> row) => row.values.first as int);
+  }
+
+  @override
+  Future<void> updateHabitActiveStatus(
+    String habitId,
+    bool isActive,
+    String updatedAt,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE habits SET isActive = ?2, updatedAt = ?3 WHERE habitId = ?1',
+        arguments: [habitId, isActive ? 1 : 0, updatedAt]);
+  }
+
+  @override
+  Future<void> updateHabitTarget(
+    String habitId,
+    int targetValue,
+    String updatedAt,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE habits SET targetValue = ?2, updatedAt = ?3 WHERE habitId = ?1',
+        arguments: [habitId, targetValue, updatedAt]);
+  }
+
+  @override
+  Future<void> deleteHabit(String habitId) async {
+    await _queryAdapter.queryNoReturn('DELETE FROM habits WHERE habitId = ?1',
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<void> deleteAllHabits() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM habits');
+  }
+
+  @override
+  Future<void> deactivateAllHabits(String updatedAt) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE habits SET isActive = 0, updatedAt = ?1',
+        arguments: [updatedAt]);
+  }
+
+  @override
+  Future<void> insertHabit(Habit habit) async {
+    await _habitInsertionAdapter.insert(habit, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAllHabits(List<Habit> habits) async {
+    await _habitInsertionAdapter.insertList(habits, OnConflictStrategy.replace);
+  }
+}
+
+class _$HabitProgressDAO extends HabitProgressDAO {
+  _$HabitProgressDAO(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _habitProgressInsertionAdapter = InsertionAdapter(
+            database,
+            'habit_progress',
+            (HabitProgress item) => <String, Object?>{
+                  'progressId': item.progressId,
+                  'habitId': item.habitId,
+                  'date': item.date,
+                  'completedValue': item.completedValue,
+                  'isCompleted': item.isCompleted ? 1 : 0,
+                  'notes': item.notes,
+                  'createdAt': item.createdAt,
+                  'mood': item.mood,
+                  'energyLevel': item.energyLevel,
+                  'difficultyRating': item.difficultyRating
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<HabitProgress> _habitProgressInsertionAdapter;
+
+  @override
+  Future<HabitProgress?> getProgressById(String progressId) async {
+    return _queryAdapter.query(
+        'SELECT * FROM habit_progress WHERE progressId = ?1',
+        mapper: (Map<String, Object?> row) => HabitProgress(
+            progressId: row['progressId'] as String,
+            habitId: row['habitId'] as String,
+            date: row['date'] as String,
+            completedValue: row['completedValue'] as int,
+            isCompleted: (row['isCompleted'] as int) != 0,
+            notes: row['notes'] as String,
+            createdAt: row['createdAt'] as String,
+            mood: row['mood'] as String?,
+            energyLevel: row['energyLevel'] as int?,
+            difficultyRating: row['difficultyRating'] as int?),
+        arguments: [progressId]);
+  }
+
+  @override
+  Future<List<HabitProgress>> getProgressByHabitId(String habitId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_progress WHERE habitId = ?1 ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => HabitProgress(
+            progressId: row['progressId'] as String,
+            habitId: row['habitId'] as String,
+            date: row['date'] as String,
+            completedValue: row['completedValue'] as int,
+            isCompleted: (row['isCompleted'] as int) != 0,
+            notes: row['notes'] as String,
+            createdAt: row['createdAt'] as String,
+            mood: row['mood'] as String?,
+            energyLevel: row['energyLevel'] as int?,
+            difficultyRating: row['difficultyRating'] as int?),
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<HabitProgress?> getProgressByHabitAndDate(
+    String habitId,
+    String date,
+  ) async {
+    return _queryAdapter.query(
+        'SELECT * FROM habit_progress WHERE habitId = ?1 AND date = ?2',
+        mapper: (Map<String, Object?> row) => HabitProgress(
+            progressId: row['progressId'] as String,
+            habitId: row['habitId'] as String,
+            date: row['date'] as String,
+            completedValue: row['completedValue'] as int,
+            isCompleted: (row['isCompleted'] as int) != 0,
+            notes: row['notes'] as String,
+            createdAt: row['createdAt'] as String,
+            mood: row['mood'] as String?,
+            energyLevel: row['energyLevel'] as int?,
+            difficultyRating: row['difficultyRating'] as int?),
+        arguments: [habitId, date]);
+  }
+
+  @override
+  Future<List<HabitProgress>> getProgressByDateRange(
+    String habitId,
+    String startDate,
+    String endDate,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_progress WHERE habitId = ?1 AND date >= ?2 AND date <= ?3 ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => HabitProgress(progressId: row['progressId'] as String, habitId: row['habitId'] as String, date: row['date'] as String, completedValue: row['completedValue'] as int, isCompleted: (row['isCompleted'] as int) != 0, notes: row['notes'] as String, createdAt: row['createdAt'] as String, mood: row['mood'] as String?, energyLevel: row['energyLevel'] as int?, difficultyRating: row['difficultyRating'] as int?),
+        arguments: [habitId, startDate, endDate]);
+  }
+
+  @override
+  Future<List<HabitProgress>> getCompletedProgressByHabitId(
+      String habitId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_progress WHERE habitId = ?1 AND isCompleted = 1 ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => HabitProgress(progressId: row['progressId'] as String, habitId: row['habitId'] as String, date: row['date'] as String, completedValue: row['completedValue'] as int, isCompleted: (row['isCompleted'] as int) != 0, notes: row['notes'] as String, createdAt: row['createdAt'] as String, mood: row['mood'] as String?, energyLevel: row['energyLevel'] as int?, difficultyRating: row['difficultyRating'] as int?),
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<List<HabitProgress>> getProgressByDate(String date) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_progress WHERE date = ?1',
+        mapper: (Map<String, Object?> row) => HabitProgress(
+            progressId: row['progressId'] as String,
+            habitId: row['habitId'] as String,
+            date: row['date'] as String,
+            completedValue: row['completedValue'] as int,
+            isCompleted: (row['isCompleted'] as int) != 0,
+            notes: row['notes'] as String,
+            createdAt: row['createdAt'] as String,
+            mood: row['mood'] as String?,
+            energyLevel: row['energyLevel'] as int?,
+            difficultyRating: row['difficultyRating'] as int?),
+        arguments: [date]);
+  }
+
+  @override
+  Future<int?> getTotalCompletions(String habitId) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM habit_progress WHERE habitId = ?1 AND isCompleted = 1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<int?> getCompletionsAfterDate(
+    String habitId,
+    String startDate,
+  ) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM habit_progress WHERE habitId = ?1 AND isCompleted = 1 AND date >= ?2',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [habitId, startDate]);
+  }
+
+  @override
+  Future<List<HabitProgress>> getRecentProgress(
+    String habitId,
+    String startDate,
+  ) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_progress WHERE habitId = ?1 AND date >= ?2 ORDER BY date DESC',
+        mapper: (Map<String, Object?> row) => HabitProgress(progressId: row['progressId'] as String, habitId: row['habitId'] as String, date: row['date'] as String, completedValue: row['completedValue'] as int, isCompleted: (row['isCompleted'] as int) != 0, notes: row['notes'] as String, createdAt: row['createdAt'] as String, mood: row['mood'] as String?, energyLevel: row['energyLevel'] as int?, difficultyRating: row['difficultyRating'] as int?),
+        arguments: [habitId, startDate]);
+  }
+
+  @override
+  Future<void> updateProgress(
+    String progressId,
+    int completedValue,
+    bool isCompleted,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE habit_progress SET completedValue = ?2, isCompleted = ?3 WHERE progressId = ?1',
+        arguments: [progressId, completedValue, isCompleted ? 1 : 0]);
+  }
+
+  @override
+  Future<void> deleteProgress(String progressId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM habit_progress WHERE progressId = ?1',
+        arguments: [progressId]);
+  }
+
+  @override
+  Future<void> deleteProgressByHabitId(String habitId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM habit_progress WHERE habitId = ?1',
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<void> deleteAllProgress() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM habit_progress');
+  }
+
+  @override
+  Future<void> insertProgress(HabitProgress progress) async {
+    await _habitProgressInsertionAdapter.insert(
+        progress, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAllProgress(List<HabitProgress> progressList) async {
+    await _habitProgressInsertionAdapter.insertList(
+        progressList, OnConflictStrategy.replace);
+  }
+}
+
+class _$HabitStreakDAO extends HabitStreakDAO {
+  _$HabitStreakDAO(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _habitStreakInsertionAdapter = InsertionAdapter(
+            database,
+            'habit_streaks',
+            (HabitStreak item) => <String, Object?>{
+                  'streakId': item.streakId,
+                  'habitId': item.habitId,
+                  'currentStreak': item.currentStreak,
+                  'longestStreak': item.longestStreak,
+                  'lastCompletedDate': item.lastCompletedDate,
+                  'streakStartDate': item.streakStartDate,
+                  'updatedAt': item.updatedAt
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<HabitStreak> _habitStreakInsertionAdapter;
+
+  @override
+  Future<HabitStreak?> getStreakById(String streakId) async {
+    return _queryAdapter.query(
+        'SELECT * FROM habit_streaks WHERE streakId = ?1',
+        mapper: (Map<String, Object?> row) => HabitStreak(
+            streakId: row['streakId'] as String,
+            habitId: row['habitId'] as String,
+            currentStreak: row['currentStreak'] as int,
+            longestStreak: row['longestStreak'] as int,
+            lastCompletedDate: row['lastCompletedDate'] as String,
+            streakStartDate: row['streakStartDate'] as String,
+            updatedAt: row['updatedAt'] as String),
+        arguments: [streakId]);
+  }
+
+  @override
+  Future<HabitStreak?> getStreakByHabitId(String habitId) async {
+    return _queryAdapter.query('SELECT * FROM habit_streaks WHERE habitId = ?1',
+        mapper: (Map<String, Object?> row) => HabitStreak(
+            streakId: row['streakId'] as String,
+            habitId: row['habitId'] as String,
+            currentStreak: row['currentStreak'] as int,
+            longestStreak: row['longestStreak'] as int,
+            lastCompletedDate: row['lastCompletedDate'] as String,
+            streakStartDate: row['streakStartDate'] as String,
+            updatedAt: row['updatedAt'] as String),
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<List<HabitStreak>> getTopStreaks(int limit) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM habit_streaks ORDER BY currentStreak DESC LIMIT ?1',
+        mapper: (Map<String, Object?> row) => HabitStreak(
+            streakId: row['streakId'] as String,
+            habitId: row['habitId'] as String,
+            currentStreak: row['currentStreak'] as int,
+            longestStreak: row['longestStreak'] as int,
+            lastCompletedDate: row['lastCompletedDate'] as String,
+            streakStartDate: row['streakStartDate'] as String,
+            updatedAt: row['updatedAt'] as String),
+        arguments: [limit]);
+  }
+
+  @override
+  Future<void> updateStreak(
+    String habitId,
+    int currentStreak,
+    int longestStreak,
+    String lastCompletedDate,
+    String updatedAt,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'UPDATE habit_streaks SET currentStreak = ?2, longestStreak = ?3, lastCompletedDate = ?4, updatedAt = ?5 WHERE habitId = ?1',
+        arguments: [
+          habitId,
+          currentStreak,
+          longestStreak,
+          lastCompletedDate,
+          updatedAt
+        ]);
+  }
+
+  @override
+  Future<void> deleteStreakByHabitId(String habitId) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM habit_streaks WHERE habitId = ?1',
+        arguments: [habitId]);
+  }
+
+  @override
+  Future<void> deleteAllStreaks() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM habit_streaks');
+  }
+
+  @override
+  Future<void> insertStreak(HabitStreak streak) async {
+    await _habitStreakInsertionAdapter.insert(
+        streak, OnConflictStrategy.replace);
+  }
+
+  @override
+  Future<void> insertAllStreaks(List<HabitStreak> streaks) async {
+    await _habitStreakInsertionAdapter.insertList(
+        streaks, OnConflictStrategy.replace);
   }
 }

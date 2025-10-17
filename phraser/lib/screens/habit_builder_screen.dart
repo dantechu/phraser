@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart' show Preferences;
 import 'package:phraser/services/model/habit_model.dart';
+import 'package:phraser/services/model/habit_progress_model.dart';
 import 'package:phraser/services/habit_quote_service.dart';
 import 'package:phraser/services/model/phreasers_list_model.dart';
 import 'package:phraser/services/model/data_repository.dart';
 import 'package:phraser/util/Floor_db.dart';
+import 'package:uuid/uuid.dart';
 
 class CategoryTemplate {
   final HabitCategory category;
@@ -121,6 +123,37 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   int currentStep = 0;
   final HabitQuoteService _quoteService = HabitQuoteService();
   List<Phraser> mergedQuotes = []; // Store merged and shuffled quotes
+  bool hasExistingHabits = false;
+  List<String> existingCategories = [];
+  List<String> existingHabits = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingHabits();
+  }
+
+  void _checkExistingHabits() {
+    existingCategories = Preferences.instance.getStringList('user_categories');
+    existingHabits = Preferences.instance.getStringList('user_habits');
+    hasExistingHabits = existingCategories.isNotEmpty || existingHabits.isNotEmpty;
+
+    // Pre-select existing categories
+    if (existingCategories.isNotEmpty) {
+      for (var categoryStr in existingCategories) {
+        try {
+          final category = HabitCategory.values.firstWhere(
+            (c) => c.toString().split('.').last == categoryStr,
+          );
+          selectedCategories.add(category);
+        } catch (e) {
+          debugPrint('Error loading existing category: $categoryStr');
+        }
+      }
+    }
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -542,8 +575,137 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
         currentStep = 1;
       });
     } else {
-      _startHabits();
+      // Check if user has existing habits before starting new ones
+      if (hasExistingHabits) {
+        _showReplaceHabitsDialog();
+      } else {
+        _startHabits();
+      }
     }
+  }
+
+  void _showReplaceHabitsDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? Colors.grey[850] : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange.shade700,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Replace Existing Habits?',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'You already have active habits in the following categories:',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ...existingCategories.map((cat) => Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: kPrimaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatCategoryName(cat),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 12),
+              Text(
+                'Starting new habits will replace your existing ones. Do you want to continue?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _startHabits();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: const Text(
+                'Replace Habits',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String _formatCategoryName(String categoryStr) {
+    // Convert camelCase to Title Case
+    return categoryStr
+        .replaceAllMapped(RegExp(r'([A-Z])'), (match) => ' ${match.group(0)}')
+        .trim()
+        .split(' ')
+        .map((word) => word[0].toUpperCase() + word.substring(1))
+        .join(' ');
   }
 
   void _previousStep() {
@@ -776,7 +938,69 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
       }
     }
 
-    // Save both categories and habits to preferences
+    // 🎯 SAVE HABITS TO DATABASE
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final habitsDAO = database.habitsDAO;
+      final streakDAO = database.habitStreakDAO;
+
+      // Deactivate all existing habits first
+      await habitsDAO.deactivateAllHabits(DateTime.now().toIso8601String());
+
+      debugPrint('\n💾 ═══════════════════════════════════════════════════════════');
+      debugPrint('💾 SAVING HABITS TO DATABASE');
+      debugPrint('💾 ═══════════════════════════════════════════════════════════');
+
+      // Get category mapping to get the quote category IDs
+      final categoryMapping = _quoteService.getCategoryMapping();
+
+      // Create and save habits for each selected category
+      for (var category in selectedCategories) {
+        // Get category IDs for this habit category
+        final categoryIds = categoryMapping[category] ?? [];
+        final categoryIdsStr = categoryIds.join(',');
+
+        final habit = Habit(
+          habitId: const Uuid().v4(),
+          name: _getCategoryName(category),
+          description: 'Daily habit for ${_getCategoryName(category)}',
+          category: category.toString().split('.').last,
+          frequency: 'daily',
+          difficulty: 'beginner',
+          targetValue: 1, // Complete once per day
+          unit: 'time',
+          isActive: true,
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+          colorHex: '#4A90E2',
+          motivationalQuote: mergedQuotes.isNotEmpty ? mergedQuotes.first.quote : null,
+          tags: categoryIdsStr, // Store category IDs for quote fetching
+        );
+
+        await habitsDAO.insertHabit(habit);
+
+        // Create initial streak record
+        final streak = HabitStreak(
+          streakId: const Uuid().v4(),
+          habitId: habit.habitId,
+          currentStreak: 0,
+          longestStreak: 0,
+          lastCompletedDate: '',
+          streakStartDate: DateTime.now().toIso8601String().split('T')[0],
+          updatedAt: DateTime.now().toIso8601String(),
+        );
+
+        await streakDAO.insertStreak(streak);
+
+        debugPrint('✅ Saved habit: ${habit.name} (ID: ${habit.habitId})');
+      }
+
+      debugPrint('💾 ═══════════════════════════════════════════════════════════\n');
+    } catch (e) {
+      debugPrint('❌ Error saving habits to database: $e');
+    }
+
+    // Save both categories and habits to preferences (for backward compatibility)
     final selectedCategoriesList = selectedCategories.map((c) => c.toString().split('.').last).toList();
     Preferences.instance.setStringList('user_categories', selectedCategoriesList);
     Preferences.instance.setStringList('user_habits', defaultHabits);
