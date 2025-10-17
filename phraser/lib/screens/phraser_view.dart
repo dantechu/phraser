@@ -81,6 +81,26 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     });
   }
 
+  int _getInitialPage() {
+    // Get the last viewed position from preferences
+    final savedPosition = Preferences.instance.currentPhraserPosition;
+    final currentListLength = DataRepository().currentPhrasersList.length;
+
+    // If no quotes or saved position is invalid, start from 0
+    if (currentListLength == 0 || savedPosition < 0) {
+      return 0;
+    }
+
+    // If saved position is beyond the current list length, start from 0
+    // This can happen when switching between different quote lists (categories, habits, moods)
+    if (savedPosition >= currentListLength) {
+      Preferences.instance.currentPhraserPosition = 0;
+      return 0;
+    }
+
+    return savedPosition;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +125,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
 
                 // Main Content - Quotes Carousel
                 CarouselSlider(
-                  key: ValueKey('carousel_${DataRepository().currentPhrasersList.length}'),
+                  key: ValueKey('carousel_${DataRepository().currentPhrasersList.length}_${DataRepository().currentPhrasersList.isNotEmpty ? DataRepository().currentPhrasersList.first.phraserId : "empty"}'),
                   options: CarouselOptions(
                     onPageChanged: (int index, _) async {
                       Preferences.instance.currentPhraserPosition = index;
@@ -119,7 +139,7 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                       }
                       testPrint('onPageChanged and new Position is ${vm.themePosition.value}');
                     },
-                    initialPage: 0, // Always start from the first filtered quote
+                    initialPage: _getInitialPage(),
                     height: MediaQuery.of(context).size.height,
                     viewportFraction: 1.0,
                     enlargeCenterPage: false,
@@ -517,13 +537,47 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     
   }
 
-  void _navigateToHabits() {
+  void _navigateToHabits() async {
     _viewingModeViewModel.switchToHabits();
     _selectTab('Habits');
-    Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const HabitBuilderScreen()),
     );
+
+    // Reload quotes from database after habit selection
+    // This ensures we get the exact quotes that were saved
+    debugPrint('🔄 Returned from habit builder - reloading from database');
+
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final currentPhraserDAO = database.currentPhraserDAO;
+      final quotes = await currentPhraserDAO.getAllCurrentPhrasers();
+
+      debugPrint('📊 Loaded ${quotes.length} quotes from database');
+
+      // Update DataRepository with quotes from database
+      DataRepository().updateCurrentPhrasersList(quotes, fromHabits: true);
+      DataRepository().saveOriginalPhrasersList();
+
+      // Position should already be set to 0 by habit builder
+      debugPrint('🎯 Starting from position: ${Preferences.instance.currentPhraserPosition}');
+
+      // Force rebuild with new quotes
+      setState(() {
+        testPrint('Triggering carousel rebuild with habit quotes');
+      });
+
+      // Update favorites for the first quote
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (DataRepository().currentPhrasersList.isNotEmpty) {
+          _phraserViewModel.clearCachedPhraserId();
+          _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[0]);
+        }
+      });
+    } catch (e) {
+      debugPrint('❌ Error loading quotes from database: $e');
+    }
   }
   
   void _navigateToAIChat() {

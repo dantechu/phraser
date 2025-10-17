@@ -14,6 +14,12 @@ abstract class PhrasersDAO {
   @Query('SELECT * FROM  ${ConstantStrings.kPhrasersTableName}')
   Future<List<Phraser>> getAllQuotesFromAllCategories();
 
+  @Query('SELECT * FROM  ${ConstantStrings.kPhrasersTableName} WHERE categoryId = :categoryId')
+  Future<List<Phraser>> getPhrasersByCategoryId(String categoryId);
+
+  @Query('SELECT COUNT(*) FROM  ${ConstantStrings.kPhrasersTableName} WHERE categoryId = :categoryId')
+  Future<int?> getPhraserCountByCategoryId(String categoryId);
+
   @Insert(onConflict: OnConflictStrategy.replace)
   Future<void> insertAllPhrasers(List<Phraser> phrasersList);
 

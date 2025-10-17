@@ -309,6 +309,32 @@ class _$PhrasersDAO extends PhrasersDAO {
   }
 
   @override
+  Future<List<Phraser>> getPhrasersByCategoryId(String categoryId) async {
+    return _queryAdapter.queryList(
+        'SELECT * FROM  phrasers WHERE categoryId = ?1',
+        mapper: (Map<String, Object?> row) => Phraser(
+            phraserId: row['phraserId'] as String,
+            tags: row['tags'] as String,
+            quote: row['quote'] as String,
+            categoryId: row['categoryId'] as String,
+            categoryName: row['categoryName'] as String,
+            categorySection: row['categorySection'] as String,
+            categoryType: row['categoryType'] as String,
+            lastUpdate: row['lastUpdate'] as String,
+            moodsString: row['moodsString'] as String?,
+            regionsString: row['regionsString'] as String?),
+        arguments: [categoryId]);
+  }
+
+  @override
+  Future<int?> getPhraserCountByCategoryId(String categoryId) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(*) FROM  phrasers WHERE categoryId = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [categoryId]);
+  }
+
+  @override
   Future<void> insertAllPhrasers(List<Phraser> phrasersList) async {
     await _phraserInsertionAdapter.insertList(
         phrasersList, OnConflictStrategy.replace);

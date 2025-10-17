@@ -5,7 +5,7 @@ import '../util/constant_strings.dart';
 @dao
 abstract class CurrentPhrasersDAO {
 
-  @Query('SELECT * FROM  ${ConstantStrings.kCurrentPhrasersTableName}')
+  @Query('SELECT * FROM  ${ConstantStrings.kCurrentPhrasersTableName} ORDER BY ROWID')
   Future<List<Phraser>> getAllCurrentPhrasers();
 
   @Insert(onConflict: OnConflictStrategy.replace)

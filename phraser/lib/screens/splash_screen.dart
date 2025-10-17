@@ -58,6 +58,9 @@ class _SplashScreenState extends State<SplashScreen> {
           // Use DataPreloader for comprehensive data management
           await DataPreloader.instance.preloadAllData();
 
+          // Load current phrasers from database on app restart
+          await getCurrentPhrasersList();
+
           ///  Loads ads here
           AdsHelper.loadRewardedVideoAd();
           AdsHelper.loadAdmobInterstitialAd();

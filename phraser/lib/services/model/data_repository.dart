@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:phraser/services/model/categories.dart';
 import 'package:phraser/services/model/category_sections.dart';
 import 'package:phraser/services/model/phreasers_list_model.dart';
@@ -19,20 +20,35 @@ class DataRepository {
 
   // Store original phrasers list for filtering purposes
   List<Phraser> _originalPhrasersList = [];
-  
+
   // Store ALL quotes from ALL categories for global mood filtering
   List<Phraser> _allQuotesFromAllCategories = [];
-  
+
   // Use a Set to track existing IDs for fast duplicate checking
   Set<String> _existingQuoteIds = {};
 
-  void updateCurrentPhrasersList(List<Phraser> newList) {
+  // Flag to indicate if habit quotes are active
+  bool _habitQuotesActive = false;
+
+  void updateCurrentPhrasersList(List<Phraser> newList, {bool fromHabits = false}) {
     // Save original list if not already saved
     if (_originalPhrasersList.isEmpty && currentPhrasersList.isNotEmpty) {
       _originalPhrasersList = List.from(currentPhrasersList);
     }
-    
+
     currentPhrasersList = newList;
+    _habitQuotesActive = fromHabits;
+
+    if (fromHabits) {
+      debugPrint('✅ DataRepository: Habit quotes activated (${newList.length} quotes)');
+    }
+  }
+
+  bool get isHabitQuotesActive => _habitQuotesActive;
+
+  void clearHabitQuotesFlag() {
+    _habitQuotesActive = false;
+    debugPrint('🔄 DataRepository: Habit quotes flag cleared');
   }
 
   void resetToOriginalPhrasersList() {

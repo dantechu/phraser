@@ -176,15 +176,31 @@ class CategoriesListViewModel extends GetxController {
       await phrasersDAO.insertAllPhrasers(listModel);
       testPrint('${listModel[0].categoryName} wit id ${listModel[0].categoryId} list data inserted to floor db ');
 
-      if(listModel[0].categoryName.toLowerCase().contains('self respect')) {
-        if(Preferences.instance.isFirstOpen) {
+      // On first app start, load first category's quotes
+      if(Preferences.instance.isFirstOpen) {
+        // Check if this is the first category being loaded (categoryId should be the lowest/first)
+        if(listModel.isNotEmpty) {
           final database = FloorDB.instance.floorDatabase;
-          CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
-          await currentPhraserDAO.insertAllCurrentPhrasers(listModel);
-          testPrint('first time current phrasers saved into db');
-          DataRepository().currentPhrasersList = listModel;
-          DataRepository().addToAllQuotes(listModel);
-          debugPrint('---> Personal growth category set for first time');
+          final categoriesDAO = database.categoriesDAO;
+          final allCategories = await categoriesDAO.getAllCategories();
+
+          // Find the first category by sorting category IDs
+          if(allCategories.isNotEmpty) {
+            allCategories.sort((a, b) => int.parse(a.categoryId).compareTo(int.parse(b.categoryId)));
+            final firstCategoryId = allCategories.first.categoryId;
+
+            // If this is the first category, save it to current phrasers
+            if(listModel[0].categoryId == firstCategoryId) {
+              CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
+              await currentPhraserDAO.deleteCurrentPhrasers();
+              await currentPhraserDAO.insertAllCurrentPhrasers(listModel);
+              testPrint('First app start: ${listModel[0].categoryName} (ID: ${listModel[0].categoryId}) quotes saved to current phrasers');
+              DataRepository().currentPhrasersList = listModel;
+              DataRepository().addToAllQuotes(listModel);
+              Preferences.instance.currentPhraserPosition = 0;
+              debugPrint('---> First category loaded with ${listModel.length} quotes');
+            }
+          }
         }
       }
       Preferences.instance.isCategoriesPresent = true;
@@ -272,18 +288,32 @@ class CategoriesListViewModel extends GetxController {
       PhrasersDAO phrasersDAO = database.phraserDAO;
       phrasersDAO.insertAllPhrasers(listModel);
       testPrint('${listModel[0].categoryName} wit id ${listModel[0].categoryId} list data inserted to floor db ');
-      if(listModel[0].categoryName.toLowerCase().contains('self respect')) {
-        if(Preferences.instance.isFirstOpen) {
+
+      // On first app start, load first category's quotes
+      if(Preferences.instance.isFirstOpen) {
+        // Check if this is the first category being loaded (categoryId should be the lowest/first)
+        if(listModel.isNotEmpty) {
           final database = FloorDB.instance.floorDatabase;
-          CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
-          await  currentPhraserDAO.insertAllCurrentPhrasers(listModel)
-              .then((value) {
-            testPrint('first time current phrasers saved into db');
-          });
-          DataRepository().currentPhrasersList = listModel;
-          // Also add these quotes to the global collection for mood filtering
-          DataRepository().addToAllQuotes(listModel);
-          debugPrint('---> Personal growth category set for first time');
+          final categoriesDAO = database.categoriesDAO;
+          final allCategories = await categoriesDAO.getAllCategories();
+
+          // Find the first category by sorting category IDs
+          if(allCategories.isNotEmpty) {
+            allCategories.sort((a, b) => int.parse(a.categoryId).compareTo(int.parse(b.categoryId)));
+            final firstCategoryId = allCategories.first.categoryId;
+
+            // If this is the first category, save it to current phrasers
+            if(listModel[0].categoryId == firstCategoryId) {
+              CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
+              await currentPhraserDAO.deleteCurrentPhrasers();
+              await currentPhraserDAO.insertAllCurrentPhrasers(listModel);
+              testPrint('First app start: ${listModel[0].categoryName} (ID: ${listModel[0].categoryId}) quotes saved to current phrasers');
+              DataRepository().currentPhrasersList = listModel;
+              DataRepository().addToAllQuotes(listModel);
+              Preferences.instance.currentPhraserPosition = 0;
+              debugPrint('---> First category loaded with ${listModel.length} quotes');
+            }
+          }
         }
       }
       Preferences.instance.isCategoriesPresent = true;

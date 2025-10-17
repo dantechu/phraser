@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:uuid/uuid.dart';
 import '../../../services/model/habit_model.dart';
 import '../../../services/model/habit_progress_model.dart';
+import '../../../services/habit_quote_service.dart';
+import '../../../util/Floor_db.dart';
 
 class HabitBuilderViewModel extends GetxController {
   // Controllers for form fields
@@ -17,18 +19,55 @@ class HabitBuilderViewModel extends GetxController {
   String? selectedUnit;
   HabitFrequency? selectedFrequency;
   HabitDifficulty? selectedDifficulty;
-  
+
   // All user habits
   List<Habit> userHabits = [];
   List<HabitProgress> habitProgresses = [];
-  
+
   // Current habit being tracked
   Habit? currentHabit;
+
+  // Quote service
+  final HabitQuoteService _quoteService = HabitQuoteService();
 
   @override
   void onInit() {
     super.onInit();
     _loadUserHabits();
+    _checkDatabaseStatus(); // Check if database has quotes
+  }
+
+  /// Check database status and log information
+  Future<void> _checkDatabaseStatus() async {
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final phrasersDAO = database.phraserDAO;
+      final allQuotes = await phrasersDAO.getAllQuotesFromAllCategories();
+
+      debugPrint('\n🔍 ═══════════════════════════════════════════════════════════');
+      debugPrint('🔍 HABIT QUOTE SERVICE - DATABASE STATUS CHECK');
+      debugPrint('🔍 ═══════════════════════════════════════════════════════════');
+      debugPrint('📊 Total quotes in database: ${allQuotes.length}');
+
+      if (allQuotes.isEmpty) {
+        debugPrint('⚠️  WARNING: Database is EMPTY!');
+        debugPrint('   No quotes found in the database.');
+        debugPrint('   Please run initial data loading from the API to populate quotes.');
+        debugPrint('   Navigate to the splash screen or trigger data sync.');
+      } else {
+        debugPrint('✅ Database has quotes loaded');
+
+        // Get unique category IDs
+        final categoryIds = allQuotes.map((q) => q.categoryId).toSet();
+        debugPrint('📂 Categories in database: ${categoryIds.length}');
+        debugPrint('   Category IDs: ${categoryIds.take(10).join(", ")}${categoryIds.length > 10 ? "..." : ""}');
+      }
+
+      debugPrint('🔍 ═══════════════════════════════════════════════════════════\n');
+    } catch (e) {
+      debugPrint('❌ Error checking database status: $e');
+      debugPrint('   This might indicate the database is not initialized yet.');
+    }
   }
 
   @override
@@ -39,12 +78,63 @@ class HabitBuilderViewModel extends GetxController {
     super.dispose();
   }
 
-  void selectCategory(HabitCategory category) {
+  void selectCategory(HabitCategory category) async {
     selectedCategory = category;
     // Reset template selection when category changes
     selectedTemplate = null;
     isCustomHabit = false;
     update();
+
+    // Fetch and log quote count for selected category
+    await _logQuotesForCategory(category);
+  }
+
+  /// Fetch and log quotes available for a category
+  Future<void> _logQuotesForCategory(HabitCategory category) async {
+    try {
+      debugPrint('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('🎯 CATEGORY SELECTED: ${_getCategoryDisplayName(category)}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      final quotes = await _quoteService.getQuotesForCategory(category);
+
+      debugPrint('📊 Available Quotes after merge & shuffle: ${quotes.length}');
+
+      if (quotes.isEmpty) {
+        debugPrint('⚠️  WARNING: No quotes found! Database might be empty.');
+        debugPrint('   Run initial data loading to populate quotes.');
+      }
+
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    } catch (e) {
+      debugPrint('❌ Error fetching quotes for category: $e');
+      debugPrint('   Stack trace: ${StackTrace.current}');
+    }
+  }
+
+  String _getCategoryDisplayName(HabitCategory category) {
+    switch (category) {
+      case HabitCategory.healthFitness:
+        return 'Health & Fitness';
+      case HabitCategory.mindEmotions:
+        return 'Mind & Emotions';
+      case HabitCategory.learningGrowth:
+        return 'Learning & Growth';
+      case HabitCategory.productivityWork:
+        return 'Productivity & Work';
+      case HabitCategory.financeMoney:
+        return 'Finance & Money';
+      case HabitCategory.lifestyleRoutine:
+        return 'Lifestyle & Routine';
+      case HabitCategory.relationshipsSocial:
+        return 'Relationships & Social';
+      case HabitCategory.creativityHobbies:
+        return 'Creativity & Hobbies';
+      case HabitCategory.contributionImpact:
+        return 'Contribution & Impact';
+      case HabitCategory.spiritualityMindfulness:
+        return 'Spirituality & Mindfulness';
+    }
   }
 
   void selectTemplate(HabitTemplate template) {
@@ -97,6 +187,31 @@ class HabitBuilderViewModel extends GetxController {
       throw Exception('Please fill in all required fields');
     }
 
+    // Fetch quotes from merged categories FIRST
+    final quotes = await _quoteService.getQuotesForCategory(selectedCategory!);
+
+    // Pick a random motivational quote from merged categories
+    String? motivationalQuote;
+    String? tags;
+
+    if (quotes.isNotEmpty) {
+      final randomQuote = quotes[0]; // Already shuffled, so first item is random
+      motivationalQuote = randomQuote.quote;
+
+      // Store the category IDs as tags for future quote fetching
+      final categoryMapping = _quoteService.getCategoryMapping();
+      final categoryIds = categoryMapping[selectedCategory!] ?? [];
+      tags = categoryIds.join(','); // Store as comma-separated category IDs
+
+      debugPrint('✨ Selected quote: "$motivationalQuote"');
+      debugPrint('📂 Stored category IDs for future quotes: $tags');
+    } else {
+      // Fallback to template quote if no quotes from database
+      motivationalQuote = selectedTemplate?.motivationalQuote;
+      tags = selectedTemplate?.relatedTags.join(',');
+      debugPrint('⚠️  Using template quote as fallback');
+    }
+
     final habit = Habit(
       habitId: const Uuid().v4(),
       name: habitNameController.text.trim(),
@@ -111,8 +226,8 @@ class HabitBuilderViewModel extends GetxController {
       updatedAt: DateTime.now().toIso8601String(),
       iconPath: selectedTemplate?.iconPath,
       colorHex: selectedTemplate?.colorHex ?? '#4A90E2',
-      motivationalQuote: selectedTemplate?.motivationalQuote,
-      tags: selectedTemplate?.relatedTags.join(','),
+      motivationalQuote: motivationalQuote, // NOW SET FROM MERGED QUOTES!
+      tags: tags, // NOW SET AS CATEGORY IDS FOR FUTURE FETCHING!
     );
 
     // Create initial streak record
@@ -128,10 +243,43 @@ class HabitBuilderViewModel extends GetxController {
 
     // Save to database (implement database service)
     await _saveHabitToDatabase(habit, streak);
-    
+
+    // Fetch and log quotes for this habit (for verification)
+    await _logQuotesForHabit(habit);
+
     // Add to local list
     userHabits.add(habit);
     update();
+  }
+
+  /// Fetch and log quotes available for a specific habit
+  Future<void> _logQuotesForHabit(Habit habit) async {
+    try {
+      debugPrint('\n═══════════════════════════════════════════════════════════');
+      debugPrint('✨ HABIT CREATED: ${habit.name}');
+      debugPrint('═══════════════════════════════════════════════════════════');
+
+      final quotes = await _quoteService.getQuotesForHabit(habit);
+
+      debugPrint('\n🎯 Habit Category: ${_getCategoryDisplayName(habit.categoryEnum)}');
+      debugPrint('📊 Total Quotes Available (after merge & shuffle): ${quotes.length}');
+
+      if (quotes.isNotEmpty) {
+        debugPrint('\n📝 Sample Quotes (first 3):');
+        for (int i = 0; i < (quotes.length > 3 ? 3 : quotes.length); i++) {
+          debugPrint('  ${i + 1}. "${quotes[i].quote}"');
+          debugPrint('     - From: ${quotes[i].categoryName} (ID: ${quotes[i].categoryId})');
+        }
+      } else {
+        debugPrint('⚠️  WARNING: No quotes available for this habit category!');
+        debugPrint('   Database might be empty. Run initial data loading.');
+      }
+
+      debugPrint('\n═══════════════════════════════════════════════════════════\n');
+    } catch (e) {
+      debugPrint('❌ Error fetching quotes for habit: $e');
+      debugPrint('   Stack trace: ${StackTrace.current}');
+    }
   }
 
   bool _validateInput() {
@@ -283,5 +431,36 @@ class HabitBuilderViewModel extends GetxController {
   double getTodaysCompletionRate() {
     if (activeHabits.isEmpty) return 0.0;
     return (getTodaysCompletedHabits() / activeHabits.length) * 100;
+  }
+
+  /// Get a fresh motivational quote for a habit from its stored category IDs
+  /// This can be called daily or when user wants a new quote
+  Future<String?> getFreshQuoteForHabit(Habit habit) async {
+    try {
+      // Use the stored tags (category IDs) to fetch fresh quotes
+      final quotes = await _quoteService.getQuotesForHabit(habit);
+
+      if (quotes.isNotEmpty) {
+        // Return a random quote (already shuffled)
+        return quotes[0].quote;
+      }
+
+      // Fallback to stored quote if no quotes available
+      return habit.motivationalQuote;
+    } catch (e) {
+      debugPrint('❌ Error fetching fresh quote: $e');
+      return habit.motivationalQuote; // Return stored quote on error
+    }
+  }
+
+  /// Get multiple fresh quotes for a habit (for carousel/list)
+  Future<List<String>> getFreshQuotesForHabit(Habit habit, int count) async {
+    try {
+      final phrasers = await _quoteService.getRandomQuotesForHabit(habit, count);
+      return phrasers.map((p) => p.quote).toList();
+    } catch (e) {
+      debugPrint('❌ Error fetching fresh quotes: $e');
+      return habit.motivationalQuote != null ? [habit.motivationalQuote!] : [];
+    }
   }
 }

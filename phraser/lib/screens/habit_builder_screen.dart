@@ -3,6 +3,10 @@ import 'package:get/get.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart' show Preferences;
 import 'package:phraser/services/model/habit_model.dart';
+import 'package:phraser/services/habit_quote_service.dart';
+import 'package:phraser/services/model/phreasers_list_model.dart';
+import 'package:phraser/services/model/data_repository.dart';
+import 'package:phraser/util/Floor_db.dart';
 
 class CategoryTemplate {
   final HabitCategory category;
@@ -115,6 +119,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
 
   Set<HabitCategory> selectedCategories = {};
   int currentStep = 0;
+  final HabitQuoteService _quoteService = HabitQuoteService();
+  List<Phraser> mergedQuotes = []; // Store merged and shuffled quotes
 
   @override
   Widget build(BuildContext context) {
@@ -662,10 +668,79 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
     }
   }
 
-  void _startHabits() {
+  Future<void> _startHabits() async {
+    debugPrint('\n🚀 ═══════════════════════════════════════════════════════════');
+    debugPrint('🚀 START BUILDING HABITS - FETCHING QUOTES');
+    debugPrint('🚀 ═══════════════════════════════════════════════════════════');
+    debugPrint('📋 Selected Categories: ${selectedCategories.length}');
+
+    // Show loading indicator
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(),
+      ),
+      barrierDismissible: false,
+    );
+
+    // Fetch and merge quotes from ALL selected categories
+    mergedQuotes = [];
+
+    for (var category in selectedCategories) {
+      debugPrint('\n📂 Processing: ${_getCategoryName(category)}');
+
+      final quotes = await _quoteService.getQuotesForCategory(category);
+      mergedQuotes.addAll(quotes);
+
+      debugPrint('   ✓ Fetched ${quotes.length} quotes');
+      debugPrint('   📊 Running total: ${mergedQuotes.length} quotes');
+    }
+
+    // Shuffle the merged quotes
+    mergedQuotes.shuffle();
+
+    debugPrint('\n🎲 ═══════════════════════════════════════════════════════════');
+    debugPrint('🎲 QUOTES MERGED & SHUFFLED');
+    debugPrint('🎲 ═══════════════════════════════════════════════════════════');
+    debugPrint('📊 Total quotes to serve: ${mergedQuotes.length}');
+    debugPrint('📂 From ${selectedCategories.length} categories');
+
+    if (mergedQuotes.isNotEmpty) {
+      debugPrint('\n📝 Sample quotes (first 5):');
+      for (int i = 0; i < (mergedQuotes.length > 5 ? 5 : mergedQuotes.length); i++) {
+        debugPrint('  ${i + 1}. "${mergedQuotes[i].quote}"');
+        debugPrint('     - From: ${mergedQuotes[i].categoryName} (ID: ${mergedQuotes[i].categoryId})');
+      }
+    } else {
+      debugPrint('⚠️  WARNING: No quotes found! Database might be empty.');
+    }
+
+    debugPrint('\n🎲 ═══════════════════════════════════════════════════════════\n');
+
+    // 🎯 STORE MERGED QUOTES IN DATA REPOSITORY FOR PHRASER VIEW
+    debugPrint('💾 Storing ${mergedQuotes.length} quotes in DataRepository...');
+    DataRepository().updateCurrentPhrasersList(mergedQuotes, fromHabits: true);
+    DataRepository().saveOriginalPhrasersList();
+
+    // 🎯 SAVE MERGED QUOTES TO DATABASE (current_phrasers table)
+    try {
+      final database = FloorDB.instance.floorDatabase;
+      final currentPhraserDAO = database.currentPhraserDAO;
+
+      // Clear old current phrasers and save new ones
+      await currentPhraserDAO.deleteCurrentPhrasers();
+      await currentPhraserDAO.insertAllCurrentPhrasers(mergedQuotes);
+
+      debugPrint('✅ Quotes saved to database (current_phrasers table)');
+    } catch (e) {
+      debugPrint('❌ Error saving quotes to database: $e');
+    }
+
+    debugPrint('✅ Quotes stored successfully! Phraser view will display these quotes.');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
     // Create default habits for each selected category
     List<String> defaultHabits = [];
-    
+
     for (var category in selectedCategories) {
       switch (category) {
         case HabitCategory.healthFitness:
@@ -700,15 +775,22 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
           break;
       }
     }
-    
+
     // Save both categories and habits to preferences
     final selectedCategoriesList = selectedCategories.map((c) => c.toString().split('.').last).toList();
     Preferences.instance.setStringList('user_categories', selectedCategoriesList);
     Preferences.instance.setStringList('user_habits', defaultHabits);
 
+    // Reset carousel position to start showing from first quote
+    Preferences.instance.currentPhraserPosition = 0;
+
+    // Close loading dialog
+    Get.back();
+
+    // Show success message
     Get.snackbar(
       'Habits Created!',
-      'Your ${defaultHabits.length} habits have been set up. Start building your routine!',
+      '${defaultHabits.length} habits set up with ${mergedQuotes.length} motivational quotes ready!',
       backgroundColor: kPrimaryColor.withOpacity(0.9),
       colorText: Colors.white,
       duration: const Duration(seconds: 3),
@@ -716,8 +798,15 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
       borderRadius: 8,
     );
 
-    // Navigate back to home
-    Navigator.pop(context);
+    // Navigate back to home (check mounted before using context)
+    if (mounted) {
+      Navigator.pop(context);
+    }
+  }
+
+  String _getCategoryName(HabitCategory category) {
+    final template = habitCategories.firstWhere((t) => t.category == category);
+    return template.name;
   }
 }
 
