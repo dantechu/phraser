@@ -57,6 +57,7 @@ dependencies:
   image_picker:
   uuid: ^4.5.1
   flutter_tts: ^4.2.0
+  home_widget: ^0.6.0
   core:
     path: ../packages/core/
   ai_interactions:

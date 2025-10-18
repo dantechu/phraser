@@ -55,5 +55,17 @@
            android:name="com.google.android.gms.ads.APPLICATION_ID"
            android:value="ca-app-pub-9740790965972178~9594182399"/>
 
+        <!-- Phraser Widget Provider -->
+        <receiver
+            android:name=".PhraserWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/phraser_widget_info" />
+        </receiver>
+
     </application>
 </manifest>

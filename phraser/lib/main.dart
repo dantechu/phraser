@@ -18,6 +18,7 @@ import 'package:phraser/util/app_config_service.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/helper/get_di.dart' as di;
+import 'package:phraser/services/widget_service.dart';
 
 import 'payments/view_model/in_app_purchase_view_model.dart';
 
@@ -82,6 +83,10 @@ Future<void> _initApp() async {
     debugPrint('Failed to set up Crashlytics error handler: $e');
   }
   AppConfigService.instance.init();
+
+  // Initialize widget service for home screen widgets
+  await WidgetService().initialize();
+
  // initializeApplovinMAX();
 }
 

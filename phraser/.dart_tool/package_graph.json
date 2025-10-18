@@ -32,6 +32,7 @@
         "google_fonts",
         "google_mobile_ads",
         "hive",
+        "home_widget",
         "http",
         "image_picker",
         "in_app_purchase",
@@ -179,6 +180,15 @@
         "hive",
         "hive_flutter",
         "result_type"
+      ]
+    },
+    {
+      "name": "home_widget",
+      "version": "0.6.0",
+      "dependencies": [
+        "flutter",
+        "path_provider",
+        "path_provider_foundation"
       ]
     },
     {
@@ -1105,6 +1115,14 @@
       ]
     },
     {
+      "name": "path_provider_foundation",
+      "version": "2.4.2",
+      "dependencies": [
+        "flutter",
+        "path_provider_platform_interface"
+      ]
+    },
+    {
       "name": "flutter_web_plugins",
       "version": "0.0.0",
       "dependencies": [
@@ -1303,14 +1321,6 @@
         "path",
         "path_provider_platform_interface",
         "xdg_directories"
-      ]
-    },
-    {
-      "name": "path_provider_foundation",
-      "version": "2.4.2",
-      "dependencies": [
-        "flutter",
-        "path_provider_platform_interface"
       ]
     },
     {

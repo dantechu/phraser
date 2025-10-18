@@ -644,6 +644,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "home_widget",
+      "rootUri": "file:///Users/haris/.pub-cache/hosted/pub.dev/home_widget-0.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "http",
       "rootUri": "file:///Users/haris/.pub-cache/hosted/pub.dev/http-1.5.0",
       "packageUri": "lib/",

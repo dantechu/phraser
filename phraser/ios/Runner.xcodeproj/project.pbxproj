@@ -151,7 +151,6 @@
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				0535A15EC1762DCBA67C31CE /* [CP] Embed Pods Frameworks */,
 				AE66126A6265DECA08839939 /* [CP] Copy Pods Resources */,
-				66E607CC2EA2B4B90032D3E0 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -243,23 +242,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
-		};
-		66E607CC2EA2B4B90032D3E0 /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"$PODS_ROOT/FirebaseCrashlytics/upload-symbols\" --flutter-project \"$PROJECT_DIR/firebase_app_id_file.json\" \n";
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;

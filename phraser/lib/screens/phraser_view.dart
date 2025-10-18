@@ -10,6 +10,7 @@ import 'package:phraser/floor_db/favorites_dao.dart';
 import 'package:phraser/screens/categories_list_screen.dart';
 import 'package:phraser/screens/habit_stats_screen.dart';
 import 'package:phraser/services/model/data_repository.dart';
+import 'package:phraser/services/widget_service.dart';
 import 'package:phraser/util/Floor_db.dart';
 import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/helper/route_helper.dart';
@@ -130,7 +131,11 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
                     onPageChanged: (int index, _) async {
                       Preferences.instance.currentPhraserPosition = index;
                       if (DataRepository().currentPhrasersList.isNotEmpty && index < DataRepository().currentPhrasersList.length) {
-                        _phraserViewModel.isFavorites(DataRepository().currentPhrasersList[index]);
+                        final currentQuote = DataRepository().currentPhrasersList[index];
+                        _phraserViewModel.isFavorites(currentQuote);
+
+                        // Update home screen widget with current quote
+                        WidgetService().updateWidgetWithQuote(currentQuote);
                       }
                       if (Preferences.instance.textThemePosition == 0) {
                         Random random = Random();
