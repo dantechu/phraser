@@ -32,6 +32,12 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  # Nested widget extension target (child of Runner)
+  target 'PhraserWidgetExtension' do
+    # Inherit only search paths, no actual pods
+    inherit! :search_paths
+  end
 end
 
 post_install do |installer|
@@ -43,6 +49,19 @@ post_install do |installer|
       if config.build_settings['OTHER_CFLAGS']
         config.build_settings['OTHER_CFLAGS'] =
           config.build_settings['OTHER_CFLAGS'].reject { |f| f.include?('-G') }
+      end
+    end
+  end
+
+  # Configure widget extension to have Runner as host
+  installer.aggregate_targets.each do |aggregate_target|
+    aggregate_target.user_project.targets.each do |target|
+      if target.name == 'PhraserWidgetExtension'
+        # Set the host target relationship
+        target.build_configurations.each do |config|
+          # Widget extensions need minimal configuration
+          config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'YES'
+        end
       end
     end
   end

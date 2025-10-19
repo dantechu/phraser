@@ -28,6 +28,36 @@ The iOS widget displays quotes from the Phraser app on the iOS home screen, simi
 
 ## Manual Steps Required
 
+### 0. **🚨 CRITICAL: Embed Widget Extension in Runner App**
+
+**Why:** The widget extension must be embedded in the main app for it to appear in the widget picker.
+
+**⚠️ This is the #1 reason widgets don't appear - do this step first!**
+
+**Steps:**
+1. Open `ios/Runner.xcworkspace` in Xcode (NOT `.xcodeproj`)
+2. Select the `Runner` project in the Project Navigator (blue icon at top)
+3. Select the `Runner` target (under TARGETS section)
+4. Go to **Build Phases** tab
+5. Find the **Embed Foundation Extensions** section
+6. Click the **+** button
+7. Select `PhraserWidgetExtension.appex` from the list
+8. Ensure it shows in the list (not grayed out)
+9. Clean build: **Product** → **Clean Build Folder** (Cmd+Shift+K)
+10. Rebuild and run the app
+11. After app installs, long-press home screen → tap **+** → search "Phraser"
+
+**Verification:**
+After building, verify the widget is embedded:
+```bash
+ls -la build/ios/Debug-iphonesimulator/Runner.app/PlugIns/
+```
+You should see `PhraserWidgetExtension.appex` folder.
+
+If the folder doesn't exist, the widget won't appear in the widget picker!
+
+---
+
 ### 1. Verify Widget Target in Xcode
 
 **Why:** Ensure the PhraserWidget extension target is properly configured in the Xcode project.
@@ -36,8 +66,8 @@ The iOS widget displays quotes from the Phraser app on the iOS home screen, simi
 1. Open `ios/Runner.xcworkspace` in Xcode (NOT `.xcodeproj`)
 2. In the Project Navigator, verify you can see:
    - `Runner` (main app target)
-   - `PhraserWidget` (widget extension target)
-3. If PhraserWidget target is missing, you'll need to create it (see Section 6)
+   - `PhraserWidgetExtension` (widget extension target)
+3. If PhraserWidgetExtension target is missing, you'll need to create it (see Section 6)
 
 ---
 
@@ -298,45 +328,64 @@ Dependency cycle detected
 
 **Cause:** The widget extension target and Runner target have a circular dependency through CocoaPods.
 
-**Solution - Option 1 (Quick Fix in Xcode):**
+**Solution ✅ (APPLIED):**
 
-1. Open `ios/Runner.xcworkspace` in Xcode
-2. Select the Runner project in the navigator
-3. Select the `PhraserWidgetExtension` target
-4. Go to **Build Phases** tab
-5. Look for `[CP] Copy Pods Resources` script phase
-6. **Delete** or **disable** this script phase (the widget extension doesn't need CocoaPods resources)
-7. Clean build folder: **Product** → **Clean Build Folder** (Cmd+Shift+K)
-8. Rebuild the project
+I've already updated your `ios/Podfile` to fix this. Now follow these steps:
 
-**Solution - Option 2 (Remove widget from embed):**
-
-If Option 1 doesn't work:
-1. Select the `Runner` target
-2. Go to **Build Phases** tab
-3. Expand **Embed Foundation Extensions**
-4. Find `PhraserWidgetExtension.appex`
-5. Temporarily remove it (you can add it back later)
-6. Clean and rebuild
-
-**Solution - Option 3 (Podfile modification):**
-
-Add this to your `ios/Podfile` to exclude widget from CocoaPods:
-
-```ruby
-# Exclude widget extension from pods
-target 'PhraserWidgetExtension' do
-  # No pods needed for widget extension
-end
-```
-
-Then run:
+**Step 1: Run pod install**
 ```bash
 cd ios
 pod install
+cd ..
 ```
 
-**Recommended:** Try Option 1 first as it's the simplest and most reliable solution.
+**Step 2: Clean CocoaPods Build Phases in Xcode**
+1. Open `ios/Runner.xcworkspace` in Xcode
+2. Select the Runner project → `PhraserWidgetExtension` target
+3. Go to **Build Phases** tab
+4. Look for these sections and **delete them** if present:
+   - `[CP] Copy Pods Resources`
+   - `[CP] Embed Pods Frameworks`
+   - `[CP] Check Pods Manifest.lock`
+5. The widget extension should NOT have any CocoaPods phases
+
+**Step 3: Verify Embed is Correct & FIX BUILD PHASE ORDER**
+1. Select the `Runner` target (not PhraserWidgetExtension)
+2. Go to **Build Phases** tab
+3. Find **Embed Foundation Extensions**
+4. Verify `PhraserWidgetExtension.appex` is listed there
+5. **🚨 CRITICAL:** **Drag "Embed Foundation Extensions" to be the LAST build phase**
+   - Click and drag it below all other phases
+   - This prevents the circular dependency
+   - Final order should be:
+     - Dependencies
+     - [CP-User] Run Script
+     - Compile Sources
+     - Link Binary With Libraries
+     - [CP] Embed Pods Frameworks
+     - [CP] Copy Pods Resources
+     - Thin Binary
+     - Copy Bundle Resources
+     - **Embed Foundation Extensions** ← Must be LAST
+
+**Step 4: Clean and Rebuild**
+1. In Xcode: **Product** → **Clean Build Folder** (Cmd+Shift+K)
+2. Close Xcode
+3. Run: `flutter clean && flutter pub get`
+4. Run: `flutter run`
+
+**What was changed in Podfile:**
+```ruby
+# Widget extension target - no pods needed
+target 'PhraserWidgetExtension' do
+  use_frameworks!
+  use_modular_headers!
+  # Widget extension doesn't need any pods
+  # This prevents dependency cycle issues
+end
+```
+
+This tells CocoaPods to recognize the widget target but not add any pods to it, preventing the circular dependency.
 
 ---
 

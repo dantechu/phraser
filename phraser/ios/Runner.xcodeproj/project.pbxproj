@@ -13,12 +13,13 @@
 		664EEBF82AAE355D00ECEF7A /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 664EEBF72AAE355D00ECEF7A /* StoreKit.framework */; };
 		66557FAD2EA553D300E0B600 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66557FAC2EA553D300E0B600 /* WidgetKit.framework */; };
 		66557FAF2EA553D300E0B600 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 66557FAE2EA553D300E0B600 /* SwiftUI.framework */; };
-		66557FBE2EA553D400E0B600 /* PhraserWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 66557FAB2EA553D300E0B600 /* PhraserWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		665580702EA560DA00E0B600 /* PhraserWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 66557FAB2EA553D300E0B600 /* PhraserWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		66B5EC5B2AD9925E007576B7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 66B5EC5A2AD9925E007576B7 /* GoogleService-Info.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		FBB756C6BD38C5B99D3B3EC5 /* Pods_PhraserWidgetExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C68AD1EB820EB8F01A804C72 /* Pods_PhraserWidgetExtension.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,7 +39,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				66557FBE2EA553D400E0B600 /* PhraserWidgetExtension.appex in Embed Foundation Extensions */,
+				665580702EA560DA00E0B600 /* PhraserWidgetExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -59,8 +60,11 @@
 		050B82DCC2E1C45840E44894 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		3773F1EE62E519333FE9B776 /* Pods-PhraserWidgetExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PhraserWidgetExtension.debug.xcconfig"; path = "Target Support Files/Pods-PhraserWidgetExtension/Pods-PhraserWidgetExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
+		3CB1F12A9EA92BC06ABABB78 /* Pods-PhraserWidgetExtension.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PhraserWidgetExtension.profile.xcconfig"; path = "Target Support Files/Pods-PhraserWidgetExtension/Pods-PhraserWidgetExtension.profile.xcconfig"; sourceTree = "<group>"; };
 		415C423165B1EB466CEEA817 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
+		4638AA755CA03AA0A539C343 /* Pods-PhraserWidgetExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PhraserWidgetExtension.release.xcconfig"; path = "Target Support Files/Pods-PhraserWidgetExtension/Pods-PhraserWidgetExtension.release.xcconfig"; sourceTree = "<group>"; };
 		6192CF9F5CACD10DB3B05BC5 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		6630DF9B29E259120043E541 /* subscription.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = subscription.storekit; sourceTree = "<group>"; };
 		664EEBF72AAE355D00ECEF7A /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
@@ -80,11 +84,12 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C68AD1EB820EB8F01A804C72 /* Pods_PhraserWidgetExtension.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PhraserWidgetExtension.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		E72A787C567C83A1B2698F29 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		66557FC32EA553D400E0B600 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		66557FC32EA553D400E0B600 /* Exceptions for "PhraserWidget" folder in "PhraserWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -94,7 +99,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		66557FB02EA553D300E0B600 /* PhraserWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (66557FC32EA553D400E0B600 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PhraserWidget; sourceTree = "<group>"; };
+		66557FB02EA553D300E0B600 /* PhraserWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				66557FC32EA553D400E0B600 /* Exceptions for "PhraserWidget" folder in "PhraserWidgetExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = PhraserWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +120,7 @@
 			files = (
 				66557FAF2EA553D300E0B600 /* SwiftUI.framework in Frameworks */,
 				66557FAD2EA553D300E0B600 /* WidgetKit.framework in Frameworks */,
+				FBB756C6BD38C5B99D3B3EC5 /* Pods_PhraserWidgetExtension.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +142,9 @@
 				415C423165B1EB466CEEA817 /* Pods-Runner.debug.xcconfig */,
 				6192CF9F5CACD10DB3B05BC5 /* Pods-Runner.release.xcconfig */,
 				E72A787C567C83A1B2698F29 /* Pods-Runner.profile.xcconfig */,
+				3773F1EE62E519333FE9B776 /* Pods-PhraserWidgetExtension.debug.xcconfig */,
+				4638AA755CA03AA0A539C343 /* Pods-PhraserWidgetExtension.release.xcconfig */,
+				3CB1F12A9EA92BC06ABABB78 /* Pods-PhraserWidgetExtension.profile.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -187,6 +207,7 @@
 				050B82DCC2E1C45840E44894 /* Pods_Runner.framework */,
 				66557FAC2EA553D300E0B600 /* WidgetKit.framework */,
 				66557FAE2EA553D300E0B600 /* SwiftUI.framework */,
+				C68AD1EB820EB8F01A804C72 /* Pods_PhraserWidgetExtension.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -198,6 +219,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 66557FC42EA553D400E0B600 /* Build configuration list for PBXNativeTarget "PhraserWidgetExtension" */;
 			buildPhases = (
+				14392FF6A6D023DCBA09ECA2 /* [CP] Check Pods Manifest.lock */,
 				66557FA72EA553D300E0B600 /* Sources */,
 				66557FA82EA553D300E0B600 /* Frameworks */,
 				66557FA92EA553D300E0B600 /* Resources */,
@@ -210,8 +232,6 @@
 				66557FB02EA553D300E0B600 /* PhraserWidget */,
 			);
 			name = PhraserWidgetExtension;
-			packageProductDependencies = (
-			);
 			productName = PhraserWidgetExtension;
 			productReference = 66557FAB2EA553D300E0B600 /* PhraserWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
@@ -226,10 +246,10 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
-				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				0535A15EC1762DCBA67C31CE /* [CP] Embed Pods Frameworks */,
 				AE66126A6265DECA08839939 /* [CP] Copy Pods Resources */,
 				66557FBF2EA553D400E0B600 /* Embed Foundation Extensions */,
+				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
@@ -319,6 +339,28 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		14392FF6A6D023DCBA09ECA2 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-PhraserWidgetExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -334,6 +376,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin";
+			showEnvVarsInLog = 0;
 		};
 		9740EEB61CF901F6004384FC /* Run Script */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -521,6 +564,7 @@
 		};
 		66557FC02EA553D400E0B600 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3773F1EE62E519333FE9B776 /* Pods-PhraserWidgetExtension.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -568,6 +612,7 @@
 		};
 		66557FC12EA553D400E0B600 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4638AA755CA03AA0A539C343 /* Pods-PhraserWidgetExtension.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -612,6 +657,7 @@
 		};
 		66557FC22EA553D400E0B600 /* Profile */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3CB1F12A9EA92BC06ABABB78 /* Pods-PhraserWidgetExtension.profile.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
