@@ -1,3 +1,10 @@
+//
+//  PhraserWidget.swift
+//  PhraserWidget
+//
+//  Created by Haris on 19/10/2025.
+//
+
 import WidgetKit
 import SwiftUI
 
@@ -101,7 +108,12 @@ struct PhraserWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            PhraserWidgetEntryView(entry: entry)
+            if #available(iOS 17.0, *) {
+                PhraserWidgetEntryView(entry: entry)
+                    .containerBackground(.fill.tertiary, for: .widget)
+            } else {
+                PhraserWidgetEntryView(entry: entry)
+            }
         }
         .configurationDisplayName("Phraser Quote")
         .description("Display daily inspirational quotes from your current phraser list")
@@ -109,6 +121,7 @@ struct PhraserWidget: Widget {
     }
 }
 
+#if DEBUG
 struct PhraserWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
@@ -120,3 +133,4 @@ struct PhraserWidget_Previews: PreviewProvider {
         }
     }
 }
+#endif
