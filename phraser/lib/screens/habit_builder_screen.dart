@@ -338,6 +338,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
             child: Stack(
               children: [
                 Container(
+                  width: double.infinity,
+                  height: double.infinity,
                   decoration: BoxDecoration(
                     color: isSelected
                         ? kPrimaryColor.withOpacity(0.15)
@@ -365,6 +367,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
                       children: [
                         if (isSelected && !isLocked)
                           Align(
@@ -385,7 +388,7 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                         const Spacer(),
                         Icon(
                           category.icon,
-                          size: isSelected ? 48 : 42,
+                          size: 42,
                           color: isSelected
                               ? kPrimaryColor
                               : category.iconColor,
