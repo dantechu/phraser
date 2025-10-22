@@ -20,7 +20,7 @@ class InAppPurchaseViewModel extends GetxController {
   bool _purchasePending = false;
   bool _loading = true;
   String? queryProductError;
-  final String _basicMonthlySubscription = 'basic_monthly_subscription';
+  final String _lifetimePremium = 'lifetime_premium';
 
   final List<String> _kProductIds = <String>[];
   StreamSubscription<List<PurchaseDetails>> get subscription => _subscription;
@@ -50,7 +50,7 @@ class InAppPurchaseViewModel extends GetxController {
 
 
   Future<void> init() async {
-    _kProductIds.add(_basicMonthlySubscription);
+    _kProductIds.add(_lifetimePremium);
     await _initStoreInfo();
     update();
   }
@@ -125,7 +125,7 @@ class InAppPurchaseViewModel extends GetxController {
 
 
   bool verifyPurchase(PurchaseDetails purchaseDetails) {
-    return purchaseDetails.productID.toString() == _basicMonthlySubscription;
+    return purchaseDetails.productID.toString() == _lifetimePremium;
   }
 
 
@@ -140,8 +140,8 @@ class InAppPurchaseViewModel extends GetxController {
   GooglePlayPurchaseDetails?  getOldSubscription(
       GooglePlayProductDetails productDetails, Map<String, PurchaseDetails> purchases) {
     GooglePlayPurchaseDetails? oldSubscription;
-    if (productDetails.id == _basicMonthlySubscription && purchases[_basicMonthlySubscription] != null) {
-      oldSubscription = purchases[_basicMonthlySubscription]! as GooglePlayPurchaseDetails;
+    if (productDetails.id == _lifetimePremium && purchases[_lifetimePremium] != null) {
+      oldSubscription = purchases[_lifetimePremium]! as GooglePlayPurchaseDetails;
     }
     return oldSubscription;
   }

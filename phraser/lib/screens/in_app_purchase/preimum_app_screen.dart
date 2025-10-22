@@ -255,10 +255,10 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                             ),
                             _buildFeatureItem(
                               context,
-                              Icons.cancel,
-                              'Cancel anytime',
-                              'No commitment, full flexibility',
-                              Colors.red,
+                              Icons.workspace_premium,
+                              'Lifetime access',
+                              'One-time payment, yours forever',
+                              Colors.amber,
                               isLast: true,
                             ),
                           ],
@@ -295,7 +295,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              '\$1.99',
+                              '\$4.99',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -303,7 +303,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                               ),
                             ),
                             Text(
-                              'per month',
+                              'lifetime access',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -311,7 +311,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Billed monthly • Cancel anytime',
+                              'One-time payment • No subscription',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.grey[500] : Colors.grey[500],
@@ -362,7 +362,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Start Premium - \$1.99/month',
+                          'Get Lifetime Premium - \$4.99',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -380,7 +380,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       ),
                       child: Text(
-                        'Already subscribed? Restore purchases',
+                        'Already purchased? Restore purchases',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
