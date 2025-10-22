@@ -19,10 +19,14 @@ struct Provider: TimelineProvider {
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        // Move to next quote automatically
+        moveToNextQuote()
+
+        // Load updated entry
         let currentEntry = loadEntry()
 
-        // Update every hour
-        let nextUpdate = Calendar.current.date(byAdding: .hour, value: 1, to: Date())!
+        // Update every 5 minutes
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: Date())!
         let timeline = Timeline(entries: [currentEntry], policy: .after(nextUpdate))
 
         completion(timeline)
@@ -37,6 +41,45 @@ struct Provider: TimelineProvider {
         let hasData = sharedDefaults?.bool(forKey: "has_data") ?? false
 
         return SimpleEntry(date: Date(), quote: quote, category: category, hasData: hasData)
+    }
+
+    private func moveToNextQuote() {
+        // Load data from shared UserDefaults (App Group)
+        guard let sharedDefaults = UserDefaults(suiteName: "group.phraser.widget") else {
+            print("❌ iOS Widget: Could not access shared UserDefaults")
+            return
+        }
+
+        // Get current index and total quotes
+        let currentIndex = sharedDefaults.integer(forKey: "current_quote_index")
+        let totalQuotes = sharedDefaults.integer(forKey: "total_quotes")
+
+        print("📱 iOS Widget: Current index: \(currentIndex), Total quotes: \(totalQuotes)")
+
+        guard totalQuotes > 0 else {
+            print("❌ iOS Widget: No quotes available in storage")
+            return
+        }
+
+        // Calculate next index (wrap around if at end)
+        let nextIndex = (currentIndex + 1) % totalQuotes
+
+        // Get the next quote and category
+        let nextQuote = sharedDefaults.string(forKey: "quote_\(nextIndex)")
+        let nextCategory = sharedDefaults.string(forKey: "category_\(nextIndex)")
+
+        print("📱 iOS Widget: Moving to index \(nextIndex), Quote exists: \(nextQuote != nil)")
+
+        if let quote = nextQuote, let category = nextCategory {
+            // Update the widget data with next quote
+            sharedDefaults.set(nextIndex, forKey: "current_quote_index")
+            sharedDefaults.set(quote, forKey: "quote_text")
+            sharedDefaults.set(category, forKey: "quote_category")
+
+            print("✅ iOS Widget: Updated to quote \(nextIndex): \(String(quote.prefix(50)))...")
+        } else {
+            print("❌ iOS Widget: Quote at index \(nextIndex) not found")
+        }
     }
 }
 
@@ -53,7 +96,7 @@ struct PhraserWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-            // Gradient background
+            // Gradient background - matching Android widget colors
             LinearGradient(
                 gradient: Gradient(colors: [
                     Color(red: 0.29, green: 0.56, blue: 0.89), // #4A90E2
