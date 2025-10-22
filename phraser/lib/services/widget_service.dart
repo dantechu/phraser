@@ -49,6 +49,9 @@ class WidgetService {
 
       await _updateWidgetWithQuote(quote);
 
+      // Store all quotes for Android widget to cycle through
+      await _storeQuotesForAutoUpdate(quotes);
+
       debugPrint('✅ Widget updated with quote: ${quote.quote.substring(0, 30)}...');
     } catch (e) {
       debugPrint('❌ Error updating widget: $e');
@@ -139,6 +142,35 @@ class WidgetService {
       androidName: _androidWidgetName,
       iOSName: _iOSWidgetKind,
     );
+  }
+
+  /// Store multiple quotes for Android widget auto-update
+  Future<void> _storeQuotesForAutoUpdate(List<Phraser> quotes) async {
+    try {
+      // Store total count
+      await HomeWidget.saveWidgetData<int>('total_quotes', quotes.length);
+
+      // Store up to 50 quotes to avoid excessive storage
+      final quotesToStore = quotes.take(50).toList();
+
+      for (int i = 0; i < quotesToStore.length; i++) {
+        await HomeWidget.saveWidgetData<String>(
+          'quote_$i',
+          quotesToStore[i].quote,
+        );
+        await HomeWidget.saveWidgetData<String>(
+          'category_$i',
+          quotesToStore[i].categoryName,
+        );
+      }
+
+      // Initialize current index to 0
+      await HomeWidget.saveWidgetData<int>('current_quote_index', 0);
+
+      debugPrint('✅ Stored ${quotesToStore.length} quotes for auto-update');
+    } catch (e) {
+      debugPrint('❌ Error storing quotes for auto-update: $e');
+    }
   }
 
   /// Schedule periodic widget updates
