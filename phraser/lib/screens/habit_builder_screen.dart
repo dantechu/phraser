@@ -9,6 +9,8 @@ import 'package:phraser/services/model/phreasers_list_model.dart';
 import 'package:phraser/services/model/data_repository.dart';
 import 'package:phraser/util/Floor_db.dart';
 import 'package:uuid/uuid.dart';
+import 'package:phraser/helper/navigation_helper.dart';
+import 'package:phraser/screens/in_app_purchase/preimum_app_screen.dart';
 
 class CategoryTemplate {
   final HabitCategory category;
@@ -185,46 +187,46 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
       ),
       body: Column(
         children: [
-          // Progress Indicator
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey[850] : Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: (currentStep + 1) / 2,
-                        backgroundColor: isDark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade200,
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(kPrimaryColor),
-                        minHeight: 4,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Step ${currentStep + 1} of 2',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color:
-                            Theme.of(context).primaryColorDark.withOpacity(0.6),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+          // Progress Indicator - Only show on step 1 (Review)
+          if (currentStep == 1)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[850] : Colors.white,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
                 ),
-                const SizedBox(height: 16),
-                if (currentStep == 1)
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: LinearProgressIndicator(
+                          value: 1.0, // Full on step 2
+                          backgroundColor: isDark
+                              ? Colors.grey.shade700
+                              : Colors.grey.shade200,
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                          minHeight: 4,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Step 2 of 2',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              Theme.of(context).primaryColorDark.withOpacity(0.6),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
                   Text(
                     'Review & Confirm',
                     style: TextStyle(
@@ -233,21 +235,19 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
                       color: Theme.of(context).primaryColorDark,
                     ),
                   ),
-                if (currentStep == 1) const SizedBox(height: 4),
-                Text(
-                  currentStep == 0
-                      ? 'Select categories of habits you want to build.'
-                      : 'Review your selected categories and start your journey!',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Review your selected categories and start your journey!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 8),
+          SizedBox(height: currentStep == 1 ? 8 : 20),
 
           // Content
           Expanded(
@@ -316,6 +316,8 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
   }
 
   Widget _buildHabitSelection(bool isDark) {
+    final isPremium = Preferences.instance.isPremiumApp;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: GridView.builder(
@@ -329,97 +331,117 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
         itemBuilder: (context, index) {
           final category = habitCategories[index];
           final isSelected = selectedCategories.contains(category.category);
+          final isLocked = !isPremium && index >= 2; // Lock after first 2 for free users
 
           return GestureDetector(
-            onTap: () => _toggleCategory(category.category),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? kPrimaryColor.withOpacity(0.15)
-                    : (isDark ? Colors.grey[850] : Colors.white),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected
-                      ? kPrimaryColor
-                      : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
-                  width: isSelected ? 2 : 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
+            onTap: () => isLocked ? _showPremiumDialog() : _toggleCategory(category.category),
+            child: Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
                     color: isSelected
-                        ? kPrimaryColor.withOpacity(0.2)
-                        : (isDark
-                            ? Colors.black.withOpacity(0.2)
-                            : Colors.black.withOpacity(0.05)),
-                    blurRadius: isSelected ? 12 : 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (isSelected)
-                      Align(
-                        alignment: Alignment.topRight,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: kPrimaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    Icon(
-                      category.icon,
-                      size: isSelected ? 48 : 42,
+                        ? kPrimaryColor.withOpacity(0.15)
+                        : (isDark ? Colors.grey[850] : Colors.white),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
                       color: isSelected
                           ? kPrimaryColor
-                          : category.iconColor,
+                          : (isDark ? Colors.grey.shade700 : Colors.grey.shade200),
+                      width: isSelected ? 2 : 1,
                     ),
-                    const SizedBox(height: 8),
-                    Flexible(
-                      child: Text(
-                        category.name,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w600,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isSelected
+                            ? kPrimaryColor.withOpacity(0.2)
+                            : (isDark
+                                ? Colors.black.withOpacity(0.2)
+                                : Colors.black.withOpacity(0.05)),
+                        blurRadius: isSelected ? 12 : 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isSelected && !isLocked)
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: kPrimaryColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        const Spacer(),
+                        Icon(
+                          category.icon,
+                          size: isSelected ? 48 : 42,
                           color: isSelected
                               ? kPrimaryColor
-                              : Theme.of(context).primaryColorDark,
+                              : category.iconColor,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Flexible(
-                      child: Text(
-                        category.description,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Theme.of(context)
-                              .primaryColorDark
-                              .withOpacity(0.6),
+                        const SizedBox(height: 8),
+                        Text(
+                          category.name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight:
+                                isSelected ? FontWeight.bold : FontWeight.w600,
+                            color: isSelected
+                                ? kPrimaryColor
+                                : Theme.of(context).primaryColorDark,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(height: 2),
+                        Text(
+                          category.description,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Theme.of(context)
+                                .primaryColorDark
+                                .withOpacity(0.6),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                // Lock icon overlay
+                if (isLocked)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           );
         },
@@ -706,6 +728,139 @@ class _HabitBuilderScreenState extends State<HabitBuilderScreen> {
         .split(' ')
         .map((word) => word[0].toUpperCase() + word.substring(1))
         .join(' ');
+  }
+
+  void _showPremiumDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: isDark ? Colors.grey[850] : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.workspace_premium,
+                  color: Colors.amber,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Premium Feature',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Unlock all habit categories with Premium!',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildPremiumFeature(
+                Icons.check_circle,
+                'Access all 10 habit categories',
+                isDark,
+              ),
+              _buildPremiumFeature(
+                Icons.check_circle,
+                'Unlimited motivational quotes',
+                isDark,
+              ),
+              _buildPremiumFeature(
+                Icons.check_circle,
+                'Track habits across all life areas',
+                isDark,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Maybe Later',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                NavigationHelper.pushRoute(context, const PremiumAppScreen());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: const Text(
+                'Upgrade to Premium',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPremiumFeature(IconData icon, String text, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 20,
+            color: kPrimaryColor,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _previousStep() {
