@@ -28,6 +28,7 @@ class Preferences {
   final String _allQuotesPreloadedKey = 'all_quotes_preloaded';
   final String _initialDataLoadedKey = 'initial_data_loaded';
   final String _lastDataLoadTimestampKey = 'last_data_load_timestamp';
+  final String _widgetRefreshIntervalKey = 'widget_refresh_interval';
 
   //init function to initialized sharedPreferences in main function
   Future<void> init() async {
@@ -105,6 +106,10 @@ class Preferences {
     _preferences!.setInt(_lastDataLoadTimestampKey, timestamp);
   }
 
+  set widgetRefreshInterval(int minutes) {
+    _preferences!.setInt(_widgetRefreshIntervalKey, minutes);
+  }
+
   void setStringList(String key, List<String> value) {
     _preferences!.setStringList(key, value);
   }
@@ -167,6 +172,10 @@ class Preferences {
 
   int get lastDataLoadTimestamp {
     return _preferences!.getInt(_lastDataLoadTimestampKey) ?? 0;
+  }
+
+  int get widgetRefreshInterval {
+    return _preferences!.getInt(_widgetRefreshIntervalKey) ?? 5; // Default 5 minutes
   }
 
   // Check if data needs to be reloaded (7 days = 604800000 milliseconds)

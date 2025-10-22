@@ -25,10 +25,15 @@ struct Provider: TimelineProvider {
         // Load updated entry
         let currentEntry = loadEntry()
 
-        // Update every 5 minutes
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: Date())!
+        // Get refresh interval from UserDefaults (in minutes)
+        let sharedDefaults = UserDefaults(suiteName: "group.phraser.widget")
+        let intervalMinutes = sharedDefaults?.integer(forKey: "widgetRefreshInterval") ?? 5
+
+        // Update based on user preference
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: intervalMinutes, to: Date())!
         let timeline = Timeline(entries: [currentEntry], policy: .after(nextUpdate))
 
+        print("📱 iOS Widget: Next update in \(intervalMinutes) minutes")
         completion(timeline)
     }
 

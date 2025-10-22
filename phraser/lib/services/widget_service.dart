@@ -52,6 +52,9 @@ class WidgetService {
       // Store quotes for Android widget auto-cycling (store entire list)
       await _storeQuotesForAutoUpdate(quotes, currentPosition);
 
+      // Save refresh interval to widget storage
+      await _saveRefreshInterval();
+
       debugPrint('✅ Widget updated with quote at position $currentPosition');
     } catch (e) {
       debugPrint('❌ Error updating widget: $e');
@@ -173,6 +176,20 @@ class WidgetService {
       debugPrint('✅ Stored ${quotes.length} quotes for auto-update (starting at index: $startIndex)');
     } catch (e) {
       debugPrint('❌ Error storing quotes for auto-update: $e');
+    }
+  }
+
+  /// Save refresh interval to widget storage for both platforms
+  Future<void> _saveRefreshInterval() async {
+    try {
+      final intervalMinutes = Preferences.instance.widgetRefreshInterval;
+
+      // Save to HomeWidget storage (accessible by both Android and iOS widgets)
+      await HomeWidget.saveWidgetData<int>('widgetRefreshInterval', intervalMinutes);
+
+      debugPrint('✅ Saved widget refresh interval: $intervalMinutes minutes');
+    } catch (e) {
+      debugPrint('❌ Error saving refresh interval: $e');
     }
   }
 

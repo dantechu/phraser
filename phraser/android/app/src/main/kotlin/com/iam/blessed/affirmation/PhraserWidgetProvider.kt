@@ -19,9 +19,7 @@ class PhraserWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val ACTION_AUTO_UPDATE = "com.iam.blessed.affirmation.AUTO_UPDATE"
-        //private const val UPDATE_INTERVAL = 5 * 60 * 1000L // 5 minutes in milliseconds
-        private const val UPDATE_INTERVAL = 30 * 1000L // 30 seconds for testing
-
+        private const val DEFAULT_INTERVAL_MINUTES = 5 // Default 5 minutes
     }
 
     override fun onUpdate(
@@ -133,10 +131,15 @@ class PhraserWidgetProvider : AppWidgetProvider() {
         // Cancel any existing alarm
         alarmManager.cancel(pendingIntent)
 
-        // Schedule new alarm
-        val triggerTime = SystemClock.elapsedRealtime() + UPDATE_INTERVAL
+        // Get interval from Flutter shared preferences
+        val flutterPrefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+        val intervalMinutes = flutterPrefs.getInt("flutter.widgetRefreshInterval", DEFAULT_INTERVAL_MINUTES)
+        val intervalMillis = intervalMinutes * 60 * 1000L
 
-        android.util.Log.d("PhraserWidget", "Scheduling next update in ${UPDATE_INTERVAL / 1000} seconds")
+        // Schedule new alarm
+        val triggerTime = SystemClock.elapsedRealtime() + intervalMillis
+
+        android.util.Log.d("PhraserWidget", "Scheduling next update in $intervalMinutes minutes")
 
         try {
             // Check if we can schedule exact alarms (Android 12+)
