@@ -111,6 +111,7 @@ struct PhraserWidgetEntryView : View {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
+            .ignoresSafeArea() // Extend to edges
 
             VStack(spacing: 12) {
                 // Quote icon
@@ -158,9 +159,32 @@ struct PhraserWidget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             if #available(iOS 17.0, *) {
                 PhraserWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
+                    .containerBackground(for: .widget) {
+                        // iOS 17+ background
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 0.29, green: 0.56, blue: 0.89),
+                                Color(red: 0.60, green: 0.40, blue: 0.80),
+                                Color(red: 0.80, green: 0.40, blue: 0.60)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    }
             } else {
                 PhraserWidgetEntryView(entry: entry)
+                    .background(
+                        // iOS 16 and below background
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color(red: 0.29, green: 0.56, blue: 0.89),
+                                Color(red: 0.60, green: 0.40, blue: 0.80),
+                                Color(red: 0.80, green: 0.40, blue: 0.60)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
             }
         }
         .configurationDisplayName("Phraser Quote")
