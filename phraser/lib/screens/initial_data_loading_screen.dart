@@ -19,6 +19,7 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
   String _loadingStatus = 'Fetching data...';
   int _totalCategories = 0;
   int _loadedCategories = 0;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
@@ -32,31 +33,19 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
         _loadingStatus = 'Fetching categories...';
       });
 
-      // Fetch categories and sections in parallel
-      await Future.wait([
-        _fetchCategories(),
-        _fetchSections(),
-      ]);
+      // Start sections loading in background (non-blocking)
+      _fetchSections();
 
-      // Mark data as loaded with current timestamp
-      Preferences.instance.isInitialDataLoaded = true;
-      Preferences.instance.lastDataLoadTimestamp = DateTime.now().millisecondsSinceEpoch;
+      // Fetch first category (this will navigate when done)
+      await _fetchCategories();
 
-      setState(() {
-        _loadingStatus = 'Data loaded successfully!';
-      });
-
-      // Navigate immediately
-      if (Preferences.instance.isFirstOpen) {
-        Get.offAllNamed(RouteHelper.introductionScreen);
-      } else {
-        Get.offAllNamed(RouteHelper.phraserScreen);
-      }
     } catch (e) {
       testPrint('Error in initial data loading: $e');
-      setState(() {
-        _loadingStatus = 'Error loading data. Please check your connection.';
-      });
+      if (mounted) {
+        setState(() {
+          _loadingStatus = 'Error loading data. Please check your connection.';
+        });
+      }
 
       _showRetryDialog();
     }
@@ -64,15 +53,35 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
 
   Future<void> _fetchCategories() async {
     // Fetch categories with progress callback
+    // This now loads only the first category, then continues in background
     await _categoriesListViewModel.getCategoriesWithPhrasers((categoryName, current, total) {
       if (mounted) {
         setState(() {
-          _loadingStatus = 'Loading $categoryName... ($current/$total)';
+          _loadingStatus = 'Loading $categoryName...';
           _loadedCategories = current;
           _totalCategories = total;
         });
       }
     });
+
+    // After first category is loaded, mark as ready and navigate
+    Preferences.instance.isInitialDataLoaded = true;
+    Preferences.instance.lastDataLoadTimestamp = DateTime.now().millisecondsSinceEpoch;
+
+    // Navigate immediately
+    _navigateToNextScreen();
+  }
+
+  void _navigateToNextScreen() {
+    if (!_hasNavigated && mounted) {
+      _hasNavigated = true;
+
+      if (Preferences.instance.isFirstOpen) {
+        Get.offAllNamed(RouteHelper.introductionScreen);
+      } else {
+        Get.offAllNamed(RouteHelper.phraserScreen);
+      }
+    }
   }
 
   Future<void> _fetchSections() async {

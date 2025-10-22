@@ -21,7 +21,7 @@ class DataPreloader {
   /// Check if all essential data has been preloaded
   bool get isPreloadingComplete => _isPreloadingComplete;
 
-  /// Preload all essential data for the app
+  /// Fast preload - loads only essential data, rest loads in background
   Future<void> preloadAllData() async {
     if (_isPreloadingInProgress || _isPreloadingComplete) {
       debugPrint('DataPreloader: Preloading already in progress or complete');
@@ -29,36 +29,48 @@ class DataPreloader {
     }
 
     _isPreloadingInProgress = true;
-    debugPrint('DataPreloader: Starting comprehensive data preload...');
+    debugPrint('DataPreloader: Starting fast data preload...');
 
     try {
       final database = FloorDB.instance.floorDatabase;
-      
-      // 1. Load categories and sections first
+
+      // 1. Load categories and sections first (fast, metadata only)
       await _loadCategoriesAndSections();
-      
-      // 2. Check if we need to preload quotes for all categories
+
+      // 2. Ensure current category is set (fast, only one category)
+      await _ensureCurrentCategoryIsSet();
+
+      // 3. Load current phrasers list (fast, only current category quotes)
+      await _loadCurrentPhrasersList();
+
+      _isPreloadingComplete = true;
+      debugPrint('✅ DataPreloader: Essential data loaded successfully');
+
+      // 4. Load remaining quotes in background (non-blocking)
       if (!Preferences.instance.isAllQuotesPreloaded) {
-        await _preloadAllQuotesForAllCategories();
-        Preferences.instance.isAllQuotesPreloaded = true;
+        _preloadRemainingQuotesInBackground();
       } else {
         debugPrint('DataPreloader: All quotes already preloaded');
       }
-      
-      // 3. Ensure current category is set
-      await _ensureCurrentCategoryIsSet();
-      
-      // 4. Load current phrasers list
-      await _loadCurrentPhrasersList();
-      
-      _isPreloadingComplete = true;
-      debugPrint('DataPreloader: All data preloading completed successfully');
-      
+
     } catch (e) {
       debugPrint('DataPreloader: Error during preloading: $e');
       _isPreloadingComplete = false;
     } finally {
       _isPreloadingInProgress = false;
+    }
+  }
+
+  /// Load remaining quotes in background without blocking UI
+  void _preloadRemainingQuotesInBackground() async {
+    debugPrint('📦 Starting background preload of remaining quotes...');
+
+    try {
+      await _preloadAllQuotesForAllCategories();
+      Preferences.instance.isAllQuotesPreloaded = true;
+      debugPrint('✅ Background quote preload completed');
+    } catch (e) {
+      debugPrint('❌ Error in background quote preload: $e');
     }
   }
 
@@ -127,8 +139,8 @@ class DataPreloader {
   /// Ensure that a current category is always set
   Future<void> _ensureCurrentCategoryIsSet() async {
     final savedCategoryName = Preferences.instance.savedCategoryName;
-    
-    if (savedCategoryName == null || savedCategoryName.isEmpty) {
+
+    if (savedCategoryName.isEmpty) {
       // No category selected, set a default one
       final categories = DataRepository().categoriesList;
       if (categories.isNotEmpty) {

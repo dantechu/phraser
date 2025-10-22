@@ -10,12 +10,18 @@ import android.os.Build
 import android.os.SystemClock
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PhraserWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val ACTION_AUTO_UPDATE = "com.iam.blessed.affirmation.AUTO_UPDATE"
-        private const val UPDATE_INTERVAL = 5 * 60 * 1000L // 5 minutes in milliseconds
+        //private const val UPDATE_INTERVAL = 5 * 60 * 1000L // 5 minutes in milliseconds
+        private const val UPDATE_INTERVAL = 30 * 1000L // 30 seconds for testing
+
     }
 
     override fun onUpdate(
@@ -34,23 +40,36 @@ class PhraserWidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
 
+        android.util.Log.d("PhraserWidget", "onReceive called with action: ${intent.action}")
+
         if (intent.action == ACTION_AUTO_UPDATE) {
-            // Get all widget IDs and update them
-            val appWidgetManager = AppWidgetManager.getInstance(context)
-            val widgetIds = appWidgetManager.getAppWidgetIds(
-                android.content.ComponentName(context, PhraserWidgetProvider::class.java)
-            )
+            android.util.Log.d("PhraserWidget", "AUTO_UPDATE triggered - updating widget")
 
-            // Move to next quote
-            moveToNextQuote(context)
+            // Use coroutine to handle async database operations
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    // Move to next quote (reads from database)
+                    moveToNextQuote(context)
 
-            // Update all widgets
-            widgetIds.forEach { widgetId ->
-                updateWidget(context, appWidgetManager, widgetId)
+                    // Get all widget IDs and update them
+                    val appWidgetManager = AppWidgetManager.getInstance(context)
+                    val widgetIds = appWidgetManager.getAppWidgetIds(
+                        android.content.ComponentName(context, PhraserWidgetProvider::class.java)
+                    )
+
+                    android.util.Log.d("PhraserWidget", "Found ${widgetIds.size} widgets to update")
+
+                    // Update all widgets
+                    widgetIds.forEach { widgetId ->
+                        updateWidget(context, appWidgetManager, widgetId)
+                    }
+
+                    // Schedule next update
+                    scheduleNextUpdate(context)
+                } catch (e: Exception) {
+                    android.util.Log.e("PhraserWidget", "Error in auto-update: ${e.message}", e)
+                }
             }
-
-            // Schedule next update
-            scheduleNextUpdate(context)
         }
     }
 
@@ -117,14 +136,47 @@ class PhraserWidgetProvider : AppWidgetProvider() {
         // Schedule new alarm
         val triggerTime = SystemClock.elapsedRealtime() + UPDATE_INTERVAL
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                triggerTime,
-                pendingIntent
-            )
-        } else {
-            alarmManager.setExact(
+        android.util.Log.d("PhraserWidget", "Scheduling next update in ${UPDATE_INTERVAL / 1000} seconds")
+
+        try {
+            // Check if we can schedule exact alarms (Android 12+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // Android 12+ requires checking for exact alarm permission
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerTime,
+                        pendingIntent
+                    )
+                    android.util.Log.d("PhraserWidget", "Scheduled exact alarm")
+                } else {
+                    // Fallback to inexact alarm if permission not granted
+                    alarmManager.set(
+                        AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        triggerTime,
+                        pendingIntent
+                    )
+                    android.util.Log.d("PhraserWidget", "Scheduled inexact alarm (no exact alarm permission)")
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+                )
+                android.util.Log.d("PhraserWidget", "Scheduled exact alarm (API < 31)")
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+                )
+                android.util.Log.d("PhraserWidget", "Scheduled exact alarm (API < 23)")
+            }
+        } catch (e: SecurityException) {
+            // Permission not granted, use inexact alarm as fallback
+            android.util.Log.e("PhraserWidget", "Cannot schedule exact alarm, using inexact: ${e.message}")
+            alarmManager.set(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 triggerTime,
                 pendingIntent
@@ -148,32 +200,51 @@ class PhraserWidgetProvider : AppWidgetProvider() {
         alarmManager.cancel(pendingIntent)
     }
 
-    private fun moveToNextQuote(context: Context) {
-        // Get quote list from shared preferences (stored by home_widget plugin)
-        val prefs = HomeWidgetPlugin.getData(context)
+    private suspend fun moveToNextQuote(context: Context) = withContext(Dispatchers.IO) {
+        android.util.Log.d("PhraserWidget", "moveToNextQuote called")
 
-        // Get current quote index
-        val currentIndex = prefs.getInt("current_quote_index", 0)
+        try {
+            // Get widget data from HomeWidget plugin
+            val widgetPrefs = HomeWidgetPlugin.getData(context)
 
-        // Get total quotes count
-        val totalQuotes = prefs.getInt("total_quotes", 0)
+            // Get current index and total quotes
+            val currentIndex = widgetPrefs.getInt("current_quote_index", 0)
+            val totalQuotes = widgetPrefs.getInt("total_quotes", 0)
 
-        if (totalQuotes > 0) {
-            // Calculate next index (wrap around if at the end)
-            val nextIndex = (currentIndex + 1) % totalQuotes
+            android.util.Log.d("PhraserWidget", "Current index: $currentIndex, Total quotes: $totalQuotes")
 
-            // Get the next quote and category from pre-stored data
-            val nextQuote = prefs.getString("quote_$nextIndex", null)
-            val nextCategory = prefs.getString("category_$nextIndex", null)
+            if (totalQuotes > 0) {
+                // Calculate next index (wrap around to 0 if at end)
+                val nextIndex = (currentIndex + 1) % totalQuotes
 
-            if (nextQuote != null && nextCategory != null) {
-                // Update current index
-                prefs.edit().putInt("current_quote_index", nextIndex).apply()
+                // Get the next quote and category
+                val nextQuote = widgetPrefs.getString("quote_$nextIndex", null)
+                val nextCategory = widgetPrefs.getString("category_$nextIndex", null)
 
-                // Update the displayed quote
-                prefs.edit().putString("quote_text", nextQuote).apply()
-                prefs.edit().putString("quote_category", nextCategory).apply()
+                android.util.Log.d("PhraserWidget", "Moving to index $nextIndex, Quote exists: ${nextQuote != null}")
+
+                if (nextQuote != null && nextCategory != null) {
+                    // Update the widget data with next quote
+                    val editor = widgetPrefs.edit()
+                    editor.putInt("current_quote_index", nextIndex)
+                    editor.putString("quote_text", nextQuote)
+                    editor.putString("quote_category", nextCategory)
+                    editor.apply()
+
+                    // Also update Flutter's position to keep in sync
+                    val flutterPrefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    flutterPrefs.edit().putInt("flutter.phraserPosition", nextIndex).apply()
+
+                    android.util.Log.d("PhraserWidget", "✅ Updated to quote $nextIndex: ${nextQuote.take(50)}...")
+                } else {
+                    android.util.Log.e("PhraserWidget", "❌ Quote at index $nextIndex not found")
+                }
+            } else {
+                android.util.Log.e("PhraserWidget", "❌ No quotes stored. Total quotes: $totalQuotes")
             }
+
+        } catch (e: Exception) {
+            android.util.Log.e("PhraserWidget", "❌ Error in moveToNextQuote: ${e.message}", e)
         }
     }
 }

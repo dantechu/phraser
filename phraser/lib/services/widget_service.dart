@@ -33,7 +33,7 @@ class WidgetService {
     }
   }
 
-  /// Update the home screen widget with a random quote
+  /// Update the home screen widget with current quote
   Future<void> updateWidget() async {
     try {
       final quotes = DataRepository().currentPhrasersList;
@@ -43,16 +43,16 @@ class WidgetService {
         return;
       }
 
-      // Get a random quote or the current one
+      // Get the current quote
       final currentPosition = Preferences.instance.currentPhraserPosition;
       final quote = quotes[currentPosition.clamp(0, quotes.length - 1)];
 
       await _updateWidgetWithQuote(quote);
 
-      // Store all quotes for Android widget to cycle through
-      await _storeQuotesForAutoUpdate(quotes);
+      // Store quotes for Android widget auto-cycling (store entire list)
+      await _storeQuotesForAutoUpdate(quotes, currentPosition);
 
-      debugPrint('✅ Widget updated with quote: ${quote.quote.substring(0, 30)}...');
+      debugPrint('✅ Widget updated with quote at position $currentPosition');
     } catch (e) {
       debugPrint('❌ Error updating widget: $e');
     }
@@ -145,29 +145,32 @@ class WidgetService {
   }
 
   /// Store multiple quotes for Android widget auto-update
-  Future<void> _storeQuotesForAutoUpdate(List<Phraser> quotes) async {
+  Future<void> _storeQuotesForAutoUpdate(List<Phraser> quotes, int startIndex) async {
     try {
-      // Store total count
+      if (quotes.isEmpty) {
+        debugPrint('⚠️ No quotes to store for widget auto-update');
+        return;
+      }
+
+      // Store ALL quotes from currentPhrasersList (they're already filtered by category)
       await HomeWidget.saveWidgetData<int>('total_quotes', quotes.length);
 
-      // Store up to 50 quotes to avoid excessive storage
-      final quotesToStore = quotes.take(50).toList();
-
-      for (int i = 0; i < quotesToStore.length; i++) {
+      // Store each quote with its index
+      for (int i = 0; i < quotes.length; i++) {
         await HomeWidget.saveWidgetData<String>(
           'quote_$i',
-          quotesToStore[i].quote,
+          quotes[i].quote,
         );
         await HomeWidget.saveWidgetData<String>(
           'category_$i',
-          quotesToStore[i].categoryName,
+          quotes[i].categoryName,
         );
       }
 
-      // Initialize current index to 0
-      await HomeWidget.saveWidgetData<int>('current_quote_index', 0);
+      // Set current index to match the app's current position
+      await HomeWidget.saveWidgetData<int>('current_quote_index', startIndex);
 
-      debugPrint('✅ Stored ${quotesToStore.length} quotes for auto-update');
+      debugPrint('✅ Stored ${quotes.length} quotes for auto-update (starting at index: $startIndex)');
     } catch (e) {
       debugPrint('❌ Error storing quotes for auto-update: $e');
     }
@@ -264,6 +267,31 @@ class WidgetService {
       debugPrint('   Android: Long-press home screen → Widgets → find Phraser Widget');
     } catch (e) {
       debugPrint('❌ Error showing widget instructions: $e');
+    }
+  }
+
+  /// Test method to verify widget auto-update data
+  Future<void> debugWidgetData() async {
+    try {
+      final totalQuotes = await HomeWidget.getWidgetData<int>('total_quotes');
+      final currentIndex = await HomeWidget.getWidgetData<int>('current_quote_index');
+      final currentQuote = await HomeWidget.getWidgetData<String>('quote_text');
+
+      debugPrint('🔍 Widget Debug Info:');
+      debugPrint('   Total quotes stored: $totalQuotes');
+      debugPrint('   Current index: $currentIndex');
+      debugPrint('   Current quote: ${currentQuote?.substring(0, currentQuote.length < 50 ? currentQuote.length : 50)}...');
+
+      if (totalQuotes != null && totalQuotes > 0) {
+        debugPrint('   Sample quotes:');
+        for (int i = 0; i < (totalQuotes < 5 ? totalQuotes : 5); i++) {
+          final quote = await HomeWidget.getWidgetData<String>('quote_$i');
+          final category = await HomeWidget.getWidgetData<String>('category_$i');
+          debugPrint('     [$i] ${category ?? "Unknown"}: ${quote?.substring(0, quote.length < 30 ? quote.length : 30)}...');
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error debugging widget data: $e');
     }
   }
 }

@@ -104,7 +104,7 @@ class CategoriesListViewModel extends GetxController {
     }
   }
 
-  // Optimized method for initial loading with progress callback
+  // Fast initial loading - loads only first category, then loads rest in background
   Future<void> getCategoriesWithPhrasers(Function(String categoryName, int current, int total) onProgress) async{
     try{
       // Get the selected region from preferences
@@ -124,13 +124,26 @@ class CategoriesListViewModel extends GetxController {
         // Insert categories to DB immediately
         await insertCategoriesToFloorDBAsync(categoriesListModel.categories);
 
-        final totalCategories = categoriesListModel.categories.length;
+        if (categoriesListModel.categories.isEmpty) {
+          throw Exception('No categories received from server');
+        }
 
-        // Fetch phrasers for each category with progress updates
-        for(int i = 0; i < categoriesListModel.categories.length; i++) {
-          final category = categoriesListModel.categories[i];
-          onProgress(category.categoryName, i + 1, totalCategories);
-          await getPhrasersByCategoryAsync(category.categoryId.toString());
+        // Load ONLY the first category immediately for fast startup
+        final firstCategory = categoriesListModel.categories.first;
+        onProgress(firstCategory.categoryName, 1, categoriesListModel.categories.length);
+        await getPhrasersByCategoryAsync(firstCategory.categoryId.toString());
+
+        testPrint('✅ First category loaded: ${firstCategory.categoryName}');
+
+        // Mark that initial data is ready
+        Preferences.instance.isInitialDataLoaded = true;
+
+        // Load remaining categories in background (don't await)
+        if (categoriesListModel.categories.length > 1) {
+          _loadRemainingCategoriesInBackground(
+            categoriesListModel.categories.skip(1).toList(),
+            onProgress
+          );
         }
 
       } else {
@@ -140,6 +153,34 @@ class CategoriesListViewModel extends GetxController {
       testPrint('getCategories Exception: $e');
       rethrow;
     }
+  }
+
+  // Background loading of remaining categories
+  void _loadRemainingCategoriesInBackground(
+    List<Categories> remainingCategories,
+    Function(String categoryName, int current, int total) onProgress
+  ) async {
+    testPrint('📦 Starting background loading of ${remainingCategories.length} remaining categories');
+
+    final totalCategories = remainingCategories.length + 1; // +1 for the first category already loaded
+
+    for(int i = 0; i < remainingCategories.length; i++) {
+      try {
+        final category = remainingCategories[i];
+        final currentIndex = i + 2; // +2 because first category is already loaded (index 1)
+
+        testPrint('📦 Loading category $currentIndex/$totalCategories: ${category.categoryName}');
+        await getPhrasersByCategoryAsync(category.categoryId.toString());
+
+        // Small delay to prevent overwhelming the device
+        await Future.delayed(const Duration(milliseconds: 100));
+      } catch (e) {
+        testPrint('❌ Error loading category ${remainingCategories[i].categoryName}: $e');
+        // Continue loading other categories even if one fails
+      }
+    }
+
+    testPrint('✅ Background loading completed for all categories');
   }
 
   // Async version of getPhrasersByCategory for faster loading

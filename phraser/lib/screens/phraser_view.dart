@@ -51,7 +51,20 @@ class _PhraserViewScreenState extends State<PhraserViewScreen> {
     // Restore the last selected tab content after the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restoreSelectedTabContent();
+
+      // Update widget with all current quotes for auto-cycling
+      _updateWidgetData();
     });
+  }
+
+  void _updateWidgetData() async {
+    try {
+      // Update widget with current phraser list so it can auto-cycle
+      await WidgetService().updateWidget();
+      debugPrint('✅ Widget data updated with ${DataRepository().currentPhrasersList.length} quotes');
+    } catch (e) {
+      debugPrint('❌ Error updating widget data: $e');
+    }
   }
 
   void _initializeTts() async {
