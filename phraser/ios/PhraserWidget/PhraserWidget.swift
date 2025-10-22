@@ -113,39 +113,46 @@ struct PhraserWidgetEntryView : View {
             )
             .ignoresSafeArea() // Extend to edges
 
-            VStack(spacing: 12) {
-                // Quote icon
+            VStack(spacing: 8) {
+                // Quote icon at top
                 Image(systemName: "quote.bubble.fill")
-                    .font(.system(size: family == .systemSmall ? 20 : 24))
+                    .font(.system(size: family == .systemSmall ? 18 : 22))
                     .foregroundColor(.white)
-                    .padding(.top, 8)
+                    .padding(.top, family == .systemSmall ? 12 : 16)
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                // Quote text
+                // Quote text - multiple lines, full quote displayed
                 Text(entry.quote)
-                    .font(.system(size: family == .systemSmall ? 14 : 16, weight: .medium))
+                    .font(.system(
+                        size: family == .systemSmall ? 13 : 15,
+                        weight: .medium,
+                        design: .default
+                    ))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .padding(.horizontal, 16)
-                    .minimumScaleFactor(0.8)
+                    .lineSpacing(family == .systemSmall ? 3 : 4)
+                    .padding(.horizontal, family == .systemSmall ? 12 : 16)
+                    .lineLimit(nil) // No line limit - show full quote
+                    .minimumScaleFactor(0.7) // Allow text to scale down if needed
+                    .fixedSize(horizontal: false, vertical: true) // Allow vertical expansion
 
-                Spacer()
+                Spacer(minLength: 4)
 
-                // Category badge
+                // Category badge at bottom
                 Text(entry.category.uppercased())
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 9, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
-                    .opacity(0.9)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
+                    .opacity(0.95)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .background(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 10)
                             .fill(Color.white.opacity(0.25))
                     )
-                    .padding(.bottom, 8)
+                    .padding(.bottom, family == .systemSmall ? 10 : 12)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity) // Fill entire widget
         }
         .widgetURL(URL(string: "phraser://open_quote"))
     }
@@ -197,10 +204,10 @@ struct PhraserWidget: Widget {
 struct PhraserWidget_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            PhraserWidgetEntryView(entry: SimpleEntry(date: Date(), quote: "I am blessed with infinite abundance and prosperity", category: "Affirmation", hasData: true))
+            PhraserWidgetEntryView(entry: SimpleEntry(date: Date(), quote: "I am blessed with infinite abundance and prosperity flowing into my life every single day", category: "Affirmation", hasData: true))
                 .previewContext(WidgetPreviewContext(family: .systemSmall))
 
-            PhraserWidgetEntryView(entry: SimpleEntry(date: Date(), quote: "Today I choose to see the beauty in every moment and embrace all possibilities", category: "Daily Inspiration", hasData: true))
+            PhraserWidgetEntryView(entry: SimpleEntry(date: Date(), quote: "Today I choose to see the beauty in every moment and embrace all possibilities that come my way with an open heart and grateful mind", category: "Daily Inspiration", hasData: true))
                 .previewContext(WidgetPreviewContext(family: .systemMedium))
         }
     }
