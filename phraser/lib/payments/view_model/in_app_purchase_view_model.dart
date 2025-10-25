@@ -20,7 +20,7 @@ class InAppPurchaseViewModel extends GetxController {
   bool _purchasePending = false;
   bool _loading = true;
   String? queryProductError;
-  final String _lifetimePremium = 'lifetime_premium';
+ String _lifetimePremium =  Platform.isIOS ? 'lifetime_premium' : 'Lifetime Premium2';
 
   final List<String> _kProductIds = <String>[];
   StreamSubscription<List<PurchaseDetails>> get subscription => _subscription;
