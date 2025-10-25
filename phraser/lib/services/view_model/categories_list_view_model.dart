@@ -227,11 +227,11 @@ class CategoriesListViewModel extends GetxController {
 
           // Find the first category by sorting category IDs
           if(allCategories.isNotEmpty) {
-            allCategories.sort((a, b) => int.parse(a.categoryId).compareTo(int.parse(b.categoryId)));
-            final firstCategoryId = allCategories.first.categoryId;
+            //allCategories.sort((a, b) => int.parse(a.categoryId).compareTo(int.parse(b.categoryId)));
+            final firstCategoryId = allCategories.firstWhere((element) => int.parse(element.totalPhraser) > 1,orElse: () => allCategories.first,);
 
             // If this is the first category, save it to current phrasers
-            if(listModel[0].categoryId == firstCategoryId) {
+          
               CurrentPhrasersDAO currentPhraserDAO = database.currentPhraserDAO;
               await currentPhraserDAO.deleteCurrentPhrasers();
               await currentPhraserDAO.insertAllCurrentPhrasers(listModel);
@@ -240,7 +240,7 @@ class CategoriesListViewModel extends GetxController {
               DataRepository().addToAllQuotes(listModel);
               Preferences.instance.currentPhraserPosition = 0;
               debugPrint('---> First category loaded with ${listModel.length} quotes');
-            }
+            
           }
         }
       }
