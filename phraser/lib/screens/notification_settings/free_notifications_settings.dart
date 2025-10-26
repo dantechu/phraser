@@ -592,12 +592,7 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                         _showPermissionSettingsDialog();
                       } else {
                         // On Android, show snackbar for temporary denial
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text('Notification permission is required to set reminders'),
-                            backgroundColor: Colors.orange,
-                          ),
-                        );
+                          _showPermissionSettingsDialog();
                       }
                       return;
                     }

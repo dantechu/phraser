@@ -349,8 +349,10 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                           try {
                             final productItem = purchaseViewModel.products.first;
                             purchaseViewModel.purchaseItem(productItem);
-                          } catch (e) {
-                            Fluttertoast.showToast(msg: 'Please try again later');
+                          } catch (e,s) {
+                            Fluttertoast.showToast(msg: 'Something went wrong.Please try again later');
+                            print('Error in purchasing item: $e');
+                            print('Stack trace: $s');
                           }
                         },
                         style: ElevatedButton.styleFrom(
