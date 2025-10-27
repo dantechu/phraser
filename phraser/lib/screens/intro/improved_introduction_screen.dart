@@ -70,6 +70,13 @@ class ImprovedIntroductionScreenState extends State<ImprovedIntroductionScreen>
         icon: Icons.favorite_outline,
       ),
       OnboardingPage(
+        title: '📱 Home Widget',
+        subtitle: 'View motivations from your selected sections directly on your home screen with our customizable widget.',
+        image: AppAssets.kIntroHomeWidget,
+        gradient: [Colors.teal.shade400, Colors.cyan.shade600],
+        icon: Icons.widgets_outlined,
+      ),
+      OnboardingPage(
         title: '🌟 Your Best Days Start Here',
         subtitle: 'Boost your self-confidence and feel positive about yourself with daily inspiration.',
         image: AppAssets.kIntroThree,
@@ -129,7 +136,7 @@ class ImprovedIntroductionScreenState extends State<ImprovedIntroductionScreen>
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (currentPage != 2)
+                      if (currentPage != 3)
                         TextButton(
                           onPressed: () {
                             InterestLifeAreasScreen().launch(context);

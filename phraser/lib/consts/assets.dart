@@ -40,6 +40,7 @@ class AppAssets {
   static const String kIntroOne = 'assets/intro_one.png';
   static const String kIntroTwo = 'assets/intro_two.png';
   static const String kIntroThree = 'assets/intro_three.png';
+  static const String kIntroHomeWidget = 'assets/intro_home_widget.jpg';
   static const String kCrownImage = 'assets/crown.png';
   static const String kCheck = 'assets/check.png';
   static const String kNotificationIcon = 'assets/notification.png';

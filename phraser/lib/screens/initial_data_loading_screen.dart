@@ -16,9 +16,6 @@ class InitialDataLoadingScreen extends StatefulWidget {
 
 class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
   final _categoriesListViewModel = Get.put(CategoriesListViewModel());
-  String _loadingStatus = 'Fetching data...';
-  int _totalCategories = 0;
-  int _loadedCategories = 0;
   bool _hasNavigated = false;
 
   @override
@@ -29,10 +26,6 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
 
   Future<void> _startDataFetching() async {
     try {
-      setState(() {
-        _loadingStatus = 'Fetching categories...';
-      });
-
       // Start sections loading in background (non-blocking)
       _fetchSections();
 
@@ -41,12 +34,6 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
 
     } catch (e) {
       testPrint('Error in initial data loading: $e');
-      if (mounted) {
-        setState(() {
-          _loadingStatus = 'Error loading data. Please check your connection.';
-        });
-      }
-
       _showRetryDialog();
     }
   }
@@ -55,13 +42,7 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
     // Fetch categories with progress callback
     // This now loads only the first category, then continues in background
     await _categoriesListViewModel.getCategoriesWithPhrasers((categoryName, current, total) {
-      if (mounted) {
-        setState(() {
-          _loadingStatus = 'Loading $categoryName...';
-          _loadedCategories = current;
-          _totalCategories = total;
-        });
-      }
+      // Loading silently without UI updates
     });
 
     // After first category is loaded, mark as ready and navigate
@@ -110,6 +91,8 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -120,27 +103,14 @@ class _InitialDataLoadingScreenState extends State<InitialDataLoadingScreen> {
               const CircularProgressIndicator(),
               const SizedBox(height: 32),
               Text(
-                _loadingStatus,
+                'Loading...',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
-              if (_totalCategories > 0) ...[
-                const SizedBox(height: 16),
-                Text(
-                  '$_loadedCategories / $_totalCategories categories loaded',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: _loadedCategories / _totalCategories,
-                ),
-              ],
             ],
           ),
         ),
