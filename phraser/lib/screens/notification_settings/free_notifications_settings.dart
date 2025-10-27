@@ -619,6 +619,33 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
                     ),
                   ),
                 ),
+                // Skip Button (only for first-time users)
+                if (Preferences.instance.isFirstOpen)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextButton(
+                      onPressed: () {
+                        Preferences.instance.isFirstOpen = false;
+                        if (widget.willPop) {
+                          Navigator.pop(context);
+                        } else {
+                          Get.offAllNamed(RouteHelper.phraserScreen);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                      child: Text(
+                        'Skip for now',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
