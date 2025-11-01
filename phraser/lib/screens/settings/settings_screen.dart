@@ -8,6 +8,7 @@ import 'package:phraser/consts/const_strings.dart';
 import 'package:phraser/helper/navigation_helper.dart';
 import 'package:phraser/screens/favorites_screen/favorites_screen.dart';
 import 'package:phraser/screens/in_app_purchase/preimum_app_screen.dart';
+import 'package:phraser/screens/in_app_purchase/premium_status_screen.dart';
 import 'package:phraser/screens/statistics/statistics_screen.dart';
 import 'package:phraser/widgets/region_selection_dialog.dart';
 import 'package:phraser/util/preferences_util.dart';
@@ -167,7 +168,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     iconColor: Colors.amber,
                     title: 'Manage Subscription',
                     subtitle: 'Premium features & billing',
-                    onTap: () => NavigationHelper.pushRoute(context, const PremiumAppScreen()),
+                    onTap: () {
+                      // Check if user is premium
+                      final isPremium = Preferences.instance.isPremiumApp;
+                      if (isPremium) {
+                        // Show premium status screen for premium users
+                        NavigationHelper.pushRoute(context, const PremiumStatusScreen());
+                      } else {
+                        // Show premium purchase screen for non-premium users
+                        NavigationHelper.pushRoute(context, const PremiumAppScreen());
+                      }
+                    },
                   ),
                   _buildSettingTile(
                     context,
