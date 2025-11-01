@@ -187,7 +187,7 @@ class _PremiumStatusScreenState extends State<PremiumStatusScreen>
                               const Text(
                                 'You\'re Premium! 🎉',
                                 style: TextStyle(
-                                  fontSize: 28,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                   height: 1.2,
@@ -200,7 +200,7 @@ class _PremiumStatusScreenState extends State<PremiumStatusScreen>
                               Text(
                                 'You have lifetime access to all premium features',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   color: Colors.white.withValues(alpha: 0.9),
                                   height: 1.5,
                                 ),

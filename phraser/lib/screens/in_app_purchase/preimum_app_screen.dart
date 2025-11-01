@@ -367,7 +367,7 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                           'Get Lifetime Premium - \$4.99',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 18,
+                            fontSize: 16,
                           ),
                         ),
                       ),
