@@ -12,9 +12,12 @@ import 'package:phraser/util/colors.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/terms_and_policy_text_widget.dart';
 import 'package:phraser/util/status_bar_helper.dart';
+import 'package:phraser/util/helper/route_helper.dart';
 
 class PremiumAppScreen extends StatefulWidget {
-  const PremiumAppScreen({Key? key}) : super(key: key);
+  final bool showCloseButton;
+
+  const PremiumAppScreen({Key? key, this.showCloseButton = false}) : super(key: key);
 
   @override
   State<PremiumAppScreen> createState() => _PremiumAppScreenState();
@@ -134,23 +137,41 @@ class _PremiumAppScreenState extends State<PremiumAppScreen> {
                         // Close button and header
                         Row(
                           children: [
-                            InkWell(
-                              onTap: () => Navigator.pop(context),
-                              borderRadius: BorderRadius.circular(24),
-                              child: Container(
-                                padding:  EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: kPrimaryColor.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child:  Icon(
-                                  Icons.arrow_back_ios_new,
-                                  size: 20,
-                                  color: kPrimaryColor,
+                            if (!widget.showCloseButton)
+                              InkWell(
+                                onTap: () => Navigator.pop(context),
+                                borderRadius: BorderRadius.circular(24),
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_back_ios_new,
+                                    size: 20,
+                                    color: kPrimaryColor,
+                                  ),
                                 ),
                               ),
-                            ),
-
+                            if (widget.showCloseButton) const Spacer(),
+                            if (widget.showCloseButton)
+                              InkWell(
+                                onTap: () => Get.offAllNamed(RouteHelper.phraserScreen),
+                                borderRadius: BorderRadius.circular(24),
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 20,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                         

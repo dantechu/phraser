@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:coins/usecases/coins_usecases.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -126,29 +127,47 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _handleColdStartNotification() async {
     try {
       final launchDetails = app_main.getLaunchNotificationDetails();
-      
+
       if (launchDetails?.didNotificationLaunchApp == true) {
         final payload = launchDetails?.notificationResponse?.payload;
         debugPrint('Cold start detected with payload: $payload');
-        
+
         // Clear the launch notification so it doesn't trigger again
         app_main.clearLaunchNotificationDetails();
-        
+
         // Handle the notification payload
         if (payload != null && payload.isNotEmpty) {
           // Let notification helper handle the navigation
           NotificationHelper.handleColdStartNotification(payload);
         } else {
-          // No valid payload, navigate to main screen
-          Get.offAllNamed(RouteHelper.phraserScreen);
+          // No valid payload, navigate to appropriate screen
+          _navigateToAppropriateScreen();
         }
       } else {
-        // Normal app launch, navigate to main screen
-        Get.offAllNamed(RouteHelper.phraserScreen);
+        // Normal app launch, navigate to appropriate screen
+        _navigateToAppropriateScreen();
       }
     } catch (e) {
       debugPrint('Error handling cold start notification: $e');
-      // Fallback: navigate to main screen
+      // Fallback: navigate to appropriate screen
+      _navigateToAppropriateScreen();
+    }
+  }
+
+  /// Navigate to paywall screen for Android non-premium users, otherwise to main screen
+  void _navigateToAppropriateScreen() {
+    // Check if platform is Android, user is not premium, and it's not first open
+    final bool shouldShowPaywall = Platform.isAndroid &&
+                                    !Preferences.instance.isPremiumApp;
+
+    if (shouldShowPaywall) {
+      // Show paywall screen for Android non-premium users with close button
+      Get.offAllNamed(
+        RouteHelper.premiumAppScreen,
+        arguments: {'showCloseButton': true},
+      );
+    } else {
+      // Navigate to main screen
       Get.offAllNamed(RouteHelper.phraserScreen);
     }
   }
