@@ -157,83 +157,61 @@ class NotificationHelper {
 
 
     final notificationDetails = NotificationConfigService.instance.notificationDetails;
-    final startTime = TimeOfDay(hour: int.parse(notificationDetails!.startAt.split(':')[0]),
-        minute: int.parse(notificationDetails.startAt.split(':')[1]));
 
-    final endTime = TimeOfDay(hour: int.parse(notificationDetails.endAt.split(':')[0]),
-        minute: int.parse(notificationDetails.endAt.split(':')[1]));
+    // Parse user-specified start and end times
+    final startTime = TimeOfDay(
+      hour: int.parse(notificationDetails!.startAt.split(':')[0]),
+      minute: int.parse(notificationDetails.startAt.split(':')[1])
+    );
 
+    final endTime = TimeOfDay(
+      hour: int.parse(notificationDetails.endAt.split(':')[0]),
+      minute: int.parse(notificationDetails.endAt.split(':')[1])
+    );
+
+    // Generate notification times within the user's specified time window
     List<TimeOfDay> timeOfDayList = getTimeIntervals(
-        startTime, endTime, notificationDetails.frequency);
+      startTime,
+      endTime,
+      notificationDetails.frequency
+    );
+
+    debugPrint('Scheduling ${notificationDetails.frequency} notifications between ${startTime.hour}:${startTime.minute} and ${endTime.hour}:${endTime.minute}');
 
     for(int i = 0; i<timeOfDayList.length; i++) {
       // Use free notification ID range (1000-1999)
       final notificationId = NotificationIdRanges.freeNotificationStart + i;
-      
+
       // Ensure we don't exceed the free notification range
       if (notificationId > NotificationIdRanges.freeNotificationEnd) {
         debugPrint('Warning: Exceeded free notification ID range. Skipping notification $i');
         continue;
       }
-      
+
       final timingHour = timeOfDayList[i].hour;
       final timingMin = timeOfDayList[i].minute;
-      Duration duration = DateTime(
-        DateTime
-            .now()
-            .year,
-        DateTime
-            .now()
-            .month,
-        DateTime
-            .now()
-            .day,
+
+      // Calculate the scheduled date/time
+      final now = DateTime.now();
+      DateTime scheduledDateTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
         timingHour,
         timingMin,
-      ).difference(DateTime.now());
+      );
 
-      if (DateTime
-          .now()
-          .hour > timingHour) {
-        duration = DateTime(
-          DateTime
-              .now()
-              .year,
-          DateTime
-              .now()
-              .month,
-          DateTime
-              .now()
-              .day ,
-          timingHour,
-          timingMin,
-        ).difference(DateTime.now());
-      } else if (DateTime
-          .now()
-          .hour == timingHour &&
-          DateTime
-              .now()
-              .minute >= timingMin) {
-        duration = DateTime(
-          DateTime
-              .now()
-              .year,
-          DateTime
-              .now()
-              .month,
-          DateTime
-              .now()
-              .day ,
-          timingHour,
-          timingMin,
-        ).difference(DateTime.now());
+      // If the scheduled time has already passed today, schedule for tomorrow
+      if (scheduledDateTime.isBefore(now)) {
+        scheduledDateTime = scheduledDateTime.add(const Duration(days: 1));
+        debugPrint('Time has passed for $timingHour:$timingMin, scheduling for tomorrow');
       }
 
       Random random = Random();
       debugPrint('************************* nCategoryLIst length: ${nCategoryList.length}');
       int index = random.nextInt(nCategoryList.length);
       final selectedPhraser = nCategoryList[index];
-      
+
       // Create payload with phraser information for navigation
       final payloadData = {
         'phraserId': selectedPhraser.phraserId,
@@ -241,17 +219,17 @@ class NotificationHelper {
         'categoryName': selectedPhraser.categoryName,
         'action': 'open_phraser'
       };
-      
-      // Schedule with free notification ID
-      scheduleLocalNotification(
-        id: notificationId, 
-        title: 'Daily Motivation', 
-        description: selectedPhraser.quote, 
-        duration: duration,
+
+      // Schedule with free notification ID - now with daily repeat
+      scheduleDailyNotification(
+        id: notificationId,
+        title: 'Daily Motivation',
+        description: selectedPhraser.quote,
+        scheduledTime: scheduledDateTime,
         payload: payloadData
       );
 
-      debugPrint('************************* [Free ID: $notificationId] ${selectedPhraser.phraserId}: ${selectedPhraser.quote}');
+      debugPrint('************************* [Free ID: $notificationId] Daily at ${timingHour.toString().padLeft(2, '0')}:${timingMin.toString().padLeft(2, '0')} (Next: $scheduledDateTime) - ${selectedPhraser.quote.substring(0, selectedPhraser.quote.length > 50 ? 50 : selectedPhraser.quote.length)}...');
     }
   }
 
@@ -558,6 +536,36 @@ class NotificationHelper {
   }
   
 
+  /// Generate evenly spaced time intervals across the entire 24-hour period
+  /// This ensures notifications are distributed throughout the full day
+  List<TimeOfDay> get24HourIntervals(int n) {
+    if (n <= 0) return [];
+
+    // Total minutes in a day
+    const int totalMinutesInDay = 24 * 60; // 1440 minutes
+
+    // Calculate interval between each notification
+    int interval = totalMinutesInDay ~/ n;
+
+    List<TimeOfDay> timeIntervals = [];
+
+    for (int i = 0; i < n; i++) {
+      // Calculate minutes from midnight (00:00)
+      int totalMinutes = interval * i;
+
+      // Calculate hour and minute values
+      int hours = totalMinutes ~/ 60;
+      int minutes = totalMinutes % 60;
+
+      // Ensure hours don't exceed 23
+      hours = hours % 24;
+
+      timeIntervals.add(TimeOfDay(hour: hours, minute: minutes));
+    }
+
+    return timeIntervals;
+  }
+
     List<TimeOfDay> getTimeIntervals(TimeOfDay startTime, TimeOfDay endTime, int n) {
       // Calculate the total number of minutes between the start and end times
       int totalMinutes = (endTime.hour * 60 + endTime.minute) -
@@ -615,10 +623,10 @@ class NotificationHelper {
 
     // Configure timezone first
     await _configureLocalTimeZone();
-    
+
     final scheduledTime = tz.TZDateTime.now(tz.local).add(duration);
     debugPrint('--------------> Notification scheduled at time: $scheduledTime');
-    
+
     /// scheduled notification function
     try {
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -646,6 +654,58 @@ class NotificationHelper {
       } catch (showError) {
         debugPrint('Error showing fallback notification: $showError');
       }
+    }
+  }
+
+  /// Schedule a daily repeating notification at a specific time
+  /// This notification will repeat every day at the same time automatically
+  Future<void> scheduleDailyNotification({
+    required int id,
+    required String title,
+    required String description,
+    required DateTime scheduledTime,
+    Map<String, dynamic>? payload}) async {
+
+    AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      '$id',
+      title,
+      importance: Importance.max,
+      ticker: 'Phraser',
+      visibility: NotificationVisibility.public,
+      styleInformation: BigTextStyleInformation(description),
+      category: AndroidNotificationCategory.message,
+    );
+
+    NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    // Configure timezone first
+    await _configureLocalTimeZone();
+
+    final tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    debugPrint('--------------> Daily notification scheduled at: $tzScheduledTime (repeats daily)');
+
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        description,
+        tzScheduledTime,
+        platformChannelSpecifics,
+        androidScheduleMode: AndroidScheduleMode.inexact,
+        payload: payload != null ? jsonEncode(payload) : '',
+        matchDateTimeComponents: DateTimeComponents.time, // This makes it repeat daily
+      );
+      debugPrint('Daily notification scheduled successfully (id: $id): $title at ${scheduledTime.hour}:${scheduledTime.minute}');
+    } catch (e) {
+      debugPrint('Error scheduling daily notification: $e');
     }
   }
 
