@@ -7,6 +7,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phraser/screens/notification_settings/notification_helper.dart';
@@ -50,6 +51,10 @@ void main() async{
 
 Future<void> _initApp() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
+
+  // Initialize GetStorage for theme persistence
+  await GetStorage.init();
+
   try {
     await Firebase.initializeApp();
   } catch (e) {

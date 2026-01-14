@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "phraser",
-      "version": "1.4.3+11",
+      "version": "1.4.5+12",
       "dependencies": [
         "ai_interactions",
         "cached_network_image",
