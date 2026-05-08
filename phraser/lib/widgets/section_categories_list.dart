@@ -21,6 +21,8 @@ import 'package:phraser/util/utils.dart';
 
 import '../floor_db/database.dart';
 import '../util/constant_strings.dart';
+import '../util/data_preloader.dart';
+import '../services/view_model/viewing_mode_view_model.dart';
 
 class SectionCategoriesList extends StatefulWidget {
   const SectionCategoriesList({Key? key, required this.categoriesList, required this.sectionName}) : super(key: key);
@@ -43,13 +45,22 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 8.0),
-          child: Text(widget.sectionName,style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),),
+          child: Text(
+            widget.sectionName,
+            style: TextStyle(
+              fontSize: 20.0, 
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
         ),
        Container(
          height: 210.0,
@@ -78,6 +89,42 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                NavigationHelper.pushRoute(context, const PremiumAppScreen());
                              }
                            }else {
+                             // Use smart category switching with DataPreloader
+                             final categoryName = updatedList[index].categoryName;
+                             
+                             // Try smart switching first (checks local data)
+                             final switchedLocally = await DataPreloader.instance.switchToCategory(categoryName);
+                             
+                             if (switchedLocally) {
+                               // Successfully switched using local data
+                               testPrint('Switched to $categoryName using local data with ${DataRepository().currentPhrasersList.length} quotes');
+                               // Update viewing mode with selected category
+                               try {
+                                 final viewingModeVM = Get.find<ViewingModeViewModel>();
+                                 viewingModeVM.updateCategoryName(categoryName);
+                               } catch (e) {
+                                 debugPrint('ViewingModeViewModel not found: $e');
+                               }
+                               Navigator.pop(context);
+                               // Show ads and exit
+                               if(AdsHelper.freeTriesInterstitialAd != null){
+                                 try {
+                                   AdsHelper.freeTriesInterstitialAd!.show();
+                                   AdsHelper.freeTriesInterstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+                                     onAdImpression: (impression) {
+                                       AdsHelper.freeTriesInterstitialAd = null;
+                                     }
+                                   );
+                                 } catch(e) {
+                                   debugPrint('Error in displaying ad: $e');
+                                 }
+                               } else {
+                                 AdsHelper.loadAdmobInterstitialAd();
+                               }
+                               return;
+                             }
+                             
+                             // Fallback to original network loading logic
                              Preferences.instance.currentPhraserPosition = 0;
                              Preferences.instance.savedCategoryName =
                                  updatedList[index].categoryName;
@@ -102,6 +149,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                testPrint('current phrasers saved into db');
                              });
                              DataRepository().currentPhrasersList = list;
+                             // Also add these quotes to the global collection for mood filtering
+                             DataRepository().addToAllQuotes(list);
                              Navigator.pop(context);
                              if(AdsHelper.freeTriesInterstitialAd != null){
                                try {
@@ -123,7 +172,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                          //  NavigationHelper.pushReplacement(context, const PhraserViewScreen());
                          },
                          child: Card(
-                           shadowColor: Colors.grey,
+                           shadowColor: isDark ? Colors.grey[600] : Colors.grey,
+                           color: isDark ? Colors.grey[800] : Colors.white,
                            margin: EdgeInsets.zero,
                            child: CachedNetworkImage(imageUrl: ConstantURls.kCategoryImagesBaseURL+updatedList[index].categoryImage, fit:  BoxFit.contain),
                          ).cornerRadiusWithClipRRect(10),
@@ -139,7 +189,13 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                    ),
                  ),
                  SizedBox(height: 5.0),
-                 Text(updatedList[index].categoryName, style: TextStyle(fontSize: 16.0),),
+                 Text(
+                   updatedList[index].categoryName, 
+                   style: TextStyle(
+                     fontSize: 16.0,
+                     color: isDark ? Colors.white : Colors.black87,
+                   ),
+                 ),
                ],
              ),
            );
@@ -213,6 +269,8 @@ class _SectionCategoriesListState extends State<SectionCategoriesList> {
                                     testPrint('current phrasers saved into db');
                                   });
                                   DataRepository().currentPhrasersList = list;
+                             // Also add these quotes to the global collection for mood filtering
+                             DataRepository().addToAllQuotes(list);
                                 AdsHelper.freeTriesRewardedAd = null;
                                 //AdsHelper.loadRewardedVideoAd();
                               });

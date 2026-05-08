@@ -52,6 +52,9 @@ class IntroductionScreenState extends State<IntroductionScreen> {
       WalkThroughModelClass(title: 'No more disbelief!', subTitle: 'Change your negative thoughts in positive ones.',image: AppAssets.kIntroTwo),
     );
     list.add(
+      WalkThroughModelClass(title: 'Home Widget', subTitle: 'View motivations from your selected sections directly on your home screen with our customizable widget.',image: AppAssets.kIntroHomeWidget),
+    );
+    list.add(
       WalkThroughModelClass(title: 'Good days are coming!', subTitle: '${ConstStrings.kAppNameSingular} will help you feel positive about yourself and boost your self-confidence', image: AppAssets.kIntroThree),
     );
   }
@@ -63,44 +66,77 @@ class IntroductionScreenState extends State<IntroductionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ColorfulSafeArea(
       color: Theme.of(context).primaryColorLight,
       child: Scaffold(
+        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
         body: Stack(
           children: [
             PageView(
               controller: pageController,
               children: list.map((e) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    commonCachedNetworkImage(
-                      e.image,
-                      fit: BoxFit.cover,
-                      height: 200,
-                      width: 200,
-                    ).cornerRadiusWithClipRRect(20),
-                    20.height,
-                    Text(e.title!, style: boldTextStyle(size: 22), textAlign: TextAlign.center),
-                    40.height,
-                    Text(
-                      e.subTitle!,
-                      style: secondaryTextStyle(size: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDark
+                                  ? Colors.black.withOpacity(0.3)
+                                  : Colors.grey.withOpacity(0.3),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: commonCachedNetworkImage(
+                          e.image,
+                          fit: BoxFit.cover,
+                          height: 220,
+                          width: 220,
+                        ).cornerRadiusWithClipRRect(20),
+                      ),
+                      32.height,
+                      Text(
+                        e.title!,
+                        style: boldTextStyle(
+                          size: 26,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      24.height,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          e.subTitle!,
+                          style: secondaryTextStyle(
+                            size: 16,
+                            color: isDark ? Colors.grey[300] : Colors.grey[700],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }).toList(),
             ),
             Positioned(
               left: 0,
               right: 0,
-              bottom: 100,
+              bottom: 120,
               child: DotIndicator(
                 indicatorColor: Theme.of(context).primaryColor,
                 pageController: pageController,
                 pages: list,
-                unselectedIndicatorColor: grey,
+                unselectedIndicatorColor: isDark ? Colors.grey[700]! : Colors.grey[400]!,
                 onPageChanged: (index) {
                   setState(
                     () {
@@ -111,41 +147,69 @@ class IntroductionScreenState extends State<IntroductionScreen> {
               ),
             ),
             Positioned(
-              bottom: 20,
+              bottom: 30,
               right: 0,
               left: 0,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   AppButton(
-                    padding: EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                     text: 'Skip',
-                    color: context.cardColor,
-                    textStyle: primaryTextStyle(),
+                    color: isDark
+                        ? Colors.grey[800]!
+                        : Colors.grey[200]!,
+                    textStyle: primaryTextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      weight: FontWeight.w600,
+                    ),
                     onTap: () {
                       InterestLifeAreasScreen().launch(context);
                     },
-                  ).visible(currentPage != 2).cornerRadiusWithClipRRect(10.0),
+                  ).visible(currentPage != 3).cornerRadiusWithClipRRect(12.0),
                   16.width,
-                  AppButton(
-                    padding: EdgeInsets.all(12),
-                    color: Theme.of(context).primaryColor,
-                    text: currentPage != 2 ? 'Next' : 'Continue',
-                    textStyle: primaryTextStyle(color: white),
-                    onTap: () {
-                      if (currentPage == 2) {
-                        InterestLifeAreasScreen().launch(context);
-                      } else {
-                        pageController.animateToPage(
-                          currentPage + 1,
-                          duration: Duration(milliseconds: 300),
-                          curve: Curves.linear,
-                        );
-                      }
-                    },
-                  ).cornerRadiusWithClipRRect(10.0).expand()
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Theme.of(context).primaryColor,
+                          Theme.of(context).primaryColor.withOpacity(0.8),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: AppButton(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      color: Colors.transparent,
+                      elevation: 0,
+                      text: currentPage != 3 ? 'Next' : 'Get Started',
+                      textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onTap: () {
+                        if (currentPage == 3) {
+                          InterestLifeAreasScreen().launch(context);
+                        } else {
+                          pageController.animateToPage(
+                            currentPage + 1,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      },
+                    ).cornerRadiusWithClipRRect(12.0),
+                  ).expand()
                 ],
-              ).paddingOnly(left: 16, right: 16),
+              ).paddingOnly(left: 20, right: 20),
             ),
           ],
         ),

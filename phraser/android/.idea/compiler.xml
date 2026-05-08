@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="1.8" />
+    <bytecodeTargetLevel target="21">
+      <module name="android.cloud_firestore" target="21" />
+      <module name="android.connectivity_plus" target="21" />
+      <module name="android.device_info_plus" target="21" />
+      <module name="android.firebase_analytics" target="21" />
+      <module name="android.firebase_core" target="21" />
+      <module name="android.firebase_crashlytics" target="21" />
+      <module name="android.firebase_database" target="21" />
+      <module name="android.firebase_messaging" target="21" />
+      <module name="android.firebase_remote_config" target="21" />
+      <module name="android.flutter_local_notifications" target="21" />
+      <module name="android.flutter_secure_storage" target="21" />
+      <module name="android.nb_utils" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>

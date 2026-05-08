@@ -11,15 +11,17 @@ class ThemeController extends GetxController {
   ThemeMode get initialValue => _loadTheme();
 
   ThemeMode _loadTheme() {
-    final _savedTheme = _storage.read(_themeKey) ?? ThemeMode.system;
-    if (_savedTheme == ThemeMode.system.toString()) {
+    final _savedTheme = _storage.read(_themeKey);
+    if (_savedTheme == null) {
+      return ThemeMode.light;
+    } else if (_savedTheme == ThemeMode.system.toString()) {
       return ThemeMode.system;
     } else if (_savedTheme == ThemeMode.light.toString()) {
       return ThemeMode.light;
     } else if (_savedTheme == ThemeMode.dark.toString()) {
       return ThemeMode.dark;
     } else {
-      return ThemeMode.system;
+      return ThemeMode.light;
     }
   }
 

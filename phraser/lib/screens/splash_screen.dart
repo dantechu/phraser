@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:coins/usecases/coins_usecases.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,6 +10,8 @@ import 'package:phraser/util/Floor_db.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/utils.dart';
+import 'package:phraser/util/data_preloader.dart';
+import 'package:phraser/main.dart' as app_main;
 
 import '../services/view_model/categories_list_view_model.dart';
 
@@ -34,30 +37,39 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
         NotificationHelper.instance.checkPendingNotifications();
       Future.delayed(const Duration(seconds: 1), () async  {
+        // Check if data needs to be reloaded (first time or 7+ days old)
+        if (Preferences.instance.shouldReloadData) {
+          // Clear old data and reload
+          await _clearExistingData();
+          Get.offAllNamed(RouteHelper.initialDataLoadingScreen);
+          return;
+        }
+
         if(Preferences.instance.isFirstOpen) {
           final CoinsUseCases _coinsUseCase = Get.find<CoinsUseCases>();
           final availableCoins = await _coinsUseCase.getAvailableCoins();
           if(availableCoins <= 0) {
             _coinsUseCase.addCoins(10);
           }
+          // Use DataPreloader for first-time setup
+          await DataPreloader.instance.preloadAllData();
           loadPhrasersData();
           Get.offAllNamed(RouteHelper.introductionScreen);
         }else {
-          updateData();
-          loadPhrasersData();
+          // Use DataPreloader for comprehensive data management
+          await DataPreloader.instance.preloadAllData();
 
+          // Load current phrasers from database on app restart
+          await getCurrentPhrasersList();
 
           ///  Loads ads here
-
           AdsHelper.loadRewardedVideoAd();
           AdsHelper.loadAdmobInterstitialAd();
 
-
-
-          await getCurrentPhrasersList();
           testPrint('current phrasersList size is: ${DataRepository().currentPhrasersList.length}');
-          await Future.delayed(Duration(seconds: 3));
-          Get.offAllNamed(RouteHelper.phraserScreen);
+
+          // Check if app was launched from a notification (cold start)
+          await _handleColdStartNotification();
          }
       });
 
@@ -73,6 +85,26 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  Future<void> _clearExistingData() async {
+    try {
+      final database = FloorDB.instance.floorDatabase;
+
+      // Clear all tables
+      //await database.phraserDAO.deleteAllPhrasers();
+      await database.categoriesDAO.deleteAllCategories();
+     // await database.sectionDAO.deleteAllSections();
+    //  await database.currentPhraserDAO.deleteAllCurrentPhrasers();
+
+      // Reset preferences
+      Preferences.instance.isInitialDataLoaded = false;
+      Preferences.instance.isCategoriesPresent = false;
+
+      testPrint('Existing data cleared for fresh reload');
+    } catch (e) {
+      debugPrint('Error clearing existing data: $e');
+    }
+  }
+
 
   void loadPhrasersData()  async {
     await _categoriesListViewModel.checkForData();
@@ -82,9 +114,61 @@ class _SplashScreenState extends State<SplashScreen> {
     final database = FloorDB.instance.floorDatabase;
     CurrentPhrasersDAO phrasersDAO = database.currentPhraserDAO;
     try {
-      DataRepository().currentPhrasersList = await phrasersDAO.getAllCurrentPhrasers();
+      final allQuotes = await phrasersDAO.getAllCurrentPhrasers();
+      DataRepository().currentPhrasersList = allQuotes;
+      // Also add these to the global collection for mood filtering
+      DataRepository().addToAllQuotes(allQuotes);
     } catch (e) {
       debugPrint('---> unable to fetch current phrasers');
+    }
+  }
+
+  /// Handle cold start notification navigation
+  Future<void> _handleColdStartNotification() async {
+    try {
+      final launchDetails = app_main.getLaunchNotificationDetails();
+
+      if (launchDetails?.didNotificationLaunchApp == true) {
+        final payload = launchDetails?.notificationResponse?.payload;
+        debugPrint('Cold start detected with payload: $payload');
+
+        // Clear the launch notification so it doesn't trigger again
+        app_main.clearLaunchNotificationDetails();
+
+        // Handle the notification payload
+        if (payload != null && payload.isNotEmpty) {
+          // Let notification helper handle the navigation
+          NotificationHelper.handleColdStartNotification(payload);
+        } else {
+          // No valid payload, navigate to appropriate screen
+          _navigateToAppropriateScreen();
+        }
+      } else {
+        // Normal app launch, navigate to appropriate screen
+        _navigateToAppropriateScreen();
+      }
+    } catch (e) {
+      debugPrint('Error handling cold start notification: $e');
+      // Fallback: navigate to appropriate screen
+      _navigateToAppropriateScreen();
+    }
+  }
+
+  /// Navigate to paywall screen for Android non-premium users, otherwise to main screen
+  void _navigateToAppropriateScreen() {
+    // Check if platform is Android, user is not premium, and it's not first open
+    final bool shouldShowPaywall = Platform.isAndroid &&
+                                    !Preferences.instance.isPremiumApp;
+
+    if (shouldShowPaywall) {
+      // Show paywall screen for Android non-premium users with close button
+      Get.offAllNamed(
+        RouteHelper.premiumAppScreen,
+        arguments: {'showCloseButton': true},
+      );
+    } else {
+      // Navigate to main screen
+      Get.offAllNamed(RouteHelper.phraserScreen);
     }
   }
 

@@ -9,14 +9,123 @@ class NotificationTitleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      margin: EdgeInsets.only(top: 10.0, bottom: 5.0),
-      padding: EdgeInsets.only(left: 10.0, top: 10.0, bottom: 10.0, right: 15.0),
+      margin: const EdgeInsets.only(top: 24.0, bottom: 12.0, left: 16.0, right: 16.0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: kPrimaryColor,
-          borderRadius: BorderRadius.only(topRight: Radius.circular(10.0), bottomRight: Radius.circular(10.0))
+        gradient: LinearGradient(
+          colors: isDark 
+              ? [
+                  kPrimaryColor.withOpacity(0.25),
+                  kPrimaryColor.withOpacity(0.15),
+                ]
+              : [
+                  kPrimaryColor.withOpacity(0.08),
+                  kPrimaryColor.withOpacity(0.04),
+                ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark 
+              ? kPrimaryColor.withOpacity(0.4)
+              : kPrimaryColor.withOpacity(0.12),
+          width: 1,
+        ),
       ),
-      child: Text(title, style: TextStyle(color: Colors.white, fontSize: 18, ),),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? kPrimaryColor.withOpacity(0.3)
+                  : kPrimaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              _getTimeEmoji(),
+              style: const TextStyle(fontSize: 20),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.headlineSmall?.color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _getTimeDescription(),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? kPrimaryColor.withOpacity(0.3)
+                  : kPrimaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              'Setup',
+              style: TextStyle(
+                color: isDark ? Colors.white : kPrimaryColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  String _getTimeEmoji() {
+    switch (title.toLowerCase()) {
+      case 'morning':
+        return '🌅';
+      case 'afternoon':
+        return '☀️';
+      case 'evening':
+        return '🌆';
+      case 'midnight':
+        return '🌙';
+      default:
+        return '⏰';
+    }
+  }
+
+  String _getTimeDescription() {
+    switch (title.toLowerCase()) {
+      case 'morning':
+        return 'Start your day with inspiration';
+      case 'afternoon':
+        return 'Stay motivated throughout the day';
+      case 'evening':
+        return 'Wind down with positive thoughts';
+      case 'midnight':
+        return 'Late night motivation and reflection';
+      default:
+        return 'Customize your notification schedule';
+    }
   }
 }

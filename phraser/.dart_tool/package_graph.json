@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "phraser",
-      "version": "1.2.3+7",
+      "version": "1.4.6+13",
       "dependencies": [
         "ai_interactions",
         "cached_network_image",
@@ -24,6 +24,7 @@
         "flutter_email_sender",
         "flutter_local_notifications",
         "flutter_secure_storage",
+        "flutter_tts",
         "fluttertoast",
         "font_awesome_flutter",
         "get",
@@ -31,6 +32,7 @@
         "google_fonts",
         "google_mobile_ads",
         "hive",
+        "home_widget",
         "http",
         "image_picker",
         "in_app_purchase",
@@ -47,6 +49,7 @@
         "shared_preferences",
         "timezone",
         "url_launcher",
+        "uuid",
         "validators2"
       ],
       "devDependencies": [
@@ -177,6 +180,33 @@
         "hive",
         "hive_flutter",
         "result_type"
+      ]
+    },
+    {
+      "name": "home_widget",
+      "version": "0.6.0",
+      "dependencies": [
+        "flutter",
+        "path_provider",
+        "path_provider_foundation"
+      ]
+    },
+    {
+      "name": "flutter_tts",
+      "version": "4.2.3",
+      "dependencies": [
+        "flutter",
+        "flutter_web_plugins"
+      ]
+    },
+    {
+      "name": "uuid",
+      "version": "4.5.1",
+      "dependencies": [
+        "crypto",
+        "fixnum",
+        "meta",
+        "sprintf"
       ]
     },
     {
@@ -592,7 +622,7 @@
     },
     {
       "name": "meta",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "dependencies": []
     },
     {
@@ -654,7 +684,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.6",
+      "version": "0.7.7",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -1085,6 +1115,31 @@
       ]
     },
     {
+      "name": "path_provider_foundation",
+      "version": "2.4.2",
+      "dependencies": [
+        "flutter",
+        "path_provider_platform_interface"
+      ]
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "fixnum",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "sprintf",
+      "version": "7.0.0",
+      "dependencies": []
+    },
+    {
       "name": "image_picker_windows",
       "version": "0.2.2",
       "dependencies": [
@@ -1172,13 +1227,6 @@
       "name": "web",
       "version": "1.1.1",
       "dependencies": []
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
-      ]
     },
     {
       "name": "file",
@@ -1273,14 +1321,6 @@
         "path",
         "path_provider_platform_interface",
         "xdg_directories"
-      ]
-    },
-    {
-      "name": "path_provider_foundation",
-      "version": "2.4.2",
-      "dependencies": [
-        "flutter",
-        "path_provider_platform_interface"
       ]
     },
     {
@@ -2102,16 +2142,6 @@
       ]
     },
     {
-      "name": "uuid",
-      "version": "4.5.1",
-      "dependencies": [
-        "crypto",
-        "fixnum",
-        "meta",
-        "sprintf"
-      ]
-    },
-    {
       "name": "rxdart",
       "version": "0.28.0",
       "dependencies": []
@@ -2250,11 +2280,6 @@
       "dependencies": []
     },
     {
-      "name": "fixnum",
-      "version": "1.1.1",
-      "dependencies": []
-    },
-    {
       "name": "simple_sparse_list",
       "version": "0.1.4",
       "dependencies": []
@@ -2283,11 +2308,6 @@
         "collection",
         "meta"
       ]
-    },
-    {
-      "name": "sprintf",
-      "version": "7.0.0",
-      "dependencies": []
     },
     {
       "name": "posix",

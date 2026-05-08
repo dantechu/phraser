@@ -17,6 +17,34 @@ class FloorDB {
   Future<void> init() async {
    _floorDatabase = await $FloorAppDatabase
        .databaseBuilder(ConstantStrings.kFloorDatabaseName)
+       .addCallback(Callback(
+         onCreate: (database, version) async {
+           // Create currentphrasers table on database creation
+           await database.execute('''
+             CREATE TABLE IF NOT EXISTS currentphrasers (
+               phraserId TEXT PRIMARY KEY NOT NULL,
+               tags TEXT NOT NULL,
+               quote TEXT NOT NULL,
+               categoryId TEXT NOT NULL,
+               categoryName TEXT NOT NULL
+             )
+           ''');
+
+           // Create mood_entries table on database creation
+           await database.execute('''
+             CREATE TABLE IF NOT EXISTS mood_entries (
+               moodId TEXT PRIMARY KEY NOT NULL,
+               mood TEXT NOT NULL,
+               intensity TEXT NOT NULL,
+               date TEXT NOT NULL,
+               timestamp TEXT NOT NULL,
+               notes TEXT,
+               triggers TEXT,
+               activities TEXT
+             )
+           ''');
+         },
+       ))
        .build();
 
   }

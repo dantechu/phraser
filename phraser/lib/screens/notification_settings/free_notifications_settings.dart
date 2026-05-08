@@ -1,6 +1,9 @@
+import 'package:colorful_safe_area/colorful_safe_area.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:phraser/consts/assets.dart';
 import 'package:phraser/screens/notification_settings/model/notification_model.dart';
 import 'package:phraser/screens/notification_settings/notification_helper.dart';
@@ -55,6 +58,177 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
     });
   }
 
+  // More reliable iOS permission checking using flutter_local_notifications
+  Future<bool> _checkIOSNotificationPermission() async {
+    try {
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+      
+      // Method 1: Try to query pending notifications
+      try {
+        final List<PendingNotificationRequest> pendingNotifications = 
+            await flutterLocalNotificationsPlugin.pendingNotificationRequests();
+        debugPrint('iOS: Successfully queried ${pendingNotifications.length} pending notifications');
+      } catch (e) {
+        debugPrint('iOS: Could not query pending notifications: $e');
+      }
+      
+      // Method 2: Try to show a test notification immediately and cancel it
+      try {
+        const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+          'test_channel', 'Test Channel',
+          importance: Importance.low,
+          priority: Priority.low,
+        );
+        const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+          presentAlert: false,
+          presentBadge: false,
+          presentSound: false,
+        );
+        const NotificationDetails platformChannelSpecifics = NotificationDetails(
+          android: androidDetails, 
+          iOS: iosDetails,
+        );
+        
+        // Try to show a silent test notification using the designated test ID
+        const testId = 99999; // NotificationIdRanges.testNotificationId
+        await flutterLocalNotificationsPlugin.show(
+          testId,
+          '', // Empty title
+          '', // Empty body
+          platformChannelSpecifics,
+        );
+        
+        // Immediately cancel the test notification
+        await flutterLocalNotificationsPlugin.cancel(testId);
+        
+        debugPrint('iOS: Successfully showed and cancelled test notification - permission granted');
+        return true;
+      } catch (e) {
+        debugPrint('iOS: Could not show test notification: $e');
+        
+        // Fallback to permission_handler
+        final permissionStatus = await Permission.notification.status;
+        debugPrint('iOS: Fallback permission handler status: $permissionStatus');
+        
+        // On iOS, be more lenient with permission status interpretation
+        // Sometimes permission_handler is not 100% accurate on iOS
+        if (permissionStatus == PermissionStatus.granted ||
+            permissionStatus == PermissionStatus.provisional ||
+            permissionStatus == PermissionStatus.limited) {
+          debugPrint('iOS: Permission handler indicates permission is granted');
+          return true;
+        }
+        
+        // Final fallback: if user reports they have enabled notifications in settings
+        // but permission_handler says denied, we'll assume it's a permission_handler bug
+        debugPrint('iOS: Permission handler says denied but user may have enabled in settings');
+        debugPrint('iOS: This might be a permission_handler limitation on iOS');
+        
+        return false;
+      }
+    } catch (e) {
+      debugPrint('iOS: Error in permission check: $e');
+      return false;
+    }
+  }
+
+  Future<void> _saveNotificationSettings() async {
+    try {
+      // Store context before async operations
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
+      
+      // Save notification settings
+      String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
+      String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
+      String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
+      String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
+      
+      NotificationsModel model = NotificationsModel(
+          startAt: '$startHour:$startMinute',
+          endAt: '$endtHour:$endMinute',
+          frequency: _frequency.toInt(), 
+          notificationData: ['notification 1','notification 2', 'notification 2']);
+      
+      NotificationConfigService.instance.notificationDetails = model;
+
+      // Schedule free notifications (ID range 1000-1999)
+      // This will cancel only existing free notifications and create new ones
+      // Pro notifications (ID range 2000-2999) remain unaffected
+      await NotificationHelper.instance.reScheduleFreeNotifications();
+
+      // Show success message
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Notification settings saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      if (widget.willPop) {
+        navigator.pop();
+      } else {
+        Get.offAllNamed(RouteHelper.phraserScreen);
+      }
+    } catch (e) {
+      debugPrint('Error saving notification settings: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving settings: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPermissionSettingsDialog() {
+    debugPrint('Showing permission settings dialog');
+    
+    final String instructions = defaultTargetPlatform == TargetPlatform.iOS
+        ? 'Go to Settings > I AM Blessed > Notifications and turn on "Allow Notifications".'
+        : 'Go to Settings > Apps > I AM Blessed > Notifications and turn on notifications.';
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Notification Permission Required'),
+          content: Text(
+            'To receive daily motivation reminders, please enable notification permission from your device settings.\n\n$instructions',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Skip permission check and proceed (iOS workaround)
+                  _saveNotificationSettings();
+                },
+                child: Text('I\'ve Enabled It', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+              child: Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   void initState() {
@@ -69,118 +243,469 @@ class _FreeNotificationSettingsScreenState extends State<FreeNotificationSetting
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(Icons.arrow_back)),
-        title: Text('Notifications Settings'),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            children: [
-              SizedBox(height: 50.0,),
-              Container(
-                  width: 100.0,
-                  height: 100.0,
-                  child: Image.asset(AppAssets.kNotificationIcon)),
-              SizedBox(height: 20.0,),
-              Text('Set daily motivation reminders\nto stay blessed', style: TextStyle(fontSize: 20.0),textAlign: TextAlign.center,),
-            ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return ColorfulSafeArea(
+      color: isDark ? Colors.grey[850]! : kPrimaryColor,
+      child: Scaffold(
+        appBar: AppBar(
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          backgroundColor: isDark ? Colors.grey[850]! : kPrimaryColor,
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.timer_outlined, color: kPrimaryColor,)),
-                  title: Text('Starts at'),
-                  subtitle: Text(_startTime.format(context)),
-                  onTap: () => _selectStartTime(context),
-                ),
-              ),
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.timer_outlined, color: kPrimaryColor,)),
-                  title: Text('Ends at'),
-                  subtitle: Text(_endTime.format(context)),
-                  onTap: () => _selectEndTime(context),
-                ),
-              ),
-              Card(
-                margin: EdgeInsets.only(left: 10.0, top: 10.0, right: 10.0),
-                child: ListTile(
-                  leading: Container(
-                      margin: EdgeInsets.only(top: 8.0),
-                      child: Icon(Icons.speed, color: kPrimaryColor,)),
-                  title: Text('Frequency      ${_frequency.toInt()}'),
-                  subtitle: Row(
+          title: const Text(
+            'Daily Reminders',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        body: Container(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header description
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? kPrimaryColor.withOpacity(0.15)
+                        : kPrimaryColor.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark 
+                          ? kPrimaryColor.withOpacity(0.3)
+                          : kPrimaryColor.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      Text('0'),
                       Container(
-                        width: MediaQuery.of(context).size.width/1.7,
-                        child: Slider(
-                          value: _frequency,
-                          min: 0.0,
-                          max: 10.0,
-                          divisions: 10,
-                          onChanged: _onFrequencyChanged,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? kPrimaryColor.withOpacity(0.3)                           : kPrimaryColor.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          '🔔',
+                          style: TextStyle(fontSize: 20),
                         ),
                       ),
-                      Text('10'),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Daily Motivation Reminders',
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.headlineSmall?.color,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Set up simple daily reminders to stay blessed and motivated throughout your day.',
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyMedium?.color,
+                                fontSize: 13,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-          Container(
-              width: MediaQuery.of(context).size.width,
-              height: 45.0,
-              margin: EdgeInsets.only(left: 20.0, right: 20.0, bottom: 70.0),
-              child: ElevatedButton(
-                  onPressed: () async {
+                // Settings Container
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 6,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.08),
+                      width: 1,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Time Selection Section
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildTimeCard(
+                                context,
+                                title: 'Start Time',
+                                time: _startTime.format(context),
+                                emoji: '⏰',
+                                onTap: () => _selectStartTime(context),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildTimeCard(
+                                context,
+                                title: 'End Time',
+                                time: _endTime.format(context),
+                                emoji: '⏰',
+                                onTap: () => _selectEndTime(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // Frequency Section
+                        Text(
+                          'Frequency',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).textTheme.titleMedium?.color,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? kPrimaryColor.withOpacity(0.15)
+                                : kPrimaryColor.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isDark
+                            ? kPrimaryColor.withOpacity(0.3)
+        : kPrimaryColor.withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text(
+                                '🔔',
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Frequency',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: kPrimaryColor,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            '${_frequency.toInt()}',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    SliderTheme(
+                                      data: SliderTheme.of(context).copyWith(
+                                        activeTrackColor: kPrimaryColor,
+                                        inactiveTrackColor: kPrimaryColor.withOpacity(0.3),
+                                        thumbColor: kPrimaryColor,
+                                        overlayColor: kPrimaryColor.withOpacity(0.1),
+                                        trackHeight: 3,
+                                        thumbShape: const RoundSliderThumbShape(
+                                            enabledThumbRadius: 8),
+                                      ),
+                                      child: Slider(
+                                        value: _frequency,
+                                        min: 0.0,
+                                        max: 10.0,
+                                        divisions: 10,
+                                        onChanged: _onFrequencyChanged,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Save Button
+                Container(
+                  margin: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 20),
+                  child: ElevatedButton(
+                    onPressed: () async {
                     if(Preferences.instance.isFirstOpen) {
                       Preferences.instance.isFirstOpen = false;
                     }
-                    String startHour = _startTime.hour.toInt() < 10 ? '0${_startTime.hour}' : _startTime.hour.toString();
-                    String startMinute = _startTime.minute.toInt() < 10 ? '0${_startTime.minute}' : _startTime.minute.toString();
-                    String endtHour = _endTime.hour.toInt() < 10 ? '0${_endTime.hour}' : _endTime.hour.toString();
-                    String endMinute = _endTime.minute.toInt() < 10 ? '0${_endTime.minute}' : _endTime.minute.toString();
-                    NotificationsModel model =
-                    NotificationsModel(
-                        startAt: '$startHour:$startMinute',
-                        endAt: '$endtHour:$endMinute',
-                        frequency: _frequency.toInt(), notificationData: ['notification 1','notification 2', 'notification 2']);
-                    NotificationConfigService.instance.notificationDetails = model;
-                    final permissionStatus = await  Permission.notification.status;
-                    if ( permissionStatus != PermissionStatus.granted) {
-                      await  Permission.notification.request();
+                    
+                    // Store context before async operations
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    
+                    // Validate settings first
+                    if (_frequency <= 0) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('Please select a frequency greater than 0'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
                     }
-
-                    await  NotificationHelper.instance.reScheduleNotifications();
-
-                    if(widget.willPop) {
-                      Navigator.pop(context);
+                    
+                    // Check if start time is before end time
+                    final startMinutes = _startTime.hour * 60 + _startTime.minute;
+                    final endMinutes = _endTime.hour * 60 + _endTime.minute;
+                    
+                    if (startMinutes >= endMinutes) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text('End time must be after start time'),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    // Check notification permission first
+                    bool permissionGranted = false;
+                    
+                    if (defaultTargetPlatform == TargetPlatform.iOS) {
+                      // iOS-specific permission handling with more reliable checking
+                      debugPrint('iOS: Checking notification permission...');
+                      
+                      // First, try the more reliable method
+                      bool hasPermissionReliable = await _checkIOSNotificationPermission();
+                      debugPrint('iOS: Reliable permission check result: $hasPermissionReliable');
+                      
+                      if (hasPermissionReliable) {
+                        permissionGranted = true;
+                        debugPrint('iOS: Permission confirmed as granted');
+                      } else {
+                        // Permission not granted, try to request it
+                        debugPrint('iOS: Permission not granted, requesting...');
+                        final permissionStatus = await Permission.notification.status;
+                        debugPrint('iOS: Current permission status: $permissionStatus');
+                        
+                        if (permissionStatus == PermissionStatus.denied) {
+                          final requestResult = await Permission.notification.request();
+                          debugPrint('iOS: Permission request result: $requestResult');
+                          
+                          if (requestResult == PermissionStatus.granted || 
+                              requestResult == PermissionStatus.provisional) {
+                            // Double-check with reliable method after granting
+                            permissionGranted = await _checkIOSNotificationPermission();
+                            debugPrint('iOS: Final permission check after request: $permissionGranted');
+                          } else {
+                            // User denied, show settings dialog
+                            debugPrint('iOS: User denied permission, showing settings dialog');
+                            _showPermissionSettingsDialog();
+                            return;
+                          }
+                        } else if (permissionStatus == PermissionStatus.permanentlyDenied) {
+                          debugPrint('iOS: Permission permanently denied, showing settings dialog');
+                          _showPermissionSettingsDialog();
+                          return;
+                        } else {
+                          // Other status, use reliable check result
+                          permissionGranted = hasPermissionReliable;
+                          debugPrint('iOS: Using reliable check result: $permissionGranted');
+                        }
+                      }
                     } else {
-                      Get.offAllNamed(RouteHelper.phraserScreen);
+                      // Android-specific permission handling
+                      final permissionStatus = await Permission.notification.status;
+                      debugPrint('Android permission status: $permissionStatus');
+                      
+                      if (permissionStatus == PermissionStatus.permanentlyDenied) {
+                        _showPermissionSettingsDialog();
+                        return;
+                      }
+                      
+                      if (permissionStatus != PermissionStatus.granted) {
+                        final requestResult = await Permission.notification.request();
+                        debugPrint('Android permission request result: $requestResult');
+                        
+                        if (requestResult == PermissionStatus.permanentlyDenied) {
+                          _showPermissionSettingsDialog();
+                          return;
+                        }
+                        
+                        permissionGranted = requestResult == PermissionStatus.granted;
+                      } else {
+                        permissionGranted = true;
+                      }
                     }
-                  },
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),
-                  ))),
-        ],
+                    
+                    if (!permissionGranted) {
+                      if (defaultTargetPlatform == TargetPlatform.iOS) {
+                        // On iOS, if we reach here without permission, show settings dialog
+                        _showPermissionSettingsDialog();
+                      } else {
+                        // On Android, show snackbar for temporary denial
+                          _showPermissionSettingsDialog();
+                      }
+                      return;
+                    }
+
+                      // Save notification settings
+                      await _saveNotificationSettings();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kPrimaryColor,
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                    child: const Text(
+                      'Save Reminder Settings',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                // Skip Button (only for first-time users)
+                if (Preferences.instance.isFirstOpen)
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextButton(
+                      onPressed: () {
+                        Preferences.instance.isFirstOpen = false;
+                        if (widget.willPop) {
+                          Navigator.pop(context);
+                        } else {
+                          Get.offAllNamed(RouteHelper.phraserScreen);
+                        }
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        minimumSize: const Size(double.infinity, 40),
+                      ),
+                      child: Text(
+                        'Skip for now',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimeCard(
+    BuildContext context, {
+    required String title,
+    required String time,
+    required String emoji,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.titleMedium?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../util/colors.dart';
 
@@ -8,10 +9,16 @@ class ThemeStyles {
     primaryColor: kPrimaryColor,
     primaryColorDark: Colors.black,
     primaryColorLight: Colors.white,
-    appBarTheme: const AppBarTheme(
+    scaffoldBackgroundColor: Colors.grey[50],
+    appBarTheme: AppBarTheme(
       centerTitle: true,
       color: kPrimaryColor,
       elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.grey[50],
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: kPrimaryColor,
@@ -53,6 +60,11 @@ class ThemeStyles {
       centerTitle: true,
       color: Colors.grey.shade800,
       elevation: 2,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.grey.shade900,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: Colors.grey.shade800,

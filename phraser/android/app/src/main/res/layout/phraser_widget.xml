@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/widget_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/ic_quote"
+        android:contentDescription="Quote icon" />
+
+    <TextView
+        android:id="@+id/widget_quote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/widget_icon"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="40dp"
+        android:text="Open Phraser for inspiration"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:maxLines="6"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/widget_category"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="DAILY QUOTE"
+        android:textSize="10sp"
+        android:textColor="#FFFFFF"
+        android:alpha="0.8"
+        android:letterSpacing="0.1"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:background="@drawable/category_badge" />
+
+</RelativeLayout>

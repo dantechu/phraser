@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:ai_interactions/ai_interactions.dart';
 import 'package:coins/coins.dart';
 import 'package:core/core.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:phraser/screens/notification_settings/notification_helper.dart';
@@ -16,8 +19,18 @@ import 'package:phraser/util/app_config_service.dart';
 import 'package:phraser/util/helper/route_helper.dart';
 import 'package:phraser/util/preferences.dart';
 import 'package:phraser/util/helper/get_di.dart' as di;
+import 'package:phraser/services/widget_service.dart';
 
 import 'payments/view_model/in_app_purchase_view_model.dart';
+
+// Global variable to store notification that launched the app
+NotificationAppLaunchDetails? _launchNotificationDetails;
+
+// Getter to access launch notification from anywhere in the app
+NotificationAppLaunchDetails? getLaunchNotificationDetails() => _launchNotificationDetails;
+
+// Clear the launch notification after handling it
+void clearLaunchNotificationDetails() => _launchNotificationDetails = null;
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +51,10 @@ void main() async{
 
 Future<void> _initApp() async {
   final appDocumentDir = await getApplicationDocumentsDirectory();
+
+  // Initialize GetStorage for theme persistence
+  await GetStorage.init();
+
   try {
     await Firebase.initializeApp();
   } catch (e) {
@@ -58,6 +75,12 @@ Future<void> _initApp() async {
       ?.createNotificationChannel(channel);
   await NotificationHelper.instance.initializeLocalNotifications();
   await NotificationConfigService.instance.initialize();
+  
+  // Check if app was launched from a notification (cold start)
+  _launchNotificationDetails = await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  if (_launchNotificationDetails?.didNotificationLaunchApp == true) {
+    debugPrint('App launched from notification: ${_launchNotificationDetails?.notificationResponse?.payload}');
+  }
   // Pass all uncaught "fatal" errors from the framework to Crashlytics
   try {
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -65,6 +88,10 @@ Future<void> _initApp() async {
     debugPrint('Failed to set up Crashlytics error handler: $e');
   }
   AppConfigService.instance.init();
+
+  // Initialize widget service for home screen widgets
+  await WidgetService().initialize();
+
  // initializeApplovinMAX();
 }
 

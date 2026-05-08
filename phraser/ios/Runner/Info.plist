@@ -28,6 +28,10 @@
 	<string>ca-app-pub-9740790965972178~8584067646</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>I Am Blessed uses your storage to store shared quotes only.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>I AM Blessed needs notification permission to send you daily motivational reminders.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
@@ -46,9 +50,14 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>I Am Blessed uses your storage to store shared quotes only.</string>
 </dict>
 </plist>
